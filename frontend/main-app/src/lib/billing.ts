@@ -108,7 +108,8 @@ export async function subscribeToPlan(
     body: JSON.stringify({ plan_id: planId }),
   });
   if (!res.ok) {
-    throw new Error("Failed to start subscription");
+    const body = await res.json().catch(() => ({}));
+    throw new Error(typeof body.detail === "string" ? body.detail : "Failed to start subscription");
   }
   return res.json();
 }
@@ -178,9 +179,14 @@ export interface ManualPayment {
   status: "pending" | "approved" | "rejected"; admin_note: string | null; created_at: string; plan_name: string | null;
 }
 
-export async function fetchManualMethods(): Promise<ManualMethod[]> {
-  const res = await fetch("/api/v1/billing/manual/methods");
-  if (!res.ok) throw new Error("Failed to load payment methods");
+export interface PaymentOptions {
+  online: { enabled: boolean; configured: boolean; available: boolean };
+  manual: { enabled: boolean; available: boolean; methods: ManualMethod[]; note: string };
+}
+
+export async function fetchPaymentOptions(): Promise<PaymentOptions> {
+  const res = await fetch("/api/v1/billing/manual/options");
+  if (!res.ok) throw new Error("Failed to load payment options");
   return res.json();
 }
 

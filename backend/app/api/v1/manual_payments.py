@@ -8,30 +8,23 @@ from pydantic import BaseModel, Field
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.db import get_db
 from app.core.deps import get_current_internal_user, get_current_user
 from app.models.billing import Plan, Subscription
 from app.models.enums import SubscriptionStatus
 from app.models.manual_payment import ManualPayment, ManualPaymentDocument
 from app.models.user import User
+from app.models.platform_service import PlatformService
+from app.core.cred_crypto import decrypt_creds, encrypt_creds
+from app.services import payment_options as po
 from app.services.billing_service import PlanNotFoundError, create_pending_subscription, get_plan
 
 router = APIRouter(prefix="/billing/manual", tags=["billing"])
 admin_router = APIRouter(prefix="/admin/manual-payments", tags=["admin"])
 
-METHOD_LABELS = {"bkash": "bKash", "nagad": "Nagad", "rocket": "Rocket", "bank": "Bank transfer"}
 ALLOWED_TYPES = {"image/jpeg", "image/png", "application/pdf"}
 MAX_FILE_BYTES = 5 * 1024 * 1024
 MAX_FILES = 5
-
-
-def _configured_methods() -> list[dict]:
-    details = {
-        "bkash": settings.manual_pay_bkash, "nagad": settings.manual_pay_nagad,
-        "rocket": settings.manual_pay_rocket, "bank": settings.manual_pay_bank,
-    }
-    return [{"method": m, "label": METHOD_LABELS[m], "details": d} for m, d in details.items() if d.strip()]
 
 
 class DocRead(BaseModel):
@@ -69,9 +62,10 @@ async def _read(db: AsyncSession, p: ManualPayment) -> PaymentRead:
     )
 
 
-@router.get("/methods")
-async def manual_methods() -> list[dict]:
-    return _configured_methods()
+@router.get("/options")
+async def payment_options(db: AsyncSession = Depends(get_db)) -> dict:
+    """Which payment methods the checkout page may offer right now."""
+    return await po.get_options(db)
 
 
 @router.post("/payments", response_model=PaymentRead)
@@ -85,7 +79,8 @@ async def submit_manual_payment(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentRead:
-    if method not in {m["method"] for m in _configured_methods()}:
+    opts = await po.get_options(db)
+    if not opts["manual"]["available"] or method not in {m["method"] for m in opts["manual"]["methods"]}:
         raise HTTPException(status_code=400, detail="This payment method is not available")
     try:
         plan = await get_plan(db, plan_id)
@@ -219,3 +214,39 @@ async def admin_reject(
     payment_id: uuid.UUID, body: Decision, staff: User = Depends(get_current_internal_user), db: AsyncSession = Depends(get_db)
 ) -> PaymentRead:
     return await _decide(db, payment_id, staff, False, body.note)
+
+
+# ── staff: payment method settings ─────────────────────────────────────────
+
+class SettingsBody(BaseModel):
+    online_enabled: bool | None = None
+    manual_enabled: bool | None = None
+    accounts: dict[str, str] | None = None  # bkash / nagad / rocket / bank / note
+
+
+@admin_router.get("/settings")
+async def admin_get_settings(_: User = Depends(get_current_internal_user), db: AsyncSession = Depends(get_db)) -> dict:
+    return {**await po.get_options(db), "accounts": {k: (await po.manual_accounts(db)).get(k, "") for k in (*po.ACCOUNT_KEYS, "note")}}
+
+
+@admin_router.put("/settings")
+async def admin_put_settings(body: SettingsBody, _: User = Depends(get_current_internal_user), db: AsyncSession = Depends(get_db)) -> dict:
+    online = await db.scalar(select(PlatformService).where(PlatformService.code == "sslcommerz"))
+    manual = await db.scalar(select(PlatformService).where(PlatformService.code == po.MANUAL_CODE))
+    if online is None or manual is None:
+        raise HTTPException(status_code=500, detail="Payment settings are not initialised")
+    if body.online_enabled is not None:
+        if body.online_enabled and not (await po.get_options(db))["online"]["configured"]:
+            raise HTTPException(status_code=400, detail="Add the SSLCommerz credentials in Integrations first, then it can be switched on.")
+        online.is_enabled = body.online_enabled
+    if body.manual_enabled is not None:
+        manual.is_enabled = body.manual_enabled
+    if body.accounts is not None:
+        creds = decrypt_creds(manual.credentials_enc) if manual.credentials_enc else {}
+        for k in (*po.ACCOUNT_KEYS, "note"):
+            if k in body.accounts:
+                v = (body.accounts[k] or "").strip()[:500]
+                creds[k] = v
+        manual.credentials_enc = encrypt_creds(creds)
+    await db.commit()
+    return await admin_get_settings(_, db)

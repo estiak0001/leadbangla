@@ -190,7 +190,7 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-surface-900 sm:text-4xl">বিক্রি বাড়াতে যা যা দরকার</h2>
           <p className="mt-3 text-surface-500">আলাদা আলাদা টুল ছেড়ে এক প্ল্যাটফর্মেই পুরো মার্কেটিং চালান।</p>
         </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
             <div key={f.title} className="group rounded-xl border border-surface-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-card-hover">
               <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-lg ${f.color}`}><f.icon size={24} /></div>

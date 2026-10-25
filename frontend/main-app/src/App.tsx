@@ -5,6 +5,7 @@ import LoginPage from "./modules/auth/LoginPage";
 import AcceptInvitePage from "./modules/auth/AcceptInvitePage";
 import PickPlanPage from "./modules/onboarding/PickPlanPage";
 import ManualPaymentPage from "./modules/billing/ManualPaymentPage";
+import CheckoutPage from "./modules/billing/CheckoutPage";
 import OnboardingPage from "./modules/onboarding/OnboardingPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import BillingPage from "./modules/billing/BillingPage";
@@ -68,6 +69,7 @@ export default function App() {
       <Route path="/settings/push" element={<Navigate to="/push" replace />} />
       <Route path="/accept-invite" element={<AcceptInvitePage />} />
       <Route path="/pick-plan" element={<PickPlanPage />} />
+      <Route path="/checkout" element={<CheckoutPage />} />
       <Route path="/pay-manually" element={<ManualPaymentPage />} />
       <Route path="/billing" element={<BillingPage />} />
       <Route path="/billing/success" element={<CheckoutSuccessPage />} />

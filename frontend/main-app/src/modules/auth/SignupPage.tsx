@@ -7,7 +7,6 @@ import Select from "../../components/Select";
 import Alert from "../../components/Alert";
 import SplitAuthLayout from "../../components/SplitAuthLayout";
 import { signup, storeTokens } from "../../lib/auth";
-import { subscribeToPlan } from "../../lib/billing";
 import {
   COMPANY_SIZE_OPTIONS,
   INDUSTRY_OPTIONS,
@@ -37,12 +36,7 @@ export default function SignupPage() {
     try {
       const tokens = await signup({ email, password, orgName, language, phone, industry, companySize, website });
       storeTokens(tokens);
-      if (preselectedPlanId) {
-        const { checkout_url } = await subscribeToPlan(preselectedPlanId);
-        window.location.href = checkout_url;
-        return;
-      }
-      navigate("/pick-plan");
+      navigate(preselectedPlanId ? `/checkout?plan=${preselectedPlanId}` : "/pick-plan");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
       setSubmitting(false);
@@ -52,7 +46,7 @@ export default function SignupPage() {
   return (
     <SplitAuthLayout
       title="Create your account"
-      subtitle={preselectedPlanId ? "One step away from your selected plan." : "Start your free trial — no card needed yet."}
+      subtitle={preselectedPlanId ? "One step away from your selected plan." : "Create your account, then choose a plan."}
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <Alert variant="error" onDismiss={() => setError(null)}>{error}</Alert>}

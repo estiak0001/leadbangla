@@ -9,16 +9,11 @@ class SSLCommerzSessionError(Exception):
 
 
 class SSLCommerzClient:
-    """Wraps SSLCommerz's sandbox API.
+    """Wraps the SSLCommerz API.
 
-    Falls back to a local fake checkout page when no real sandbox
-    credentials are configured, so the subscribe -> pay -> active flow is
-    testable without first registering a SSLCommerz developer account.
-
-    Credentials are resolved per call: live credentials stored via the
-    admin Integration Hub (Step 27) take priority, then the
-    SSLCOMMERZ_STORE_ID/SSLCOMMERZ_STORE_PASSWORD env vars, then the fake
-    checkout page.
+    Credentials are resolved per call: those saved in the admin Integration Hub
+    take priority, then the SSLCOMMERZ_STORE_ID / SSLCOMMERZ_STORE_PASSWORD env
+    vars. With neither, online payment is simply unavailable.
     """
 
     async def init_session(
@@ -33,16 +28,11 @@ class SSLCommerzClient:
         cancel_url: str,
         ipn_url: str,
         product_name: str,
-        fake_checkout_path: str = "/api/v1/billing/fake-checkout",
     ) -> str:
         """Returns the URL the browser should be redirected to for payment."""
         creds = await get_live_creds(db, "sslcommerz")
         if creds is None:
-            # Must go through the /api prefix so Nginx/Vite's proxy routes it
-            # to the backend instead of falling through to the frontend SPA.
-            # fake_checkout_path lets different flows (plan checkout, wallet
-            # top-up) each land on their own fake-checkout route.
-            return f"{fake_checkout_path}?tran_id={tran_id}"
+            raise SSLCommerzSessionError("Online payment is not available right now")
 
         base_url = creds.get("sandbox_base_url", "https://sandbox.sslcommerz.com")
         payload = {
@@ -79,7 +69,7 @@ class SSLCommerzClient:
     async def validate_transaction(self, db: AsyncSession, val_id: str) -> bool:
         creds = await get_live_creds(db, "sslcommerz")
         if creds is None:
-            return True
+            return False  # never confirm a payment we cannot verify
 
         base_url = creds.get("sandbox_base_url", "https://sandbox.sslcommerz.com")
         params = {

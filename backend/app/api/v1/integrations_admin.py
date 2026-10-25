@@ -72,6 +72,8 @@ async def save_merged(code: str, body: CredentialsBody, _: User = Depends(get_cu
     if missing:
         raise HTTPException(status_code=400, detail="Fill in: " + ", ".join(missing))
     svc.credentials_enc = encrypt_creds(merged)
+    if code == "sslcommerz":
+        svc.is_enabled = True  # configured now, so the online payment option switches on
     svc.last_tested_at, svc.last_test_ok, svc.last_test_error = None, None, None  # new credentials must be re-tested
     if not all(merged.get(k) for k in body.required):
         svc.is_live = False

@@ -29,3 +29,12 @@ export async function openProof(paymentId: string, doc: MDoc) {
   if (!res.ok) throw new Error("Could not open the document");
   window.open(URL.createObjectURL(await res.blob()), "_blank", "noopener");
 }
+
+export interface PaymentSettings {
+  online: { enabled: boolean; configured: boolean; available: boolean };
+  manual: { enabled: boolean; available: boolean };
+  accounts: Record<"bkash" | "nagad" | "rocket" | "bank" | "note", string>;
+}
+export const getPaymentSettings = () => call<PaymentSettings>("/settings");
+export const savePaymentSettings = (body: { online_enabled?: boolean; manual_enabled?: boolean; accounts?: Partial<PaymentSettings["accounts"]> }) =>
+  call<PaymentSettings>("/settings", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

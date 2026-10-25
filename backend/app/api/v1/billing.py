@@ -1,7 +1,4 @@
-import uuid
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -9,6 +6,7 @@ from app.core.config import settings
 from app.core.db import get_db
 from app.core.deps import get_current_membership, get_current_user
 from app.integrations.sslcommerz import sslcommerz_client
+from app.services.payment_options import online_available
 from app.models.contact import Contact
 from app.models.landing_page import LandingPage
 from app.models.organization import OrganizationMember
@@ -50,7 +48,6 @@ from app.services.wallet_service import (
     complete_topup,
     create_pending_topup,
     get_balance,
-    get_pending_topup,
     list_transactions,
 )
 
@@ -75,6 +72,9 @@ async def subscribe(
         plan = await get_plan(db, payload.plan_id)
     except PlanNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Plan not found")
+
+    if plan.price_bdt > 0 and not await online_available(db):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Online payment isn't available right now. Please pay manually instead.")
 
     subscription = await create_pending_subscription(db, current_user.id, plan)
 
@@ -140,44 +140,6 @@ async def public_credit_rates(db: AsyncSession = Depends(get_db)) -> list[Credit
     return await list_credit_rates(db)
 
 
-@router.get("/fake-checkout", response_class=HTMLResponse)
-async def fake_checkout(tran_id: str, db: AsyncSession = Depends(get_db)) -> HTMLResponse:
-    subscription = await get_subscription_by_tran_id(db, tran_id)
-    if subscription is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown transaction")
-
-    html = f"""
-    <html>
-      <body>
-        <h1>Sandbox checkout (fake gateway)</h1>
-        <p>Standing in for SSLCommerz's sandbox until real credentials are configured.</p>
-        <p>Plan: {subscription.plan.name} &mdash; {subscription.plan.price_bdt} BDT/{subscription.plan.billing_interval}</p>
-        <form method="post" action="/api/v1/billing/fake-checkout/complete">
-          <input type="hidden" name="tran_id" value="{tran_id}" />
-          <button type="submit">Simulate successful payment</button>
-        </form>
-        <a href="{settings.app_base_url}/billing/cancel?status=cancelled">Cancel</a>
-      </body>
-    </html>
-    """
-    return HTMLResponse(html)
-
-
-@router.post("/fake-checkout/complete")
-async def fake_checkout_complete(request: Request, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
-    form = await request.form()
-    tran_id = form.get("tran_id")
-    if not tran_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing tran_id")
-
-    val_id = f"FAKE-{uuid.uuid4().hex}"
-    await mark_subscription_active(db, str(tran_id), val_id)
-    return RedirectResponse(
-        url=f"{settings.app_base_url}/billing/success?tran_id={tran_id}",
-        status_code=status.HTTP_303_SEE_OTHER,
-    )
-
-
 # ── Credit wallet ──────────────────────────────────────────────────────────────
 
 
@@ -203,6 +165,9 @@ async def initiate_topup(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Minimum top-up is {TOPUP_MIN_PAISA // 100} BDT"
         )
 
+    if not await online_available(db):
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Online payment isn't available right now.")
+
     pending = await create_pending_topup(db, membership.organization_id, amount_paisa)
 
     checkout_url = await sslcommerz_client.init_session(
@@ -215,7 +180,6 @@ async def initiate_topup(
         cancel_url=f"{settings.app_base_url}/billing?tab=wallet&topup=cancelled",
         ipn_url=f"{settings.backend_public_url}/v1/billing/wallet/ipn",
         product_name="LeadBangla Credit Top-Up",
-        fake_checkout_path="/api/v1/billing/wallet/fake-checkout",
     )
     return TopUpResponse(tran_id=pending.tran_id, checkout_url=checkout_url)
 
@@ -237,47 +201,6 @@ async def wallet_ipn(request: Request, db: AsyncSession = Depends(get_db)) -> di
     except TopUpNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown top-up transaction")
     return {"status": "ok"}
-
-
-@router.get("/wallet/fake-checkout", response_class=HTMLResponse)
-async def wallet_fake_checkout(tran_id: str, db: AsyncSession = Depends(get_db)) -> HTMLResponse:
-    try:
-        pending = await get_pending_topup(db, tran_id)
-    except TopUpNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown transaction")
-
-    html = f"""
-    <html>
-      <body>
-        <h1>Sandbox wallet top-up</h1>
-        <p>Amount: {pending.amount_paisa / 100:.2f} BDT</p>
-        <form method="post" action="/api/v1/billing/wallet/fake-checkout/complete">
-          <input type="hidden" name="tran_id" value="{tran_id}" />
-          <button type="submit">Simulate successful top-up</button>
-        </form>
-        <a href="{settings.app_base_url}/billing?tab=wallet&topup=cancelled">Cancel</a>
-      </body>
-    </html>
-    """
-    return HTMLResponse(html)
-
-
-@router.post("/wallet/fake-checkout/complete")
-async def wallet_fake_complete(request: Request, db: AsyncSession = Depends(get_db)) -> RedirectResponse:
-    form = await request.form()
-    tran_id = form.get("tran_id")
-    if not tran_id:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing tran_id")
-
-    try:
-        await complete_topup(db, str(tran_id))
-    except TopUpNotFoundError:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown transaction")
-
-    return RedirectResponse(
-        url=f"{settings.app_base_url}/billing?tab=wallet&topup=success",
-        status_code=status.HTTP_303_SEE_OTHER,
-    )
 
 
 @router.get("/wallet/usage-report")

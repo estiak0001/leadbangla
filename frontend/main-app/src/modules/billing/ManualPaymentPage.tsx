@@ -6,7 +6,7 @@ import Card from "../../components/Card";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
 import {
-  fetchManualMethods, fetchPlans, submitManualPayment,
+  fetchPaymentOptions, fetchPlans, submitManualPayment,
   type ManualMethod, type Plan,
 } from "../../lib/billing";
 
@@ -15,6 +15,7 @@ export default function ManualPaymentPage() {
   const navigate = useNavigate();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [methods, setMethods] = useState<ManualMethod[]>([]);
+  const [payNote, setPayNote] = useState("");
   const [method, setMethod] = useState<string>("");
   const [sender, setSender] = useState("");
   const [trx, setTrx] = useState("");
@@ -26,10 +27,12 @@ export default function ManualPaymentPage() {
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    Promise.all([fetchPlans(), fetchManualMethods()])
-      .then(([plans, m]) => {
+    Promise.all([fetchPlans(), fetchPaymentOptions()])
+      .then(([plans, o]) => {
         setPlan(plans.find((p) => p.id === params.get("plan")) ?? null);
+        const m = o.manual.available ? o.manual.methods : [];
         setMethods(m);
+        setPayNote(o.manual.note);
         setMethod(m[0]?.method ?? "");
       })
       .catch(() => setError("Could not load payment options"))
@@ -109,6 +112,7 @@ export default function ManualPaymentPage() {
                 ))}
               </div>
               {selected && <pre className="whitespace-pre-wrap rounded-lg bg-surface-100 p-3 text-sm text-surface-800">{selected.details}</pre>}
+              {payNote && <p className="mt-2 text-xs text-surface-500">{payNote}</p>}
             </Card>
 
             <Card className="space-y-4">

@@ -28,13 +28,6 @@ class Settings(BaseSettings):
     app_base_url: str = "http://localhost"
     backend_public_url: str = "http://localhost/api"
 
-    # Manual payment instructions shown to customers (empty = method hidden), e.g.
-    # MANUAL_PAY_BKASH="01XXXXXXXXX (Personal) — Send Money"
-    manual_pay_bkash: str = ""
-    manual_pay_nagad: str = ""
-    manual_pay_rocket: str = ""
-    manual_pay_bank: str = ""
-
     # Real SSLCommerz sandbox credentials, once registered at
     # https://developer.sslcommerz.com/registration/ — until then the store
     # id stays at its placeholder value and billing uses a local fake
