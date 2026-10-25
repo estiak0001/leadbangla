@@ -36,6 +36,7 @@ window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
     return originalFetch(input, { ...init, headers });
   }
   clearAccessToken();
-  if (!window.location.pathname.startsWith("/login")) window.location.assign("/login");
+  const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+  if (!window.location.pathname.startsWith(`${base}/login`)) window.location.assign(`${base}/login`);
   return res;
 };

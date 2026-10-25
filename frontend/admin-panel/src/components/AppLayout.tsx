@@ -45,7 +45,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       <div className="flex-shrink-0 px-4 py-5 border-b border-slate-800">
         <Link to="/tenants" onClick={onLinkClick} className="flex items-center gap-2.5">
           <div className="min-w-0">
-            <img src="/logo-white.png" alt="LeadBangla" className="block h-5 w-auto" />
+            <img src={`${import.meta.env.BASE_URL}logo-white.png`} alt="LeadBangla" className="block h-5 w-auto" />
             <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-400 leading-none">
               Internal Admin
             </p>
@@ -148,7 +148,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </h1>
             {/* Mobile: brand + admin badge */}
             <Link to="/tenants" className="flex items-center gap-2 lg:hidden">
-              <img src="/logo.png" alt="LeadBangla" className="h-4 w-auto" />
+              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="LeadBangla" className="h-4 w-auto" />
               <span className="text-[10px] font-semibold bg-surface-100 text-surface-500 px-1.5 py-0.5 rounded-full">Admin</span>
             </Link>
           </div>

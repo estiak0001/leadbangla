@@ -1,7 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+// Production build is served under /admin/ (also reachable on leadbangla.com, not only admin.leadbangla.com).
+export default defineConfig(({ command }) => ({
+  base: command === "build" ? "/admin/" : "/",
   plugins: [react()],
   server: {
     host: true,
@@ -14,4 +16,4 @@ export default defineConfig({
       },
     },
   },
-});
+}));
