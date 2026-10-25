@@ -1,0 +1,100 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-surface-50 text-surface-800 font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-surface-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-surface-400; }
+}
+
+@layer components {
+  .page-container {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-widest text-surface-500;
+  }
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full flex-shrink-0;
+  }
+  .skeleton {
+    @apply bg-surface-200 rounded animate-pulse;
+  }
+}
+
+/* ── Phones: dialogs become bottom sheets, nothing scrolls sideways ───────── */
+@media (max-width: 639px) {
+  html, body { overflow-x: hidden; }
+  div:has(> [role="dialog"]) { align-items: flex-end !important; padding: 0 !important; }
+  [role="dialog"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 1.25rem !important;
+    border-top-right-radius: 1.25rem !important;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: sheet-up 220ms ease-out;
+  }
+  @keyframes sheet-up { from { transform: translateY(24px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+}
+
+/* ── Phones: tables become cards ─────────────────────────────────────────── */
+@media (max-width: 767px) {
+  table.m-cards thead { display: none; }
+  table.m-cards tbody { display: block; padding: 0.625rem; }
+  table.m-cards tbody tr {
+    display: block; position: relative; background: #fff; border: 1px solid #e2e8f0;
+    border-radius: 0.875rem; padding: 0.25rem 0.875rem; margin-bottom: 0.625rem;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  }
+  table.m-cards tbody tr:last-child { margin-bottom: 0; }
+  table.m-cards td {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+    width: auto; padding: 0.5rem 0 !important; border: 0 !important; text-align: right; font-size: 0.8125rem;
+  }
+  table.m-cards td + td { border-top: 1px dashed #eef2f7 !important; }
+  table.m-cards td::before {
+    content: attr(data-label); flex-shrink: 0; text-align: left;
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #64748b;
+  }
+  table.m-cards td[data-kind="primary"] {
+    display: block; text-align: left; padding-top: 0.75rem !important; padding-bottom: 0.625rem !important;
+    font-size: 0.9375rem; font-weight: 600; padding-right: 2rem !important;
+  }
+  table.m-cards td[data-kind="primary"]::before { content: none; }
+  table.m-cards td[data-kind="check"] { position: absolute; top: 0.625rem; right: 0.75rem; padding: 0 !important; border: 0 !important; width: auto; }
+  table.m-cards td[data-kind="check"]::before { content: none; }
+  table.m-cards td[data-kind="actions"] { justify-content: flex-end; }
+  table.m-cards td[data-kind="actions"]::before, table.m-cards td[data-kind="span"]::before { content: none; }
+  table.m-cards td[data-kind="span"] { display: block; text-align: center; }
+  table.m-cards td > .flex { justify-content: flex-end; }
+  table.m-cards td[data-kind="primary"] > .flex { justify-content: flex-start; }
+}
+
+
+/* Contact form on phones: 16px text avoids the iOS auto-zoom, taller controls are easier to tap */
+@media (max-width: 767px) {
+  .field-form input:not([type="checkbox"]):not([type="radio"]), .field-form select, .field-form textarea { font-size: 16px; min-height: 46px; }
+  .field-form label { font-size: 0.8125rem; }
+}
+
+/* Segment tables on phones: flat, square-cornered cards */
+@media (max-width: 767px) {
+  table.m-cards.m-square tbody { padding: 0; }
+  table.m-cards.m-square tbody tr { border-radius: 4px; box-shadow: none; }
+}

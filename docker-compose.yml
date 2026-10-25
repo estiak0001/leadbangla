@@ -1,0 +1,100 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: marketing_manager
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "55432:5432"
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - "8025:8025"   # web UI to read test emails
+    # SMTP listens on 1025 inside the compose network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/marketing_manager
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8090:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+
+  worker:
+    build: ./backend
+    command: celery -A app.workers.celery_app worker --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/marketing_manager
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend/app:/app/app
+
+  beat:
+    build: ./backend
+    command: celery -A app.workers.celery_app beat --loglevel=info
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/marketing_manager
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./backend/app:/app/app
+
+  main-app:
+    build: ./frontend/main-app
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend/main-app/src:/app/src
+      - ./frontend/main-app/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/main-app/postcss.config.js:/app/postcss.config.js
+      - ./frontend/main-app/index.html:/app/index.html
+      - ./frontend/main-app/public:/app/public
+
+  admin-panel:
+    build: ./frontend/admin-panel
+    depends_on:
+      - backend
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./frontend/admin-panel/src:/app/src
+      - ./frontend/admin-panel/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/admin-panel/postcss.config.js:/app/postcss.config.js
+      - ./frontend/admin-panel/index.html:/app/index.html
+      - ./frontend/admin-panel/public:/app/public
+
+  proxy:
+    image: nginx:alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+      - main-app
+      - admin-panel
+    ports:
+      - "80:80"
+
+volumes:
+  postgres-data:
