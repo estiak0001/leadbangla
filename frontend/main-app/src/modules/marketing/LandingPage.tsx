@@ -52,7 +52,10 @@ function planPoints(p: Plan): string[] {
     p.whatsapp_enabled ? "WhatsApp ক্যাম্পেইন" : null,
     lim(p.workflows_limit, "অটোমেশন"),
     lim(p.landing_pages_limit, "ল্যান্ডিং পেজ"),
+    lim(p.social_accounts_limit, "সোশ্যাল অ্যাকাউন্ট"),
+    p.seo_credits_monthly ? `মাসে ${toBn(p.seo_credits_monthly.toLocaleString("en-US"))}টি SEO চেক` : null,
     lim(p.team_members_limit, "টিম মেম্বার"),
+    "নিজের ডোমেইনে শেয়ার্ড ইনবক্স",
     p.custom_domain ? "নিজের ডোমেইন ব্যবহার" : null,
     p.priority_support ? "প্রাধান্য পাওয়া সাপোর্ট" : "বাংলা সাপোর্ট",
   ].filter((x): x is string => !!x);

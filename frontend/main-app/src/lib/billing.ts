@@ -19,6 +19,7 @@ export interface Plan {
   sms_monthly_limit?: number;
   masking_allowed?: boolean;
   whatsapp_enabled?: boolean;
+  whatsapp_monthly_limit?: number;
 }
 
 export interface Subscription {
