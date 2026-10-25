@@ -1,9 +1,17 @@
+import os
 from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 config = context.config
+
+# Deployed environments set DATABASE_URL (asyncpg driver); migrations use psycopg2.
+if os.environ.get("DATABASE_URL"):
+    config.set_main_option(
+        "sqlalchemy.url",
+        os.environ["DATABASE_URL"].replace("+asyncpg", "+psycopg2").replace("%", "%%"),
+    )
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
