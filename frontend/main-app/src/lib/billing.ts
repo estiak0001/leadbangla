@@ -171,3 +171,30 @@ export async function fetchUsageReport(days: number): Promise<UsageReport> {
   const res = await fetch(`/api/v1/billing/wallet/usage-report?days=${days}`, { headers: authHeaders() });
   return handle<UsageReport>(res);
 }
+
+export interface ManualMethod { method: "bkash" | "nagad" | "rocket" | "bank"; label: string; details: string }
+export interface ManualPayment {
+  id: string; method: string; amount_bdt: number; sender_account: string; trx_id: string;
+  status: "pending" | "approved" | "rejected"; admin_note: string | null; created_at: string; plan_name: string | null;
+}
+
+export async function fetchManualMethods(): Promise<ManualMethod[]> {
+  const res = await fetch("/api/v1/billing/manual/methods");
+  if (!res.ok) throw new Error("Failed to load payment methods");
+  return res.json();
+}
+
+export async function fetchMyManualPayments(): Promise<ManualPayment[]> {
+  const res = await fetch("/api/v1/billing/manual/payments", { headers: authHeaders() });
+  if (!res.ok) throw new Error("Failed to load your payments");
+  return res.json();
+}
+
+export async function submitManualPayment(form: FormData): Promise<ManualPayment> {
+  const res = await fetch("/api/v1/billing/manual/payments", { method: "POST", headers: authHeaders(), body: form });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(typeof body.detail === "string" ? body.detail : "Could not submit the payment");
+  }
+  return res.json();
+}

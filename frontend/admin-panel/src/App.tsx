@@ -5,6 +5,7 @@ import WhatsAppPanelPage from "./whatsapp/WhatsAppPanelPage";
 import IntegrationDetailPage from "./integrations/IntegrationDetailPage";
 import IntegrationHubPage from "./integrations/IntegrationHubPage";
 import PlansPage from "./plans/PlansPage";
+import ManualPaymentsPage from "./payments/ManualPaymentsPage";
 import RevenuePage from "./revenue/RevenuePage";
 import TenantCreatePage from "./tenants/TenantCreatePage";
 import TenantDetailPage from "./tenants/TenantDetailPage";
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/tenants/new" element={<TenantCreatePage />} />
       <Route path="/tenants/:orgId" element={<TenantDetailPage />} />
       <Route path="/plans" element={<PlansPage />} />
+      <Route path="/manual-payments" element={<ManualPaymentsPage />} />
       <Route path="/wallets" element={<WalletsPage />} />
       <Route path="/revenue" element={<RevenuePage />} />
       <Route path="/verifications" element={<Navigate to="/integrations/sms?tab=requests" replace />} />

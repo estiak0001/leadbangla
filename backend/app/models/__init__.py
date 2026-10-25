@@ -34,6 +34,7 @@ from app.models.merge_tag import MergeTag
 from app.models.message_template import MessageTemplate
 from app.models.tag_preset import TagPreset
 from app.models.verification import VerificationDocument, VerificationRequest
+from app.models.manual_payment import ManualPayment, ManualPaymentDocument
 from app.models.whatsapp_health import WhatsAppHealth
 from app.models.whatsapp_template import WhatsAppTemplateRequest
 from app.models.user import User

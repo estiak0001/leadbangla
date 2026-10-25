@@ -5,9 +5,9 @@ import Card from "../../components/Card";
 import Alert from "../../components/Alert";
 import Spinner from "../../components/Spinner";
 import { clearTokens, fetchCurrentUser } from "../../lib/auth";
-import { fetchPlans, subscribeToPlan, type Plan } from "../../lib/billing";
+import { fetchMyManualPayments, fetchPlans, subscribeToPlan, type ManualPayment, type Plan } from "../../lib/billing";
 
-function PlanCard({ plan, onSubscribe, busy }: { plan: Plan; onSubscribe: () => void; busy: boolean }) {
+function PlanCard({ plan, onSubscribe, onManual, busy }: { plan: Plan; onSubscribe: () => void; onManual: () => void; busy: boolean }) {
   return (
     <Card hoverable className="flex flex-col items-center text-center">
       <h2 className="text-lg font-bold text-surface-900">{plan.name}</h2>
@@ -24,6 +24,11 @@ function PlanCard({ plan, onSubscribe, busy }: { plan: Plan; onSubscribe: () => 
       <Button className="w-full" loading={busy} onClick={onSubscribe}>
         {plan.price_bdt === 0 ? "Start free" : "Subscribe"}
       </Button>
+      {plan.price_bdt > 0 && (
+        <button type="button" onClick={onManual} className="mt-3 text-sm font-medium text-brand-600 hover:text-brand-700">
+          Pay with bKash / Nagad / Rocket / Bank
+        </button>
+      )}
     </Card>
   );
 }
@@ -33,11 +38,13 @@ export default function PickPlanPage() {
   const [error, setError]             = useState<string | null>(null);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [loading, setLoading]         = useState(true);
+  const [manual, setManual]           = useState<ManualPayment[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchCurrentUser().catch(() => navigate("/login"));
     fetchPlans().then((p) => { setPlans(p); setLoading(false); }).catch(() => { setError("Could not load plans"); setLoading(false); });
+    fetchMyManualPayments().then(setManual).catch(() => {});
   }, [navigate]);
 
   async function handleSubscribe(planId: string) {
@@ -56,6 +63,16 @@ export default function PickPlanPage() {
         </div>
 
         {error && <Alert variant="error" className="mb-6">{error}</Alert>}
+        {manual.filter((m) => m.status === "pending").map((m) => (
+          <Alert key={m.id} variant="info" className="mb-4">
+            Your {m.plan_name} payment ({m.amount_bdt} BDT via {m.method}, TrxID {m.trx_id}) is awaiting verification.
+          </Alert>
+        ))}
+        {manual.filter((m) => m.status === "rejected").slice(0, 1).map((m) => (
+          <Alert key={m.id} variant="error" className="mb-4">
+            Your payment (TrxID {m.trx_id}) was rejected{m.admin_note ? `: ${m.admin_note}` : "."} You can submit again.
+          </Alert>
+        ))}
 
         {loading ? (
           <div className="flex justify-center py-12"><Spinner size="lg" /></div>
@@ -67,6 +84,7 @@ export default function PickPlanPage() {
                 plan={plan}
                 busy={submittingId === plan.id}
                 onSubscribe={() => handleSubscribe(plan.id)}
+                onManual={() => navigate(`/pay-manually?plan=${plan.id}`)}
               />
             ))}
           </div>

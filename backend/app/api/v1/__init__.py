@@ -17,6 +17,7 @@ from app.api.v1.social import router as social_router
 from app.api.v1.audience import contacts_router, segments_router, tag_presets_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.billing import router as billing_router
+from app.api.v1.manual_payments import admin_router as manual_payments_admin_router, router as manual_payments_router
 from app.api.v1.campaigns import router as campaigns_router
 from app.api.v1.merge_tags import router as merge_tags_router
 from app.api.v1.tenant_admin import router as tenant_admin_router
@@ -44,6 +45,8 @@ from fastapi import Depends
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(billing_router, dependencies=[Depends(require_permission("billing", writes_only=True))])
+api_router.include_router(manual_payments_router)
+api_router.include_router(manual_payments_admin_router)
 api_router.include_router(email_domains_router, dependencies=[Depends(require_permission("email"))])
 api_router.include_router(mail_router, dependencies=[Depends(require_permission("email"))])
 api_router.include_router(mail_admin_router)
