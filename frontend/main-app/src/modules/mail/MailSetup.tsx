@@ -1,7 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  AlertTriangle, ArrowRight, AtSign, Check, CheckCircle2, Circle, Clock, Copy, Globe, Inbox, Mail, Plus, Power,
+  AlertTriangle, ArrowRight, AtSign, Check, CheckCircle2, Circle, Clock, Copy, Globe, Inbox, Mail, Pencil, Plus, Power,
   RefreshCw, Send, ShieldCheck, Star, Trash2,
 } from "lucide-react";
 import Alert from "../../components/Alert";
@@ -100,7 +100,40 @@ function DnsField({ label, value, copy }: { label: string; value: string; copy?:
   );
 }
 
-function AddressCard({ a, onRun }: { a: InboxAddress; onRun: (fn: () => Promise<unknown>) => void }) {
+function AddressCard({ a, domains, onRun }: { a: InboxAddress; domains: InboxDomain[]; onRun: (fn: () => Promise<unknown>) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [local, setLocal] = useState(a.local_part);
+  const [domainId, setDomainId] = useState(a.inbox_domain_id);
+  const [name, setName] = useState(a.display_name ?? "");
+  const [saving, setSaving] = useState(false);
+  const domain = domains.find((d) => d.id === a.inbox_domain_id);
+
+  if (editing) {
+    return (
+      <form
+        className="space-y-3 rounded-xl border border-brand-200 bg-brand-50/30 p-4 ring-4 ring-brand-500/5"
+        onSubmit={async (e: FormEvent) => {
+          e.preventDefault(); setSaving(true);
+          await onRun(() => updateInboxAddress(a.id, { local_part: local, inbox_domain_id: domainId, display_name: name }));
+          setSaving(false); setEditing(false);
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <input value={local} onChange={(e) => setLocal(e.target.value)} required className={inputCls} aria-label="Address name" />
+          <span className="text-surface-400">@</span>
+          <select value={domainId} onChange={(e) => setDomainId(e.target.value)} className={inputCls} aria-label="Domain">
+            {domains.map((d) => <option key={d.id} value={d.id}>{d.receive_domain}</option>)}
+          </select>
+        </div>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name" className={inputCls} aria-label="Display name" />
+        <div className="flex justify-end gap-2">
+          <Button type="button" size="sm" variant="ghost" onClick={() => { setEditing(false); setLocal(a.local_part); setDomainId(a.inbox_domain_id); setName(a.display_name ?? ""); }}>Cancel</Button>
+          <Button type="submit" size="sm" loading={saving}>Save</Button>
+        </div>
+      </form>
+    );
+  }
+
   return (
     <div className="flex items-center gap-3 rounded-xl border border-surface-200 bg-white p-3 transition hover:border-brand-200 hover:shadow-sm">
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-bold uppercase text-brand-600">{a.local_part.slice(0, 2)}</span>
@@ -108,10 +141,12 @@ function AddressCard({ a, onRun }: { a: InboxAddress; onRun: (fn: () => Promise<
         <p className="flex items-center gap-2 truncate text-sm font-semibold text-surface-900">
           <span className="truncate">{a.email}</span>
           {a.is_default && <span className="shrink-0 rounded-full bg-brand-50 px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-700">DEFAULT</span>}
+          {domain?.status === "pending" && <span className="shrink-0 rounded-full bg-warning-light px-2 py-0.5 text-[10px] font-semibold text-warning-dark">WAITING FOR MX</span>}
         </p>
         <p className="truncate text-xs text-surface-500">{a.display_name || "No display name"}</p>
       </div>
       <CopyButton text={a.email} />
+      <button aria-label="Edit address" title="Edit" onClick={() => setEditing(true)} className="rounded-lg p-1.5 text-surface-400 transition hover:bg-brand-50 hover:text-brand-600"><Pencil size={15} /></button>
       {!a.is_default && (
         <button aria-label="Make default" title="Make default" onClick={() => onRun(() => updateInboxAddress(a.id, { make_default: true }))} className="rounded-lg p-1.5 text-surface-400 transition hover:bg-brand-50 hover:text-brand-600"><Star size={15} /></button>
       )}
@@ -122,9 +157,6 @@ function AddressCard({ a, onRun }: { a: InboxAddress; onRun: (fn: () => Promise<
 
 function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Setup; onChange: () => void; onError: (m: string) => void }) {
   const [verifying, setVerifying] = useState(false);
-  const [local, setLocal] = useState("");
-  const [name, setName] = useState("");
-  const [adding, setAdding] = useState(false);
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 30000); return () => clearInterval(t); }, []);
 
@@ -179,27 +211,6 @@ function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Se
             </div>
           </div>
 
-          <div>
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <h4 className="flex items-center gap-2 text-sm font-semibold text-surface-900"><AtSign size={16} className="text-surface-400" /> Addresses <span className="rounded-full bg-surface-100 px-2 py-0.5 text-xs text-surface-600">{addrs.length}</span></h4>
-            </div>
-            {addrs.length === 0 && <p className="mb-3 text-sm text-surface-500">Create the first address, for example <b>support</b> or <b>hello</b>.</p>}
-            <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
-              {addrs.map((a) => <AddressCard key={a.id} a={a} onRun={run} />)}
-            </div>
-            <form
-              className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-surface-300 bg-surface-50/50 p-3"
-              onSubmit={async (e: FormEvent) => { e.preventDefault(); setAdding(true); await run(() => addInboxAddress(d.id, local, name)); setLocal(""); setName(""); setAdding(false); }}
-            >
-              <div className="flex min-w-0 items-center rounded-xl border border-surface-200 bg-white focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/10">
-                <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="support" required className="w-28 rounded-l-xl bg-transparent px-3.5 py-2.5 text-sm focus:outline-none" />
-                <span className="truncate pr-3.5 text-sm text-surface-500">@{d.receive_domain}</span>
-              </div>
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name (optional)" className={`${inputCls} !w-56`} />
-              <Button type="submit" size="sm" icon={<Plus size={14} />} loading={adding}>Add address</Button>
-            </form>
-          </div>
-
           <div className="flex items-start justify-between gap-4 rounded-xl border border-surface-200 p-4">
             <div>
               <p className="text-sm font-semibold text-surface-900">Catch-all</p>
@@ -214,6 +225,53 @@ function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Se
               Try it: send an email from your own Gmail to <b>{addrs.find((a) => a.is_default)?.email ?? addrs[0].email}</b>. It should appear in the Inbox within a minute.
             </p>
           )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+/* ── all addresses, on any inbox domain ──────────────────────────────────── */
+
+function AddressesSection({ setup, onChange, onError }: { setup: Setup; onChange: () => void; onError: (m: string) => void }) {
+  const rootOf = (d: InboxDomain) => setup.sending_domains.find((x) => x.id === d.sending_domain_id)?.domain === d.receive_domain;
+  const initial = (setup.domains.find(rootOf) ?? setup.domains[0])?.id ?? "";
+  const [domainId, setDomainId] = useState(initial);
+  const [local, setLocal] = useState("");
+  const [name, setName] = useState("");
+  const [adding, setAdding] = useState(false);
+  useEffect(() => { if (!setup.domains.some((d) => d.id === domainId)) setDomainId(initial); }, [setup.domains, domainId, initial]);
+  const run = async (fn: () => Promise<unknown>) => { try { await fn(); onChange(); } catch (e) { onError(e instanceof Error ? e.message : "Something went wrong"); } };
+  const chosen = setup.domains.find((d) => d.id === domainId);
+
+  return (
+    <section className="rounded-2xl border border-surface-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-4 flex items-center gap-2">
+        <AtSign size={18} className="text-brand-600" />
+        <h3 className="text-base font-semibold text-surface-900">Addresses</h3>
+        <span className="rounded-full bg-surface-100 px-2 py-0.5 text-xs text-surface-600">{setup.addresses.length}</span>
+      </div>
+
+      <form
+        className="grid gap-2 rounded-xl border border-dashed border-surface-300 bg-surface-50/50 p-3 md:grid-cols-[minmax(0,1.6fr)_minmax(0,1.2fr)_auto]"
+        onSubmit={async (e: FormEvent) => { e.preventDefault(); setAdding(true); await run(() => addInboxAddress(domainId, local, name)); setLocal(""); setName(""); setAdding(false); }}
+      >
+        <div className="flex min-w-0 items-center rounded-xl border border-surface-200 bg-white focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-500/10">
+          <input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="support" required aria-label="Address name" className="w-28 shrink-0 rounded-l-xl bg-transparent px-3.5 py-2.5 text-sm focus:outline-none" />
+          <span className="text-surface-400">@</span>
+          <select value={domainId} onChange={(e) => setDomainId(e.target.value)} aria-label="Domain" className="min-w-0 flex-1 rounded-r-xl bg-transparent py-2.5 pl-2 pr-3 text-sm focus:outline-none">
+            {setup.domains.map((d) => <option key={d.id} value={d.id}>{d.receive_domain}{d.status === "pending" ? " (waiting for MX)" : ""}</option>)}
+          </select>
+        </div>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name (optional)" className={inputCls} />
+        <Button type="submit" icon={<Plus size={14} />} loading={adding} disabled={!chosen}>Add address</Button>
+      </form>
+
+      {setup.addresses.length === 0 ? (
+        <p className="mt-4 text-sm text-surface-500">Create the first address, for example <b>support</b> or <b>hello</b>. Pick any of your inbox domains from the list.</p>
+      ) : (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
+          {setup.addresses.map((a) => <AddressCard key={a.id} a={a} domains={setup.domains} onRun={run} />)}
         </div>
       )}
     </section>
@@ -258,6 +316,7 @@ export default function MailSetup({ setup, onChange }: { setup: Setup; onChange:
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         {/* domains */}
         <div className="space-y-6">
+          {setup.domains.length > 0 && <AddressesSection setup={setup} onChange={onChange} onError={setError} />}
           {setup.domains.length === 0 ? (
             <div className="rounded-2xl border border-dashed border-surface-300 bg-white p-10 text-center">
               <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Inbox size={26} /></span>

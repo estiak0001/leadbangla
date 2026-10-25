@@ -51,7 +51,7 @@ export const verifyInboxDomain = (id: string) => post<InboxDomain>(`/domains/${i
 export const setInboxEnabled = (id: string, enabled: boolean) => post<InboxDomain>(`/domains/${id}/enabled`, { enabled });
 export const setCatchAll = (id: string, value: boolean) => post<InboxDomain>(`/domains/${id}/catch-all`, { value });
 export const addInboxAddress = (inbox_domain_id: string, local_part: string, display_name: string) => post<InboxAddress>("/addresses", { inbox_domain_id, local_part, display_name: display_name || null });
-export const updateInboxAddress = (id: string, data: { display_name?: string; make_default?: boolean }) => call<InboxAddress>(`/addresses/${id}`, { method: "PUT", body: JSON.stringify(data) });
+export const updateInboxAddress = (id: string, data: { display_name?: string; make_default?: boolean; local_part?: string; inbox_domain_id?: string }) => call<InboxAddress>(`/addresses/${id}`, { method: "PUT", body: JSON.stringify(data) });
 export const deleteInboxAddress = (id: string) => call<void>(`/addresses/${id}`, { method: "DELETE" });
 
 export const fetchMailCounts = () => call<MailCounts>("/counts");

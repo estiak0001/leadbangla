@@ -120,13 +120,17 @@ async def create_address(p: AddressCreate, m: OrganizationMember = Depends(get_c
 class AddressUpdate(BaseModel):
     display_name: str | None = Field(default=None, max_length=120)
     make_default: bool = False
+    local_part: str | None = Field(default=None, min_length=1, max_length=64)
+    inbox_domain_id: uuid.UUID | None = None
 
 
 @router.put("/addresses/{address_id}")
 async def update_address(address_id: uuid.UUID, p: AddressUpdate, m: OrganizationMember = Depends(get_current_membership), db: AsyncSession = Depends(get_db)) -> dict:
     try:
-        a = await ms.update_address(db, m.organization_id, address_id, display_name=p.display_name, make_default=p.make_default)
-    except ms.NotFound as e:
+        a = await ms.update_address(
+            db, m.organization_id, address_id, display_name=p.display_name, make_default=p.make_default,
+            local_part=p.local_part, inbox_domain_id=p.inbox_domain_id)
+    except (ms.MailError, ms.NotFound) as e:
         raise _bad(e)
     return _address(a, (await db.get(InboxDomain, a.inbox_domain_id)).receive_domain)
 

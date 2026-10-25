@@ -268,12 +268,25 @@ async def add_address(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid.UUID,
     return a
 
 
-async def update_address(db: AsyncSession, org_id: uuid.UUID, address_id: uuid.UUID, *, display_name: str | None, make_default: bool) -> InboxAddress:
+async def update_address(
+    db: AsyncSession, org_id: uuid.UUID, address_id: uuid.UUID, *, display_name: str | None, make_default: bool,
+    local_part: str | None = None, inbox_domain_id: uuid.UUID | None = None,
+) -> InboxAddress:
     a = await db.scalar(select(InboxAddress).where(InboxAddress.organization_id == org_id, InboxAddress.id == address_id))
     if a is None:
         raise NotFound(address_id)
     if display_name is not None:
         a.display_name = display_name.strip() or a.local_part.title()
+    if local_part is not None or inbox_domain_id is not None:
+        lp = (local_part if local_part is not None else a.local_part).strip().lower()
+        if not LOCAL_RE.match(lp):
+            raise MailError("Use letters, numbers, dots, dashes or underscores (for example support).")
+        d = await _get_domain(db, org_id, inbox_domain_id or a.inbox_domain_id)
+        clash = await db.scalar(select(InboxAddress.id).where(
+            InboxAddress.inbox_domain_id == d.id, InboxAddress.local_part == lp, InboxAddress.id != a.id))
+        if clash:
+            raise MailError(f"{lp}@{d.receive_domain} already exists.")
+        a.local_part, a.inbox_domain_id = lp, d.id
     if make_default:
         for other in await list_addresses(db, org_id):
             other.is_default = other.id == a.id
