@@ -78,6 +78,14 @@ async def subscribe(
 
     subscription = await create_pending_subscription(db, current_user.id, plan)
 
+    if plan.price_bdt == 0:
+        # Free tier: nothing to pay, so skip the gateway and activate straight away.
+        await mark_subscription_active(db, subscription.tran_id, "free")
+        return SubscribeResponse(
+            subscription_id=subscription.id,
+            checkout_url=f"{settings.app_base_url}/billing/success?tran_id={subscription.tran_id}",
+        )
+
     checkout_url = await sslcommerz_client.init_session(
         db,
         tran_id=subscription.tran_id,

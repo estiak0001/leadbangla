@@ -190,7 +190,7 @@ export default function LandingPage() {
           <h2 className="text-3xl font-bold text-surface-900 sm:text-4xl">বিক্রি বাড়াতে যা যা দরকার</h2>
           <p className="mt-3 text-surface-500">আলাদা আলাদা টুল ছেড়ে এক প্ল্যাটফর্মেই পুরো মার্কেটিং চালান।</p>
         </div>
-        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map((f) => (
             <div key={f.title} className="group rounded-xl border border-surface-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-card-hover">
               <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-lg ${f.color}`}><f.icon size={24} /></div>
@@ -266,15 +266,21 @@ export default function LandingPage() {
           <h2 className="text-center text-3xl font-bold text-surface-900 sm:text-4xl">আপনার ব্যবসার জন্য সঠিক প্ল্যান</h2>
           <p className="mt-3 text-center text-surface-500">সহজ দাম, টাকায়। কোনো লুকানো চার্জ নেই।</p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {plans.map((plan, i) => {
-              const featured = plans.length >= 3 ? i === 1 : false;
+            {plans.map((plan) => {
+              const featured = plan.code === "growth";
               return (
                 <div key={plan.id} className={`relative flex flex-col rounded-2xl bg-white p-7 ${featured ? "border-2 border-brand-500 shadow-xl lg:-translate-y-3" : "border border-surface-200 shadow-sm"}`}>
                   {featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white">সবচেয়ে জনপ্রিয়</span>}
                   <h3 className="text-lg font-bold text-surface-900">{plan.name}</h3>
                   <div className="mt-3">
-                    <span className="text-4xl font-extrabold text-surface-900">৳{toBn(plan.price_bdt)}</span>
-                    <span className="ml-1 text-sm text-surface-500">/ {INTERVAL_BN[plan.billing_interval] ?? plan.billing_interval}</span>
+                    {plan.price_bdt === 0 ? (
+                      <span className="text-4xl font-extrabold text-surface-900">ফ্রি</span>
+                    ) : (
+                      <>
+                        <span className="text-4xl font-extrabold text-surface-900">৳{toBn(plan.price_bdt)}</span>
+                        <span className="ml-1 text-sm text-surface-500">/ {INTERVAL_BN[plan.billing_interval] ?? plan.billing_interval}</span>
+                      </>
+                    )}
                   </div>
                   <ul className="my-6 flex-1 space-y-2.5 text-sm text-surface-600">
                     {planPoints(plan).map((p) => <li key={p} className="flex gap-2"><Check size={16} className="mt-0.5 shrink-0 text-emerald-600" />{p}</li>)}

@@ -21,6 +21,13 @@ from app.models.billing import Plan
 
 PLANS = [
     {
+        "code": "free", "name": "Free", "price_bdt": 0,
+        "contacts_limit": 500, "emails_monthly_limit": 1000, "team_members_limit": 1,
+        "workflows_limit": 1, "landing_pages_limit": 1, "social_accounts_limit": 1,
+        "seo_credits_monthly": 5, "custom_domain": False, "priority_support": False,
+        "sms_enabled": False, "sms_monthly_limit": 0, "masking_allowed": False, "whatsapp_enabled": False,
+    },
+    {
         "code": "starter", "name": "Starter", "price_bdt": 1500,
         "contacts_limit": 3000, "emails_monthly_limit": 10000, "team_members_limit": 2,
         "workflows_limit": 3, "landing_pages_limit": 3, "social_accounts_limit": 2,

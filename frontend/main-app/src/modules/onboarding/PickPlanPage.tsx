@@ -12,11 +12,17 @@ function PlanCard({ plan, onSubscribe, busy }: { plan: Plan; onSubscribe: () => 
     <Card hoverable className="flex flex-col items-center text-center">
       <h2 className="text-lg font-bold text-surface-900">{plan.name}</h2>
       <div className="mt-3 mb-6">
-        <span className="text-3xl font-extrabold text-surface-900">{plan.price_bdt}</span>
-        <span className="text-sm text-surface-600 ml-1">BDT/{plan.billing_interval}</span>
+        {plan.price_bdt === 0 ? (
+          <span className="text-3xl font-extrabold text-surface-900">Free</span>
+        ) : (
+          <>
+            <span className="text-3xl font-extrabold text-surface-900">{plan.price_bdt}</span>
+            <span className="text-sm text-surface-600 ml-1">BDT/{plan.billing_interval}</span>
+          </>
+        )}
       </div>
       <Button className="w-full" loading={busy} onClick={onSubscribe}>
-        Subscribe
+        {plan.price_bdt === 0 ? "Start free" : "Subscribe"}
       </Button>
     </Card>
   );
@@ -42,7 +48,7 @@ export default function PickPlanPage() {
 
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         <div className="text-center mb-10">
           <img src="/logo.png" alt="LeadBangla" className="mx-auto h-9 w-auto" />
           <h1 className="mt-3 text-3xl font-bold text-surface-900">Pick a plan</h1>
@@ -54,7 +60,7 @@ export default function PickPlanPage() {
         {loading ? (
           <div className="flex justify-center py-12"><Spinner size="lg" /></div>
         ) : (
-          <div className="grid gap-6 sm:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {plans.map((plan) => (
               <PlanCard
                 key={plan.id}
