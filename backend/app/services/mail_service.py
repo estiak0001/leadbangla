@@ -496,6 +496,34 @@ async def mark_read(db: AsyncSession, org_id: uuid.UUID, thread_id: uuid.UUID, r
     await db.commit()
 
 
+async def mark_all_read(db: AsyncSession, org_id: uuid.UUID, folder: str) -> int:
+    n = 0
+    for t in await db.scalars(select(MailThread).where(MailThread.organization_id == org_id, MailThread.unread_count > 0, *(
+            [MailThread.starred.is_(True)] if folder == "starred" else [MailThread.folder == folder]))):
+        for m in await db.scalars(select(MailMessage).where(MailMessage.thread_id == t.id, MailMessage.is_read.is_(False))):
+            m.is_read = True
+        t.unread_count = 0
+        n += 1
+    await db.commit()
+    return n
+
+
+async def delete_threads_forever(db: AsyncSession, org_id: uuid.UUID, *, thread_id: uuid.UUID | None = None, folder: str | None = None) -> int:
+    """Permanently delete trashed/spam conversations (and their stored raw copies)."""
+    q = select(MailThread).where(MailThread.organization_id == org_id, MailThread.folder.in_(["trash", "spam"]))
+    q = q.where(MailThread.id == thread_id) if thread_id else q.where(MailThread.folder == folder)
+    cfg = await get_ses_config(db)
+    n = 0
+    for t in list(await db.scalars(q)):
+        for m in await db.scalars(select(MailMessage).where(MailMessage.thread_id == t.id)):
+            if m.raw_key and cfg and cfg.get("inbound_bucket"):
+                await mail_aws.delete_raw(cfg, cfg["inbound_bucket"], m.raw_key)
+        await db.delete(t)
+        n += 1
+    await db.commit()
+    return n
+
+
 async def update_thread(db: AsyncSession, org_id: uuid.UUID, thread_id: uuid.UUID, *, folder: str | None = None, starred: bool | None = None) -> MailThread:
     t = await _thread(db, org_id, thread_id)
     if folder is not None:

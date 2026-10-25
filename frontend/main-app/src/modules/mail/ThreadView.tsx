@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Archive, ArrowLeft, ChevronDown, Download, Image as ImageIcon, Inbox, MailOpen, Paperclip, Reply, ReplyAll, ShieldAlert, Star, Trash2, UserPlus } from "lucide-react";
+import { Archive, ArrowLeft, ChevronDown, Download, Forward, Image as ImageIcon, Inbox, MailOpen, Paperclip, Reply, ReplyAll, ShieldAlert, Star, Trash2, UserPlus } from "lucide-react";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import { downloadAttachment, type InboxAddress, type MailMessageView, type MailThreadDetail } from "../../lib/mail";
@@ -78,7 +78,7 @@ interface Props {
 
 export default function ThreadView({ thread, addresses, members, onBack, onAction, onLoadImages, imagesLoaded, onSent }: Props) {
   const [opened, setOpened] = useState<Set<string>>(new Set([thread.messages[thread.messages.length - 1]?.id]));
-  const [reply, setReply] = useState<null | "reply" | "all">(null);
+  const [reply, setReply] = useState<null | "reply" | "all" | "forward">(null);
   const [error, setError] = useState<string | null>(null);
   const last = [...thread.messages].reverse().find((m) => m.direction === "in") ?? thread.messages[thread.messages.length - 1];
   const myAddress = addresses.find((a) => a.id === thread.address_id) ?? addresses.find((a) => a.is_default) ?? addresses[0];
@@ -92,6 +92,7 @@ export default function ThreadView({ thread, addresses, members, onBack, onActio
   const replyTo = last.direction === "in" ? [last.from_email] : last.to.map((p) => p.email);
   const allCc = [...last.to, ...last.cc].map((p) => p.email).filter((e) => !mine.has(e.toLowerCase()) && !replyTo.includes(e));
   const who = last.from_name || last.from_email;
+  const fwdSubject = /^fwd?:/i.test(thread.subject) ? thread.subject : `Fwd: ${thread.subject}`;
 
   return (
     <div className="h-full flex flex-col min-h-0">
@@ -128,13 +129,14 @@ export default function ThreadView({ thread, addresses, members, onBack, onActio
             onToggle={() => setOpened((s) => { const n = new Set(s); if (n.has(m.id)) n.delete(m.id); else n.add(m.id); return n; })} />
         ))}
         {reply ? (
-          <MailComposer compact addresses={addresses} defaultAddressId={myAddress?.id} threadId={thread.id} initialSubject={subject}
-            initialTo={replyTo} initialCc={reply === "all" ? allCc : []} initialBody={quote(last.text, who, last.sent_at)}
+          <MailComposer compact addresses={addresses} defaultAddressId={myAddress?.id} threadId={reply === "forward" ? undefined : thread.id} initialSubject={reply === "forward" ? fwdSubject : subject}
+            initialTo={reply === "forward" ? [] : replyTo} initialCc={reply === "all" ? allCc : []} initialBody={reply === "forward" ? `\n\n---------- Forwarded message ----------\nFrom: ${who} <${last.from_email}>\nDate: ${fullTime(last.sent_at)}\nSubject: ${thread.subject}\n\n${last.text}` : quote(last.text, who, last.sent_at)}
             onSent={(id) => { setReply(null); onSent(id); }} onCancel={() => setReply(null)} />
         ) : (
           <div className="flex gap-2">
             <Button size="sm" variant="secondary" icon={<Reply size={14} />} onClick={() => setReply("reply")}>Reply</Button>
             {allCc.length > 0 && <Button size="sm" variant="ghost" icon={<ReplyAll size={14} />} onClick={() => setReply("all")}>Reply all</Button>}
+            <Button size="sm" variant="ghost" icon={<Forward size={14} />} onClick={() => setReply("forward")}>Forward</Button>
           </div>
         )}
       </div>

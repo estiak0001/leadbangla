@@ -86,3 +86,7 @@ export async function downloadAttachment(messageId: string, idx: number, filenam
   const a = document.createElement("a"); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 5000);
 }
+
+export const markAllRead = (folder: string) => post<{ updated: number }>(`/folders/${folder}/read-all`);
+export const emptyFolder = (folder: string) => post<{ deleted: number }>(`/folders/${folder}/empty`);
+export const deleteThreadForever = (id: string) => call<void>(`/threads/${id}`, { method: "DELETE" });

@@ -180,6 +180,26 @@ async def read(thread_id: uuid.UUID, p: ReadBody, m: OrganizationMember = Depend
         raise _bad(e)
 
 
+@router.post("/folders/{folder}/read-all")
+async def read_all(folder: str, m: OrganizationMember = Depends(get_current_membership), db: AsyncSession = Depends(get_db)) -> dict:
+    if folder not in ("inbox", "spam", "starred", "archive"):
+        raise HTTPException(status_code=400, detail="Unknown folder")
+    return {"updated": await ms.mark_all_read(db, m.organization_id, folder)}
+
+
+@router.post("/folders/{folder}/empty")
+async def empty_folder(folder: str, m: OrganizationMember = Depends(get_current_membership), db: AsyncSession = Depends(get_db)) -> dict:
+    if folder not in ("spam", "trash"):
+        raise HTTPException(status_code=400, detail="Only Spam and Trash can be emptied")
+    return {"deleted": await ms.delete_threads_forever(db, m.organization_id, folder=folder)}
+
+
+@router.delete("/threads/{thread_id}", status_code=204)
+async def delete_forever(thread_id: uuid.UUID, m: OrganizationMember = Depends(get_current_membership), db: AsyncSession = Depends(get_db)) -> None:
+    if not await ms.delete_threads_forever(db, m.organization_id, thread_id=thread_id):
+        raise HTTPException(status_code=400, detail="Only conversations in Trash or Spam can be deleted forever")
+
+
 class ThreadPatch(BaseModel):
     folder: str | None = None
     starred: bool | None = None
