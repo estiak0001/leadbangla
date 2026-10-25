@@ -1,8 +1,10 @@
 import { getAccessToken } from "./auth";
 
-// The main app lives on its own origin (served by Nginx at the docker-compose
-// default), separate from this admin panel's own port — see prompt.md Step 5.
-const MAIN_APP_URL = import.meta.env.VITE_MAIN_APP_URL ?? "http://localhost";
+// Local dev: the main app lives on its own origin (Nginx at the docker-compose default), separate
+// from this admin panel's port — see prompt.md Step 5. In production both apps share one origin
+// (admin panel under /admin/), so "Login as" must stay on the current host.
+const MAIN_APP_URL =
+  import.meta.env.VITE_MAIN_APP_URL ?? (import.meta.env.PROD ? window.location.origin : "http://localhost");
 
 export interface Tenant {
   id: string;
