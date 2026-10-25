@@ -1,10 +1,8 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft, Archive, Check, CheckCircle2, ChevronDown, Circle, Clock, Copy, Globe, HelpCircle, Mail,
+  Archive, Check, CheckCircle2, ChevronDown, Circle, Clock, Copy, Globe, HelpCircle, Mail,
   PauseCircle, Pencil, Plus, RefreshCw, RotateCcw, Send, ShieldCheck, Star, Trash2, X,
 } from "lucide-react";
-import AppLayout from "../../components/AppLayout";
 import Button from "../../components/Button";
 import Alert from "../../components/Alert";
 import Spinner from "../../components/Spinner";
@@ -446,7 +444,8 @@ function Welcome(): ReactNode {
   );
 }
 
-export default function EmailDomainsPage() {
+/** Sending domains + sender addresses (the "Sending" tab of Email Setup). */
+export function SendingDomainsPanel({ onLoaded }: { onLoaded?: (d: SendingDomain[], s: SenderAddress[], p: EmailProviderInfo | null) => void }) {
   const [domains, setDomains] = useState<SendingDomain[]>([]);
   const [senders, setSenders] = useState<SenderAddress[]>([]);
   const [provider, setProvider] = useState<EmailProviderInfo | null>(null);
@@ -461,7 +460,7 @@ export default function EmailDomainsPage() {
 
   const load = () =>
     Promise.all([fetchDomains(), fetchSenders(), fetchProvider(), fetchTrashedDomains()])
-      .then(([d, s, p, t]) => { setDomains(d); setSenders(s); setProvider(p); setTrash(t); })
+      .then(([d, s, p, t]) => { setDomains(d); setSenders(s); setProvider(p); setTrash(t); onLoaded?.(d, s, p); })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   useEffect(() => { load(); }, []);
@@ -487,24 +486,16 @@ export default function EmailDomainsPage() {
   }
 
   return (
-    <AppLayout>
-      <Link to="/campaigns" className="inline-flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium mb-4">
-        <ArrowLeft size={14} /> Back to Email Campaigns
-      </Link>
-
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-5">
-        <div>
-          <h1 className="text-xl font-bold text-surface-900 tracking-tight">Sending Domains</h1>
-          <p className="mt-1 text-sm text-surface-600">Verify your domain once, then send campaigns from your own addresses.</p>
-        </div>
-        {provider && (
+    <>
+      {provider && (
+        <div className="mb-4 flex justify-end">
           <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${provider.configured ? "border-success-base/30 bg-success-light text-success-dark" : "border-warning-base/30 bg-warning-light text-warning-dark"}`}
             title={provider.message}>
             {provider.configured ? <ShieldCheck size={13} /> : <PauseCircle size={13} />}
             {provider.configured ? `Delivery: ${provider.label}` : "Email delivery not connected"}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {provider && !provider.configured && <Alert variant="warning" className="mb-4">{provider.message}</Alert>}
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
@@ -585,6 +576,6 @@ export default function EmailDomainsPage() {
           )}
         </div>
       )}
-    </AppLayout>
+    </>
   );
 }

@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Users, Filter, Mail, Share2, MessageSquare, MessageCircle,
   Globe, Workflow, BookUser, BarChart3, Search, Link2, Star,
   LogOut, Menu, X, Bell, CalendarDays, BadgeDollarSign, HelpCircle, Settings, ChevronDown,
-  CreditCard, User, Wallet, UsersRound, Inbox,
+  CreditCard, User, Wallet, UsersRound, Inbox, Settings2,
 } from "lucide-react";
 import { fetchMailCounts } from "../lib/mail";
 
@@ -31,6 +31,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     items: [
       { to: "/campaigns", label: "Email Campaigns", icon: <Mail size={16} /> },
       { to: "/mail",      label: "Inbox",           icon: <Inbox size={16} /> },
+      { to: "/email-setup", label: "Email Setup",   icon: <Settings2 size={16} /> },
       { to: "/sms",       label: "SMS",             icon: <MessageSquare size={16} /> },
       { to: "/whatsapp",  label: "WhatsApp",        icon: <MessageCircle size={16} /> },
       { to: "/push",      label: "Push",            icon: <Bell size={16} /> },

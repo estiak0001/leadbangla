@@ -78,7 +78,7 @@ function HowItWorksModal({ status, onClose }: { status: EmailConnectionStatus | 
             <div className="text-xs text-surface-700">
               <p>{status?.connection_note ?? "Checking connection status…"}</p>
               {status && !status.connection_ok && (
-                <Link to="/email-domains" className="inline-block mt-1.5 font-medium text-brand-600 hover:text-brand-700">
+                <Link to="/email-setup?tab=sending" className="inline-block mt-1.5 font-medium text-brand-600 hover:text-brand-700">
                   Sending domains →
                 </Link>
               )}
@@ -167,7 +167,7 @@ export default function CampaignsPage() {
             >
               <Info size={18} />
             </button>
-            <Link to="/email-domains">
+            <Link to="/email-setup?tab=sending">
               <Button variant="secondary" size="sm" icon={<Globe size={15} />}>Domains</Button>
             </Link>
             <Link to="/campaigns/trash">

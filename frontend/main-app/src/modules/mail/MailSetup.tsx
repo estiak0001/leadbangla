@@ -41,40 +41,25 @@ function ProgressBanner({ setup }: { setup: Setup }) {
   const verified = setup.domains.some((d) => d.status === "active");
   const hasAddress = setup.addresses.length > 0;
   const steps = [
-    { title: "Add your inbox domain", hint: "Pick a verified domain", done: hasDomain },
-    { title: "Add one MX record", hint: "At your DNS provider", done: mxAdded },
-    { title: "We verify it", hint: "Automatic, every 5 min", done: verified },
-    { title: "Create addresses", hint: "support@, hello@ …", done: hasAddress && verified },
+    { title: "Add inbox domain", done: hasDomain },
+    { title: "Add MX record", done: mxAdded },
+    { title: "Verified", done: verified },
+    { title: "Create addresses", done: hasAddress && verified },
   ];
   const current = steps.findIndex((s) => !s.done);
   return (
-    <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-brand-600 to-brand-800 p-6 text-white shadow-lg sm:p-8">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="max-w-2xl">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-medium"><Inbox size={13} /> Shared inbox</span>
-          <h2 className="mt-3 text-2xl font-bold tracking-tight sm:text-3xl">Receive email on your own domain</h2>
-          <p className="mt-2 text-sm text-white/80 sm:text-base">
-            Get mail sent to <b className="text-white">support@yourbrand.com</b> right here, read it, and reply with your brand —
-            all in one shared inbox. Messages are kept for {setup.retention_days} days.
-          </p>
-        </div>
-        <div className="flex gap-6 text-center">
-          <div><p className="text-3xl font-bold">{setup.domains.length}</p><p className="text-xs text-white/70">Domains</p></div>
-          <div><p className="text-3xl font-bold">{setup.addresses.length}</p><p className="text-xs text-white/70">Addresses</p></div>
-        </div>
-      </div>
-      <ol className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {steps.map((s, i) => {
-          const isCurrent = i === current;
-          return (
-            <li key={s.title} className={`flex items-center gap-3 rounded-xl border p-3.5 transition ${s.done ? "border-white/20 bg-white/10" : isCurrent ? "border-white bg-white/20 shadow-md" : "border-white/10 bg-white/5 opacity-70"}`}>
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${s.done ? "bg-success-base text-white" : isCurrent ? "bg-white text-brand-700" : "bg-white/20 text-white"}`}>
-                {s.done ? <Check size={16} /> : i + 1}
-              </span>
-              <div className="min-w-0"><p className="truncate text-sm font-semibold">{s.title}</p><p className="truncate text-xs text-white/70">{s.hint}</p></div>
-            </li>
-          );
-        })}
+    <section className="rounded-xl border border-surface-200 bg-white p-5">
+      <h2 className="text-base font-semibold text-surface-900">Receive email on your own domain</h2>
+      <p className="mt-1 text-sm text-surface-600">Get mail sent to support@yourbrand.com here, read it and reply from one shared inbox. Kept for {setup.retention_days} days.</p>
+      <ol className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {steps.map((s, i) => (
+          <li key={s.title} className={`flex items-center gap-2 ${s.done ? "text-surface-500" : i === current ? "font-medium text-surface-900" : "text-surface-400"}`}>
+            <span className={`flex h-5 w-5 items-center justify-center rounded-full border text-[11px] ${s.done ? "border-success-base bg-success-base text-white" : i === current ? "border-brand-600 text-brand-600" : "border-surface-300"}`}>
+              {s.done ? <Check size={11} /> : i + 1}
+            </span>
+            {s.title}
+          </li>
+        ))}
       </ol>
     </section>
   );
@@ -167,7 +152,7 @@ function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Se
   const st = STATUS[d.status];
 
   return (
-    <section className="overflow-hidden rounded-2xl border border-surface-200 bg-white shadow-sm">
+    <section className="overflow-hidden rounded-xl border border-surface-200 bg-white shadow-sm">
       <header className="flex flex-wrap items-center gap-4 border-b border-surface-100 bg-surface-50/60 px-5 py-4 sm:px-6">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Globe size={20} /></span>
         <div className="min-w-0 flex-1">
@@ -245,7 +230,7 @@ function AddressesSection({ setup, onChange, onError }: { setup: Setup; onChange
   const chosen = setup.domains.find((d) => d.id === domainId);
 
   return (
-    <section className="rounded-2xl border border-surface-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <AtSign size={18} className="text-brand-600" />
         <h3 className="text-base font-semibold text-surface-900">Addresses</h3>
@@ -282,14 +267,14 @@ function AddressesSection({ setup, onChange, onError }: { setup: Setup; onChange
 
 function Panel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-2xl border border-surface-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-surface-900"><span className="text-brand-600">{icon}</span>{title}</h3>
       {children}
     </section>
   );
 }
 
-export default function MailSetup({ setup, onChange }: { setup: Setup; onChange: () => void }) {
+export default function MailSetup({ setup, onChange, hideBanner = false }: { setup: Setup; onChange: () => void; hideBanner?: boolean }) {
   const [sd, setSd] = useState(setup.sending_domains[0]?.id ?? "");
   const chosen = setup.sending_domains.find((s) => s.id === sd);
   const [mode, setMode] = useState<"sub" | "root">("sub");
@@ -311,15 +296,15 @@ export default function MailSetup({ setup, onChange }: { setup: Setup; onChange:
       {error && <Alert variant="error" onDismiss={() => setError(null)}>{error}</Alert>}
       {!setup.platform_ready && <Alert variant="warning">{setup.platform_message}</Alert>}
 
-      <ProgressBanner setup={setup} />
+      {!hideBanner && <ProgressBanner setup={setup} />}
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
         {/* domains */}
         <div className="space-y-6">
           {setup.domains.length > 0 && <AddressesSection setup={setup} onChange={onChange} onError={setError} />}
           {setup.domains.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-surface-300 bg-white p-10 text-center">
-              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600"><Inbox size={26} /></span>
+            <div className="rounded-xl border border-dashed border-surface-300 bg-white p-10 text-center">
+              <Inbox size={24} className="mx-auto text-surface-400" />
               <h3 className="mt-4 text-lg font-semibold text-surface-900">No inbox yet</h3>
               <p className="mx-auto mt-1 max-w-md text-sm text-surface-500">Choose a domain on the right and press <b>Create inbox</b>. You'll then get one DNS record to add, and we'll do the rest.</p>
             </div>
@@ -333,7 +318,7 @@ export default function MailSetup({ setup, onChange }: { setup: Setup; onChange:
           {setup.sending_domains.length === 0 ? (
             <Panel title="Verify a domain first" icon={<Globe size={16} />}>
               <p className="text-sm text-surface-600">To receive mail you first need a domain that's verified for sending.</p>
-              <Link to="/email-domains" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline">Add and verify a domain <ArrowRight size={14} /></Link>
+              <Link to="/email-setup?tab=sending" className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 hover:underline">Add and verify a domain <ArrowRight size={14} /></Link>
             </Panel>
           ) : (
             <Panel title="Add an inbox" icon={<Plus size={16} />}>

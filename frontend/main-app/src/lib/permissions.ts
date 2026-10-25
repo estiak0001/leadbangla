@@ -29,7 +29,7 @@ export const ROUTE_PERMISSION: [string, string][] = [
   ["/dashboard", "analytics"], ["/analytics", "analytics"],
   ["/contacts", "contacts"], ["/segments", "contacts"],
   ["/crm", "crm"],
-  ["/campaigns", "email"], ["/email-domains", "email"], ["/mail", "email"],
+  ["/campaigns", "email"], ["/email-domains", "email"], ["/email-setup", "email"], ["/mail", "email"],
   ["/sms", "sms"], ["/whatsapp", "whatsapp"],
   ["/workflows", "workflows"], ["/landing-pages", "landing_pages"],
   ["/push", "growth"], ["/social", "growth"], ["/paid-ads", "growth"], ["/affiliate", "growth"],

@@ -18,7 +18,7 @@ import SegmentsPage from "./modules/audience/SegmentsPage";
 import SegmentBuilderPage from "./modules/audience/SegmentBuilderPage";
 import SegmentDetailPage from "./modules/audience/SegmentDetailPage";
 import CampaignsPage from "./modules/email/CampaignsPage";
-import EmailDomainsPage from "./modules/email/EmailDomainsPage";
+import EmailSetupPage from "./modules/email/EmailSetupPage";
 import CampaignTrashPage from "./modules/email/CampaignTrashPage";
 import CampaignEditorPage from "./modules/email/CampaignEditorPage";
 import CampaignDetailPage from "./modules/email/CampaignDetailPage";
@@ -86,7 +86,8 @@ export default function App() {
       <Route path="/segments/:id/edit" element={<Gate path="/segments/:id/edit"><SegmentBuilderPage /></Gate>} />
       <Route path="/campaigns" element={<Gate path="/campaigns"><CampaignsPage /></Gate>} />
       <Route path="/mail" element={<Gate path="/mail"><MailPage /></Gate>} />
-      <Route path="/email-domains" element={<Gate path="/email-domains"><EmailDomainsPage /></Gate>} />
+      <Route path="/email-setup" element={<Gate path="/email-setup"><EmailSetupPage /></Gate>} />
+      <Route path="/email-domains" element={<Navigate to="/email-setup?tab=sending" replace />} />
       <Route path="/campaigns/trash" element={<Gate path="/campaigns/trash"><CampaignTrashPage /></Gate>} />
       <Route path="/campaigns/new" element={<Gate path="/campaigns/new"><CampaignEditorPage /></Gate>} />
       <Route path="/campaigns/:id/edit" element={<Gate path="/campaigns/:id/edit"><CampaignEditorPage /></Gate>} />

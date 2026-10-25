@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { Archive, CheckCheck, Inbox, Mail, MailOpen, Paperclip, PenSquare, RefreshCw, Search, Send, Settings2, ShieldAlert, Star, Trash2, Undo2, X } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Alert from "../../components/Alert";
@@ -11,7 +11,6 @@ import {
 } from "../../lib/mail";
 import { fetchMembers, type TeamMember } from "../../lib/team";
 import MailComposer from "./MailComposer";
-import MailSetup from "./MailSetup";
 import ThreadView from "./ThreadView";
 import { avatarColor, initials, shortTime } from "./mailUtil";
 
@@ -135,6 +134,7 @@ export default function MailPage() {
   const unreadTotal = counts?.inbox_unread ?? 0;
   const unreadByFolder = useMemo(() => ({ inbox: counts?.inbox_unread ?? 0, spam: counts?.spam_unread ?? 0 } as Record<string, number>), [counts]);
 
+  if (view === "setup") return <Navigate to="/email-setup?tab=inbox" replace />;
   if (loading) return <AppLayout><div className="flex justify-center py-20"><Spinner size="lg" /></div></AppLayout>;
 
   return (
@@ -145,22 +145,22 @@ export default function MailPage() {
           <p className="text-sm text-surface-600">Shared email on your own domain — read, answer and follow up in one place.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant={view === "setup" ? "primary" : "secondary"} icon={<Settings2 size={14} />} onClick={() => set({ view: view === "setup" ? null : "setup", t: null })}>{view === "setup" ? "Back to inbox" : "Setup"}</Button>
+          <Link to="/email-setup?tab=inbox"><Button size="sm" variant="secondary" icon={<Settings2 size={14} />}>Setup</Button></Link>
           {view === "mail" && !noInbox && <Button size="sm" variant="secondary" icon={<RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />} onClick={refresh} disabled={refreshing} title={`Last updated ${agoText}`}>Refresh</Button>}
-          {view === "mail" && <Button size="sm" icon={<PenSquare size={14} />} onClick={() => (noInbox ? set({ view: "setup" }) : setComposing(true))}>Compose</Button>}
+          {view === "mail" && <Button size="sm" icon={<PenSquare size={14} />} onClick={() => (noInbox ? window.location.assign("/email-setup?tab=inbox") : setComposing(true))}>Compose</Button>}
         </div>
       </div>
 
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-3">{error}</Alert>}
       {notice && <Alert variant="success" onDismiss={() => setNotice(null)} className="mb-3">{notice}</Alert>}
 
-      {view === "setup" || (noInbox && view === "mail") ? (
-        setup && (
-          <>
-            {noInbox && view === "mail" && <div className="mb-3 rounded-xl border border-brand-100 bg-brand-50/60 px-4 py-3 text-sm text-surface-800">Your inbox isn't set up yet. Follow the steps below — it takes about 5 minutes.</div>}
-            <MailSetup setup={setup} onChange={() => { loadSetup(); loadCounts(); }} />
-          </>
-        )
+      {noInbox ? (
+        <div className="rounded-xl border border-dashed border-surface-300 bg-white p-10 text-center">
+          <Inbox size={24} className="mx-auto text-surface-400" />
+          <h3 className="mt-3 text-base font-semibold text-surface-900">Your inbox isn't set up yet</h3>
+          <p className="mx-auto mt-1 max-w-md text-sm text-surface-500">Add your domain and one DNS record, then create an address like support@yourbrand.com. It takes about 5 minutes.</p>
+          <Link to="/email-setup?tab=inbox" className="mt-4 inline-block"><Button size="sm">Set up inbox</Button></Link>
+        </div>
       ) : (
         <div className="grid lg:grid-cols-[180px_340px_minmax(0,1fr)] gap-3 items-stretch" style={{ minHeight: "calc(100vh - 210px)" }}>
           {/* folders */}

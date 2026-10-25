@@ -218,7 +218,7 @@ export default function CampaignEditorPage() {
                     <option value="">{usableSenders.length ? "Default sender" : "Platform address"}</option>
                     {usableSenders.map((s) => <option key={s.id} value={s.id}>{s.name ? `${s.name} <${s.email}>` : s.email}</option>)}
                   </Select>
-                  <Link to="/email-domains" className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-600 hover:text-brand-700 font-medium">
+                  <Link to="/email-setup?tab=sending" className="mt-1 inline-flex items-center gap-1 text-[11px] text-brand-600 hover:text-brand-700 font-medium">
                     <Globe size={11} /> {usableSenders.length ? "Manage sending domains" : "Use your own domain"}
                   </Link>
                 </div>
