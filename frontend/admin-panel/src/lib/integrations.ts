@@ -234,3 +234,9 @@ export async function checkMailSetup(): Promise<{ ok: boolean; region: string; m
   }
   return res.json();
 }
+
+export const fetchSesWebhookUrls = async (): Promise<{ inbound: string; events: string }> => {
+  const res = await fetch("/api/v1/admin/integrations/amazon_ses/webhook-urls", { headers: { Authorization: `Bearer ${getAccessToken()}` } });
+  if (!res.ok) throw new Error("Could not load the webhook URLs");
+  return res.json();
+};

@@ -42,6 +42,17 @@ async def saved_fields(code: str, _: User = Depends(get_current_internal_user), 
     return _fields(await _svc(db, code))
 
 
+@router.get("/amazon_ses/webhook-urls")
+async def ses_webhook_urls(_: User = Depends(get_current_internal_user), db: AsyncSession = Depends(get_db)) -> dict:
+    """Ready-to-paste SNS subscription endpoints (staff only; they embed the shared webhook secret)."""
+    from app.services.email_provider_service import public_api_base, webhook_secret  # noqa: PLC0415
+    base, secret = (await public_api_base(db)).rstrip("/"), await webhook_secret(db)
+    return {
+        "inbound": f"{base}/v1/public/mail/inbound?secret={secret}",
+        "events": f"{base}/v1/public/email/events?secret={secret}",
+    }
+
+
 class CredentialsBody(BaseModel):
     values: dict[str, str] = Field(default_factory=dict)
     required: list[str] = Field(default_factory=list)

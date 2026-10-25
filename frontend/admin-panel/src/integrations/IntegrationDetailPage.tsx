@@ -10,7 +10,7 @@ import Input from "../components/Input";
 import Spinner from "../components/Spinner";
 import Toggle from "../components/Toggle";
 import { INTEGRATION_INFO } from "../lib/integrationInfo";
-import { generatePushKeys, sendWhatsAppTest } from "../lib/integrations";
+import { fetchSesWebhookUrls, generatePushKeys, sendWhatsAppTest } from "../lib/integrations";
 import {
   SERVICE_FIELDS, clearIntegrationCredentials, fetchSavedFields, listIntegrations, saveIntegrationCredentials,
   checkMailSetup, sendSesTestEmail, testIntegration, updateIntegration, type IntegrationTestResult, type PlatformServiceAdmin, type SavedField,
@@ -60,7 +60,7 @@ function Snippet({ title, text }: { title: string; text: string }) {
   );
 }
 
-function InboxGuide({ webhook }: { webhook: string }) {
+function InboxGuide({ webhook, eventsUrl }: { webhook: string; eventsUrl?: string }) {
   return (
     <ol className="mt-3 list-decimal list-inside space-y-3 text-xs text-surface-700 rounded-[4px] border border-surface-200 bg-white p-3">
       <li><b>Create an S3 bucket</b> in the same region as SES (block public access on). Put its name in “Inbox: S3 bucket name” above and save.
@@ -69,7 +69,8 @@ function InboxGuide({ webhook }: { webhook: string }) {
         <Snippet title="IAM policy — replace YOUR_BUCKET" text={IAM_POLICY} /></li>
       <li><b>For new mail to appear on its own:</b> create an SNS topic in the same region, allow SES to publish to it, put its ARN in “Inbox: SNS topic ARN”, and add an HTTPS subscription to the address below (use your Webhook Secret and a public https URL).
         <Snippet title="Topic policy — replace YOUR_TOPIC_ARN and YOUR_AWS_ACCOUNT_ID" text={TOPIC_POLICY} />
-        <Snippet title="Subscription endpoint" text={webhook} /></li>
+        <Snippet title="Subscription endpoint (mail received)" text={webhook} />
+        {eventsUrl && <Snippet title="Subscription endpoint (bounces and complaints — separate SNS topic)" text={eventsUrl} />}</li>
       <li>Press <b>Check inbox setup</b>. When everything is green, customers can enable an inbox on their verified domain (Mail → Setup).</li>
       <li className="text-surface-500">LeadBangla creates and manages its own SES receipt rule set (<code>leadbangla-inbox</code>) and one rule per customer domain. If your AWS account already has a different active receipt rule set in this region, LeadBangla will not replace it — you'll see that in the check.</li>
     </ol>
@@ -101,6 +102,10 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
   const [inboxChecks, setInboxChecks] = useState<{ ok: boolean; region: string; mx: string; checks: { name: string; ok: boolean; message: string }[] } | null>(null);
   const [inboxBusy, setInboxBusy] = useState(false);
   const [inboxGuide, setInboxGuide] = useState(false);
+  const [sesUrls, setSesUrls] = useState<{ inbound: string; events: string } | null>(null);
+  useEffect(() => {
+    if (code === "amazon_ses" && inboxGuide && !sesUrls) fetchSesWebhookUrls().then(setSesUrls).catch(() => undefined);
+  }, [code, inboxGuide, sesUrls]);
   const [confirmClear, setConfirmClear] = useState(false);
   const [genKeys, setGenKeys] = useState(false);
 
@@ -266,7 +271,7 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
                     <p className="text-[11px] text-surface-500">Customers' MX record will be <code className="font-mono">{inboxChecks.mx}</code>. {inboxChecks.ok ? "Setup looks ready." : "Fix the red items, then check again."}</p>
                   </div>
                 )}
-                {inboxGuide && <InboxGuide webhook={`${window.location.protocol}//${window.location.hostname}${window.location.port && window.location.port !== "5174" ? `:${window.location.port}` : ""}/api/v1/public/mail/inbound?secret=YOUR_WEBHOOK_SECRET`} />}
+                {inboxGuide && <InboxGuide webhook={sesUrls?.inbound ?? `${window.location.origin}/api/v1/public/mail/inbound?secret=YOUR_WEBHOOK_SECRET`} eventsUrl={sesUrls?.events} />}
               </div>
             )}
           </Card>
