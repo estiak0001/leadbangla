@@ -138,8 +138,8 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
   const [evGuide, setEvGuide] = useState(false);
   const [sesUrls, setSesUrls] = useState<{ inbound: string; events: string } | null>(null);
   useEffect(() => {
-    if (code === "amazon_ses" && inboxGuide && !sesUrls) fetchSesWebhookUrls().then(setSesUrls).catch(() => undefined);
-  }, [code, inboxGuide, sesUrls]);
+    if (code === "amazon_ses" && (inboxGuide || evGuide) && !sesUrls) fetchSesWebhookUrls().then(setSesUrls).catch(() => undefined);
+  }, [code, inboxGuide, evGuide, sesUrls]);
   const [confirmClear, setConfirmClear] = useState(false);
   const [genKeys, setGenKeys] = useState(false);
 
