@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -247,6 +249,13 @@ async def plan_usage(
     from app.services.sms_plan import used_this_month as _sms_used  # noqa: PLC0415
 
     sms_used = await _sms_used(db, org_id)
+    from app.models.enums import SmsChannel  # noqa: PLC0415
+    from app.models.social import SocialAccount  # noqa: PLC0415
+
+    wa_used = await _sms_used(db, org_id, SmsChannel.WHATSAPP)
+    social_count = await db.scalar(select(func.count(SocialAccount.id)).where(SocialAccount.organization_id == org_id)) or 0
+    today = datetime.now(timezone.utc).date()
+    resets_on = (today.replace(day=1) + timedelta(days=32)).replace(day=1)
     wallet_balance_paisa = await get_balance(db, org_id)
 
     return PlanUsageRead(
@@ -258,6 +267,9 @@ async def plan_usage(
         landing_pages=ResourceUsage(used=lp_count, limit=plan.landing_pages_limit if plan else 0),
         team_members=ResourceUsage(used=team_count, limit=plan.team_members_limit if plan else 0),
         seo_credits=ResourceUsage(used=await count_audits_this_month(db, org_id), limit=plan.seo_credits_monthly if plan else 0),
+        social_accounts=ResourceUsage(used=social_count, limit=plan.social_accounts_limit if plan else 0),
+        whatsapp=ResourceUsage(used=wa_used, limit=plan.whatsapp_monthly_limit if plan else 0),
+        period_resets_on=resets_on.isoformat(),
         custom_domain=plan.custom_domain if plan else False,
         priority_support=plan.priority_support if plan else False,
         sms=ResourceUsage(used=sms_used, limit=plan.sms_monthly_limit if plan else 0),

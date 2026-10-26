@@ -26,6 +26,7 @@ import {
 } from "../../lib/billing";
 
 import UsageReportTab from "./UsageReportTab";
+import { UsageMeter } from "../../components/UsageMeter";
 
 type Tab = "plan" | "wallet" | "usage" | "history" | "invoices";
 
@@ -36,31 +37,6 @@ const TABS: { key: Tab; label: string }[] = [
   { key: "history", label: "Transaction History" },
   { key: "invoices", label: "Invoices" },
 ];
-
-function barColor(used: number, limit: number): string {
-  if (limit === -1) return "bg-brand-500";
-  const pct = limit === 0 ? 100 : (used / limit) * 100;
-  if (pct > 90) return "bg-danger-base";
-  if (pct >= 70) return "bg-warning-base";
-  return "bg-success-base";
-}
-
-function UsageBar({ label, used, limit }: { label: string; used: number; limit: number }) {
-  const pct = limit === -1 ? 100 : limit === 0 ? 100 : Math.min(100, (used / limit) * 100);
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-sm font-medium text-surface-700">{label}</span>
-        <span className="text-xs text-surface-500">
-          {used.toLocaleString()} / {limit === -1 ? "Unlimited" : limit.toLocaleString()}
-        </span>
-      </div>
-      <div className="h-2 rounded-full bg-surface-100 overflow-hidden">
-        <div className={`h-full rounded-full transition-all ${barColor(used, limit)}`} style={{ width: `${pct}%` }} />
-      </div>
-    </div>
-  );
-}
 
 function MyPlanTab() {
   const [usage, setUsage] = useState<PlanUsage | null>(null);
@@ -106,13 +82,15 @@ function MyPlanTab() {
         </div>
 
         <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-          <UsageBar label="Contacts" used={usage.contacts.used} limit={usage.contacts.limit} />
-          <UsageBar label="Monthly Emails" used={usage.emails_monthly.used} limit={usage.emails_monthly.limit} />
-          {usage.sms_enabled !== false && usage.sms && <UsageBar label="Monthly SMS" used={usage.sms.used} limit={usage.sms.limit} />}
-          <UsageBar label="Workflows" used={usage.workflows.used} limit={usage.workflows.limit} />
-          <UsageBar label="Landing Pages" used={usage.landing_pages.used} limit={usage.landing_pages.limit} />
-          <UsageBar label="Team Members" used={usage.team_members.used} limit={usage.team_members.limit} />
-          <UsageBar label="SEO Credits" used={usage.seo_credits.used} limit={usage.seo_credits.limit} />
+          <UsageMeter label="Contacts" used={usage.contacts.used} limit={usage.contacts.limit} />
+          <UsageMeter label="Emails this month" used={usage.emails_monthly.used} limit={usage.emails_monthly.limit} resets={usage.period_resets_on} />
+          {usage.sms_enabled !== false && usage.sms && <UsageMeter label="SMS this month" used={usage.sms.used} limit={usage.sms.limit} resets={usage.period_resets_on} />}
+          {usage.whatsapp_enabled && usage.whatsapp && <UsageMeter label="WhatsApp this month" used={usage.whatsapp.used} limit={usage.whatsapp.limit} resets={usage.period_resets_on} />}
+          <UsageMeter label="Workflows" used={usage.workflows.used} limit={usage.workflows.limit} />
+          <UsageMeter label="Landing pages" used={usage.landing_pages.used} limit={usage.landing_pages.limit} />
+          {usage.social_accounts && <UsageMeter label="Social accounts" used={usage.social_accounts.used} limit={usage.social_accounts.limit} />}
+          <UsageMeter label="Team members" used={usage.team_members.used} limit={usage.team_members.limit} />
+          <UsageMeter label="SEO checks this month" used={usage.seo_credits.used} limit={usage.seo_credits.limit} resets={usage.period_resets_on} />
         </div>
 
         <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-surface-100">

@@ -42,6 +42,9 @@ export interface PlanUsage {
   landing_pages: ResourceUsage;
   team_members: ResourceUsage;
   seo_credits: ResourceUsage;
+  social_accounts?: ResourceUsage | null;
+  whatsapp?: ResourceUsage | null;
+  period_resets_on?: string | null;
   sms?: ResourceUsage | null;
   sms_enabled?: boolean;
   masking_allowed?: boolean;

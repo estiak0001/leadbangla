@@ -164,6 +164,9 @@ class PlanUsageRead(BaseModel):
     landing_pages: ResourceUsage
     team_members: ResourceUsage
     seo_credits: ResourceUsage
+    social_accounts: ResourceUsage | None = None
+    whatsapp: ResourceUsage | None = None
+    period_resets_on: str | None = None
     custom_domain: bool
     priority_support: bool
     sms: ResourceUsage | None = None
