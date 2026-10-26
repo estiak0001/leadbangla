@@ -36,7 +36,7 @@ export default {
         info:    { light: '#eff6ff', base: '#3b82f6', dark: '#1d4ed8' },
       },
       fontFamily: {
-        sans: ['Inter', 'Hind Siliguri', 'Noto Sans Bengali', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'Noto Sans Bengali Variable', 'Hind Siliguri', 'Noto Sans Bengali', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       fontSize: {

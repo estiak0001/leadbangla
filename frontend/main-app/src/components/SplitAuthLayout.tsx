@@ -29,29 +29,12 @@ export default function SplitAuthLayout({
 
         {/* Centre content */}
         <div className="relative px-12 pb-12">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/15 px-4 py-2 text-sm text-white/90 backdrop-blur-sm">
-            <span className="text-base">🇧🇩</span> Built for Bangladesh
-          </div>
           <h2 className="text-3xl font-semibold leading-tight text-white">
             Marketing, built<br />for Bangladesh.
           </h2>
           <p className="mt-4 max-w-sm text-base text-violet-200 leading-relaxed">
             Email, SMS, WhatsApp, and audience tools in one platform — priced in BDT and built around local payment methods from day one.
           </p>
-
-          {/* Testimonial */}
-          <div className="mt-8 rounded-md bg-white/10 backdrop-blur-sm p-4">
-            <p className="text-sm text-white/85 italic leading-relaxed">
-              "LeadBangla helped us run our first email campaign in under an hour. The BDT pricing made it an easy yes."
-            </p>
-            <div className="mt-3 flex items-center gap-2">
-              <div className="h-7 w-7 rounded-full bg-violet-300 flex items-center justify-center text-xs font-bold text-violet-900">R</div>
-              <div>
-                <p className="text-xs font-medium text-white">Rafiqul Islam</p>
-                <p className="text-xs text-violet-300">E-commerce founder, Dhaka</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         <p className="relative px-12 pb-6 text-xs text-violet-300">© {new Date().getFullYear()} LeadBangla</p>

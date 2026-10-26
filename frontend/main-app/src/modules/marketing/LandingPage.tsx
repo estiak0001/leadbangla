@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Users, Mail, MessageSquare, CreditCard, Workflow, BarChart3, Check, ArrowRight,
-  ShieldCheck, Smartphone, Menu, X,
+  ShieldCheck, Smartphone, Menu, X, Layers, Languages, Wallet, Inbox,
 } from "lucide-react";
 import Button from "../../components/Button";
 import { fetchPlans, type Plan } from "../../lib/billing";
@@ -17,24 +17,24 @@ const NAV = [
   { href: "#faq", label: "সচরাচর প্রশ্ন" },
 ];
 
-const STATS = [
-  { value: "৫০,০০০+", label: "প্রতিদিন পাঠানো মেসেজ" },
-  { value: "৯৮%", label: "SMS ডেলিভারি রেট" },
-  { value: "৫ মিনিট", label: "সেটআপ করতে সময়" },
-  { value: "১০০%", label: "বাংলা ও BDT সাপোর্ট" },
+const FACTS = [
+  { icon: Layers, title: "সব চ্যানেল এক জায়গায়", desc: "ইমেইল, SMS ও WhatsApp ক্যাম্পেইন একই ড্যাশবোর্ড থেকে।" },
+  { icon: Languages, title: "পূর্ণ বাংলা সাপোর্ট", desc: "বাংলা ইউনিকোডে মেসেজ লিখুন, বাংলায় সাহায্য পান।" },
+  { icon: Wallet, title: "টাকায় বিল", desc: "দাম BDT-তে, পেমেন্ট বিকাশ, নগদ, রকেট বা ব্যাংক ট্রান্সফারে।" },
+  { icon: Inbox, title: "নিজের ডোমেইনে ইনবক্স", desc: "support@আপনার-ব্র্যান্ড-এ আসা মেইল এখানেই পড়ুন ও উত্তর দিন।" },
 ];
 
 const FEATURES = [
-  { icon: Users, title: "কাস্টমার তালিকা ও সেগমেন্ট", desc: "এক্সেল/CSV থেকে কন্টাক্ট ইমপোর্ট করুন, ট্যাগ দিন এবং এলাকা বা কেনাকাটার ভিত্তিতে অডিয়েন্স ভাগ করুন।", color: "bg-indigo-50 text-indigo-600" },
+  { icon: Users, title: "কাস্টমার তালিকা ও সেগমেন্ট", desc: "CSV ফাইল থেকে কন্টাক্ট ইমপোর্ট করুন, ট্যাগ দিন এবং এলাকা বা অন্যান্য তথ্যের ভিত্তিতে অডিয়েন্স ভাগ করুন।", color: "bg-indigo-50 text-indigo-600" },
   { icon: Mail, title: "ইমেইল মার্কেটিং", desc: "সুন্দর ইমেইল ক্যাম্পেইন পাঠান এবং কে খুলল, কে ক্লিক করল তা লাইভ দেখুন।", color: "bg-sky-50 text-sky-600" },
-  { icon: MessageSquare, title: "SMS ও WhatsApp", desc: "বাংলায় মাস্কিং SMS ও WhatsApp মেসেজ পাঠান। BTRC নীতিমালা মেনে, সরাসরি গ্রাহকের ফোনে।", color: "bg-emerald-50 text-emerald-600" },
-  { icon: Workflow, title: "অটোমেশন", desc: "নতুন কাস্টমারকে স্বাগত, কার্ট ফেলে গেলে রিমাইন্ডার — একবার সেট করুন, বাকিটা অটো চলবে।", color: "bg-violet-50 text-violet-600" },
-  { icon: BarChart3, title: "রিপোর্ট ও অ্যানালিটিক্স", desc: "কোন ক্যাম্পেইনে কত বিক্রি হলো তা এক ড্যাশবোর্ডেই বুঝে নিন।", color: "bg-amber-50 text-amber-600" },
-  { icon: CreditCard, title: "বিকাশ, নগদ, রকেট পেমেন্ট", desc: "টাকায় বিল দিন লোকাল পেমেন্টে। ডলার কার্ড বা বিদেশি ঝামেলা নেই।", color: "bg-rose-50 text-rose-600" },
+  { icon: MessageSquare, title: "SMS ও WhatsApp", desc: "বাংলায় SMS ও WhatsApp মেসেজ পাঠান সরাসরি গ্রাহকের ফোনে। নিজের ব্র্যান্ড নামে (মাস্কিং) পাঠাতে প্রয়োজনীয় অনুমোদনের আবেদনও এখান থেকেই করা যায়।", color: "bg-emerald-50 text-emerald-600" },
+  { icon: Workflow, title: "অটোমেশন", desc: "নতুন কাস্টমারকে স্বাগত, ফলো-আপ ও রিমাইন্ডার — একবার সেট করুন, বাকিটা অটো চলবে।", color: "bg-violet-50 text-violet-600" },
+  { icon: BarChart3, title: "রিপোর্ট ও অ্যানালিটিক্স", desc: "কোন ক্যাম্পেইন কতজন খুলল, ক্লিক করল — এক ড্যাশবোর্ডেই বুঝে নিন।", color: "bg-amber-50 text-amber-600" },
+  { icon: CreditCard, title: "বিকাশ, নগদ, রকেট পেমেন্ট", desc: "টাকায় বিল দিন লোকাল পেমেন্টে — পেমেন্টের রসিদ আপলোড করলে আমরা যাচাই করে প্ল্যান চালু করি। ডলার কার্ডের ঝামেলা নেই।", color: "bg-rose-50 text-rose-600" },
 ];
 
 const STEPS = [
-  { n: "১", title: "অ্যাকাউন্ট খুলুন", desc: "ইমেইল দিয়ে ১ মিনিটে সাইন আপ করুন।" },
+  { n: "১", title: "অ্যাকাউন্ট খুলুন", desc: "ইমেইল দিয়ে সাইন আপ করুন ও প্ল্যান বেছে নিন।" },
   { n: "২", title: "কাস্টমার যোগ করুন", desc: "CSV ইমপোর্ট করুন অথবা হাতে যোগ করুন।" },
   { n: "৩", title: "ক্যাম্পেইন পাঠান", desc: "ইমেইল, SMS বা WhatsApp বেছে নিয়ে সেন্ড করুন।" },
   { n: "৪", title: "ফলাফল দেখুন", desc: "বিক্রি ও এনগেজমেন্ট রিপোর্টে দেখুন।" },
@@ -63,9 +63,9 @@ function planPoints(p: Plan): string[] {
 
 const FAQ = [
   { q: "আমি কি বাংলায় মেসেজ পাঠাতে পারব?", a: "হ্যাঁ। ইমেইল ও SMS দুটোতেই পূর্ণ বাংলা (ইউনিকোড) সাপোর্ট আছে এবং পুরো ড্যাশবোর্ড ব্যবহার করা সহজ।" },
-  { q: "পেমেন্ট কীভাবে করব?", a: "বিকাশ, নগদ, রকেট এবং কার্ড — সব পেমেন্ট বাংলাদেশি টাকায় (BDT) করা যায়।" },
+  { q: "পেমেন্ট কীভাবে করব?", a: "বিকাশ, নগদ, রকেট বা ব্যাংক ট্রান্সফারে বাংলাদেশি টাকায় (BDT) পেমেন্ট করে রসিদ আপলোড করুন। আমরা যাচাই করে আপনার প্ল্যান চালু করি।" },
   { q: "যেকোনো সময় বাতিল করা যাবে?", a: "অবশ্যই। কোনো লক-ইন নেই, যখন ইচ্ছা প্ল্যান বাতিল বা পরিবর্তন করতে পারবেন।" },
-  { q: "SMS কি BTRC নিয়ম মেনে পাঠানো হয়?", a: "হ্যাঁ, মেসেজ পাঠানো হয় BTRC-র নীতিমালা মেনে, যাতে আপনার ব্যবসা নিরাপদ থাকে।" },
+  { q: "নিজের ব্র্যান্ড নামে SMS পাঠানো যাবে?", a: "হ্যাঁ, মাস্কিং Sender ID ব্যবহার করা যায়। এর জন্য BTRC ও গেটওয়ের নিয়ম অনুযায়ী প্রয়োজনীয় ডকুমেন্ট জমা দিতে হয় — আবেদনটি আপনি LeadBangla থেকেই জমা দিতে পারবেন।" },
 ];
 
 /** Bangladesh in dots: the map and historical landmarks drawn as faint dot-matrix art. */
@@ -95,11 +95,6 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-surface-800">
-      {/* Top announcement */}
-      <div className="bg-brand-900 px-4 py-2 text-center text-sm text-white">
-        🇧🇩 বাংলাদেশের ব্যবসার জন্য তৈরি — বিকাশ/নগদ-এ পেমেন্ট, বাংলায় সাপোর্ট
-      </div>
-
       {/* Nav */}
       <header className="sticky top-0 z-30 border-b border-surface-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
@@ -111,7 +106,7 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login" className="hidden px-3 py-2 text-sm font-medium text-surface-600 hover:text-surface-900 sm:inline">লগইন</Link>
-            <Link to="/signup"><Button size="sm">বিনামূল্যে শুরু করুন</Button></Link>
+            <Link to="/signup"><Button size="sm">শুরু করুন</Button></Link>
             <button className="rounded p-2 text-surface-600 md:hidden" onClick={() => setOpen(!open)} aria-label="মেনু">
               {open ? <X size={20} /> : <Menu size={20} />}
             </button>
@@ -137,20 +132,20 @@ export default function LandingPage() {
             <span className="inline-flex items-center gap-2 rounded-full border border-brand-100 bg-white px-3 py-1 text-xs font-semibold text-brand-700 shadow-sm">
               <span className="h-2 w-2 rounded-full bg-emerald-500" /> দেশি ব্যবসার স্মার্ট মার্কেটিং সঙ্গী
             </span>
-            <h1 className="mt-5 text-4xl font-extrabold leading-[1.25] text-surface-900 sm:text-5xl">
+            <h1 className="mt-5 text-4xl font-bold leading-[1.45] text-surface-900 sm:text-5xl">
               আপনার ব্যবসার মার্কেটিং<br />
-              <span className="bg-gradient-to-r from-brand-600 to-violet-600 bg-clip-text text-transparent">হোক সহজ ও বাংলায়</span>
+              <span className="inline-block bg-gradient-to-r from-brand-600 to-violet-600 bg-clip-text pb-2 text-transparent">হোক সহজ ও বাংলায়</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-surface-600">
               ইমেইল, SMS ও WhatsApp — সব এক জায়গায়। কাস্টমারদের কাছে পৌঁছান, বিক্রি বাড়ান।
               বিকাশ ও নগদে পেমেন্ট, দাম টাকায়।
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/signup"><Button size="lg" icon={<ArrowRight size={18} />}>ফ্রিতে শুরু করুন</Button></Link>
+              <Link to="/signup"><Button size="lg" icon={<ArrowRight size={18} />}>শুরু করুন</Button></Link>
               <a href="#pricing"><Button variant="secondary" size="lg">প্ল্যান দেখুন</Button></a>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-surface-600">
-              {["ক্রেডিট কার্ড লাগবে না", "যেকোনো সময় বাতিল", "বাংলা সাপোর্ট"].map((t) => (
+              {["বিকাশ/নগদে পেমেন্ট", "যেকোনো সময় বাতিল", "বাংলা সাপোর্ট"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5"><Check size={16} className="text-emerald-600" />{t}</li>
               ))}
             </ul>
@@ -161,13 +156,13 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Stats */}
+      {/* What you get */}
       <section className="mx-auto -mt-2 max-w-6xl px-4">
-        <div className="grid grid-cols-2 gap-4 rounded-xl border border-surface-200 bg-white p-6 shadow-lg md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-2xl font-extrabold text-brand-700 sm:text-3xl">{s.value}</div>
-              <div className="mt-1 text-sm text-surface-500">{s.label}</div>
+        <div className="grid gap-5 rounded-xl border border-surface-200 bg-white p-6 shadow-lg sm:grid-cols-2 lg:grid-cols-4">
+          {FACTS.map((f) => (
+            <div key={f.title} className="flex gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><f.icon size={20} /></span>
+              <div><div className="text-sm font-semibold text-surface-900">{f.title}</div><div className="mt-0.5 text-sm text-surface-500">{f.desc}</div></div>
             </div>
           ))}
         </div>
@@ -179,7 +174,7 @@ export default function LandingPage() {
         <div className="mt-4 flex flex-wrap items-center justify-center gap-3">
           {[
             { n: "bKash", c: "bg-[#e2136e]" }, { n: "Nagad", c: "bg-[#f6921e]" },
-            { n: "Rocket", c: "bg-[#8c3494]" }, { n: "Visa / Mastercard", c: "bg-surface-800" },
+            { n: "Rocket", c: "bg-[#8c3494]" }, { n: "ব্যাংক ট্রান্সফার", c: "bg-surface-800" },
           ].map((p) => (
             <span key={p.n} className={`${p.c} rounded-full px-5 py-2 text-sm font-bold text-white shadow-sm`}>{p.n}</span>
           ))}
@@ -208,8 +203,9 @@ export default function LandingPage() {
       {/* Banner CTA */}
       <section className="mx-auto max-w-6xl px-4">
         <div className="relative overflow-hidden rounded-2xl">
-          <img src="/img/boishakh.jpg" alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-r from-brand-900/95 via-brand-700/85 to-violet-700/60" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-r from-brand-900 via-brand-700 to-violet-700" aria-hidden />
+          <DotArt name="bd-map" light className="-right-6 top-1/2 h-[170%] -translate-y-1/2 opacity-[0.14]" />
+          <DotArt name="shapla" light className="bottom-2 left-3 hidden w-28 opacity-[0.12] sm:block" />
           <div className="relative grid items-center gap-6 px-6 py-12 text-white sm:px-12 md:grid-cols-[1.4fr_1fr]">
             <div>
               <h2 className="text-3xl font-bold leading-snug sm:text-4xl">ঈদ, পহেলা বৈশাখ, ১১.১১ —<br />প্রতিটি সেল সিজনে সবার আগে পৌঁছান</h2>
@@ -226,7 +222,18 @@ export default function LandingPage() {
       <Decor className="" arts={[{ name: "nouka", className: "-right-6 bottom-0 hidden w-80 opacity-[0.10] md:block" }, { name: "bd-map", className: "-left-10 top-0 hidden h-[110%] opacity-[0.07] lg:block" }]}>
       <section className="mx-auto max-w-6xl px-4 pt-20">
         <div className="grid items-center gap-10 md:grid-cols-2">
-          <img src="/img/market.jpg" alt="বাজারে সবজি বিক্রেতা" loading="lazy" className="aspect-[4/3] w-full rounded-2xl object-cover shadow-xl" />
+          <div className="relative flex justify-center rounded-2xl bg-gradient-to-br from-brand-50 to-violet-100 px-6 py-10" aria-hidden>
+            <div className="w-64 rounded-[2rem] border-[6px] border-surface-900 bg-white p-3 shadow-xl">
+              <div className="mx-auto mb-3 h-1.5 w-16 rounded-full bg-surface-200" />
+              <p className="mb-2 text-center text-xs font-semibold text-surface-500">আপনার দোকান</p>
+              <div className="space-y-2 text-xs leading-relaxed">
+                <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-surface-100 p-2.5 text-surface-800">ঈদ অফার! সব পণ্যে ১০% ছাড়, শুধু এই সপ্তাহে।</div>
+                <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-surface-100 p-2.5 text-surface-800">নতুন পণ্য এসেছে — এখনই অর্ডার করুন।</div>
+                <div className="ml-auto max-w-[70%] rounded-2xl rounded-tr-sm bg-brand-600 p-2.5 text-white">আমি ২টা নিতে চাই</div>
+                <div className="max-w-[90%] rounded-2xl rounded-tl-sm bg-surface-100 p-2.5 text-surface-800">আপনার অর্ডার কনফার্ম হয়েছে ✅</div>
+              </div>
+            </div>
+          </div>
           <div>
             <span className="text-sm font-semibold text-brand-600">ছোট দোকান থেকে বড় ব্র্যান্ড</span>
             <h2 className="mt-2 text-3xl font-bold leading-snug text-surface-900 sm:text-4xl">আপনার কাস্টমার ফোনেই আছে — সেখানেই পৌঁছান</h2>
@@ -267,7 +274,7 @@ export default function LandingPage() {
         <DotArt name="nouka" className="left-[38%] bottom-1 hidden w-56 opacity-[0.07] xl:block" />
         <div className="relative mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-surface-900 sm:text-4xl">আপনার ব্যবসার জন্য সঠিক প্ল্যান</h2>
-          <p className="mt-3 text-center text-surface-500">সহজ দাম, টাকায়। কোনো লুকানো চার্জ নেই।</p>
+          <p className="mt-3 text-center text-surface-500">সহজ দাম, টাকায়। SMS ও WhatsApp ব্যবহার অনুযায়ী ওয়ালেট ক্রেডিট থেকে কাটে।</p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => {
               const featured = plan.code === "growth";
@@ -296,7 +303,7 @@ export default function LandingPage() {
             })}
           </div>
           <p className="mt-8 flex items-center justify-center gap-2 text-sm text-surface-500">
-            <ShieldCheck size={16} className="text-emerald-600" /> নিরাপদ পেমেন্ট · যেকোনো সময় বাতিলযোগ্য
+            <ShieldCheck size={16} className="text-emerald-600" /> প্ল্যান যেকোনো সময় বাতিল বা পরিবর্তন করা যায়
           </p>
         </div>
       </section>
@@ -321,37 +328,44 @@ export default function LandingPage() {
       {/* Final CTA */}
       <section className="px-4 pb-20">
         <div className="relative mx-auto max-w-4xl overflow-hidden rounded-2xl px-6 py-14 text-center text-white">
-          <img src="/img/dhaka.jpg" alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-br from-brand-700/90 to-violet-800/90" aria-hidden />
+          <div className="absolute inset-0 bg-gradient-to-br from-brand-700 to-violet-800" aria-hidden />
           <DotArt name="bd-map" light className="-right-6 top-1/2 h-[170%] -translate-y-1/2 opacity-[0.16]" />
           <DotArt name="shapla" light className="bottom-2 left-3 hidden w-32 opacity-[0.14] sm:block" />
           <div className="relative">
           <h2 className="text-3xl font-bold">আজই আপনার প্রথম ক্যাম্পেইন পাঠান</h2>
-          <p className="mt-2 text-brand-100">সাইন আপ করতে ৫ মিনিটও লাগবে না।</p>
-          <Link to="/signup" className="mt-6 inline-block"><Button variant="secondary" size="lg">বিনামূল্যে শুরু করুন</Button></Link>
+          <p className="mt-2 text-brand-100">অ্যাকাউন্ট খুলুন, কাস্টমার যোগ করুন, তারপর ক্যাম্পেইন পাঠান।</p>
+          <Link to="/signup" className="mt-6 inline-block"><Button variant="secondary" size="lg">শুরু করুন</Button></Link>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="relative overflow-hidden border-t border-surface-200 bg-surface-900 py-10 text-center text-sm text-surface-400">
-        <DotArt name="bd-map" light className="-left-6 top-1/2 h-[190%] -translate-y-1/2 opacity-[0.07]" />
-        <DotArt name="shaheed-minar" light className="-right-4 bottom-0 hidden w-60 opacity-[0.07] md:block" />
-        <DotArt name="nouka" light className="right-[28%] bottom-0 hidden w-44 opacity-[0.06] lg:block" />
-        <img src="/logo-white.png" alt="LeadBangla" className="relative mx-auto h-8 w-auto" />
-        <p className="relative mt-1">আপনার ব্যবসার পাশে, আপনার ভাষায় 🇧🇩</p>
-        <p className="relative mx-auto mt-4 max-w-2xl px-4 text-xs text-surface-500">
-          ছবি: Wikimedia Commons — <a className="underline" href="https://commons.wikimedia.org/wiki/File:Shopkeeper_in_BD.jpg">Masum-al-hasan</a> (CC BY-SA 3.0),{" "}
-          <a className="underline" href="https://commons.wikimedia.org/wiki/File:Pohela_Boishakh_Celebration_at_Chittagong_01.jpg">IqbalHossain</a> (CC BY-SA 4.0),{" "}
-          <a className="underline" href="https://commons.wikimedia.org/wiki/File:Dhaka_skyline_at_golden_hour_02.jpg">Wasiul Bahar</a> (CC BY-SA 4.0)
-        </p>
-        <p className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
-          <Link to="/privacy" className="underline hover:text-white">Privacy Policy</Link>
-          <Link to="/terms" className="underline hover:text-white">Terms of Service</Link>
-          <Link to="/acceptable-use" className="underline hover:text-white">Acceptable Use &amp; Anti-Spam</Link>
-          <a href="mailto:support@leadbangla.com" className="underline hover:text-white">support@leadbangla.com</a>
-        </p>
-        <p className="relative mt-4">© {toBn(new Date().getFullYear())} LeadBangla. সর্বস্বত্ব সংরক্ষিত।</p>
+      <footer className="bg-surface-900 text-sm text-surface-400">
+        <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-3">
+          <div>
+            <img src="/logo-white.png" alt="LeadBangla" className="h-8 w-auto" />
+            <p className="mt-3 max-w-xs">আপনার ব্যবসার পাশে, আপনার ভাষায়</p>
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">অ্যাকাউন্ট</h3>
+            <ul className="mt-3 space-y-2">
+              <li><Link to="/signup" className="hover:text-white">শুরু করুন</Link></li>
+              <li><Link to="/login" className="hover:text-white">লগইন</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-semibold text-white">আইনি ও সাপোর্ট</h3>
+            <ul className="mt-3 space-y-2">
+              <li><Link to="/privacy" className="hover:text-white">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="hover:text-white">Terms of Service</Link></li>
+              <li><Link to="/acceptable-use" className="hover:text-white">Acceptable Use &amp; Anti-Spam</Link></li>
+              <li><a href="mailto:support@leadbangla.com" className="hover:text-white">support@leadbangla.com</a></li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-surface-800 py-5 text-center text-xs">
+          © {toBn(new Date().getFullYear())} LeadBangla. সর্বস্বত্ব সংরক্ষিত।
+        </div>
       </footer>
     </div>
   );
