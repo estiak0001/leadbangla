@@ -10,38 +10,55 @@ import {
   LayoutDashboard, Users, Filter, Mail, Share2, MessageSquare, MessageCircle,
   Globe, Workflow, BookUser, BarChart3, Search, Link2, Star,
   LogOut, Menu, X, Bell, CalendarDays, BadgeDollarSign, HelpCircle, Settings, ChevronDown,
-  CreditCard, User, Wallet, UsersRound, Inbox, Settings2,
+  CreditCard, User, Wallet, UsersRound, Inbox, Settings2, MailX,
 } from "lucide-react";
 import { fetchMailCounts } from "../lib/mail";
 
-interface NavItem { to: string; label: string; icon: ReactNode; }
+interface NavItem { to: string; label: string; icon: ReactNode; step?: number; notActiveOn?: string[]; }
 
+// Ordered by what a customer does: know the audience -> set up and use each channel -> automate -> measure.
+// Email is laid out in the order it is used (set up, send, receive, clean up).
 const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
-    label: "Main",
+    label: "Overview",
     items: [
       { to: "/dashboard", label: "Dashboard", icon: <LayoutDashboard size={16} /> },
-      { to: "/contacts",  label: "Contacts",  icon: <Users size={16} /> },
-      { to: "/segments",  label: "Segments",  icon: <Filter size={16} /> },
-      { to: "/crm",       label: "CRM",       icon: <BookUser size={16} /> },
-      { to: "/team",      label: "Team",      icon: <UsersRound size={16} /> },
     ],
   },
   {
-    label: "Campaigns",
+    label: "Audience",
     items: [
-      { to: "/campaigns", label: "Email Campaigns", icon: <Mail size={16} /> },
-      { to: "/mail",      label: "Inbox",           icon: <Inbox size={16} /> },
-      { to: "/email-setup", label: "Email Setup",   icon: <Settings2 size={16} /> },
-      { to: "/sms",       label: "SMS",             icon: <MessageSquare size={16} /> },
-      { to: "/whatsapp",  label: "WhatsApp",        icon: <MessageCircle size={16} /> },
-      { to: "/push",      label: "Push",            icon: <Bell size={16} /> },
-      { to: "/social",    label: "Social",          icon: <Share2 size={16} /> },
-      { to: "/paid-ads",  label: "Paid Ads",        icon: <BadgeDollarSign size={16} /> },
+      { to: "/contacts", label: "Contacts", icon: <Users size={16} /> },
+      { to: "/segments", label: "Segments", icon: <Filter size={16} /> },
+      { to: "/crm",      label: "CRM",      icon: <BookUser size={16} /> },
     ],
   },
   {
-    label: "Automation & Content",
+    label: "Email",
+    items: [
+      { to: "/email-setup",          label: "Email Setup",  icon: <Settings2 size={16} />, step: 1 },
+      { to: "/campaigns",            label: "Campaigns",    icon: <Mail size={16} />,      step: 2, notActiveOn: ["/campaigns/suppressed"] },
+      { to: "/mail",                 label: "Inbox",        icon: <Inbox size={16} />,     step: 3 },
+      { to: "/campaigns/suppressed", label: "Unsubscribed", icon: <MailX size={16} /> },
+    ],
+  },
+  {
+    label: "SMS & WhatsApp",
+    items: [
+      { to: "/sms",      label: "SMS",      icon: <MessageSquare size={16} /> },
+      { to: "/whatsapp", label: "WhatsApp", icon: <MessageCircle size={16} /> },
+    ],
+  },
+  {
+    label: "More channels",
+    items: [
+      { to: "/push",     label: "Push",     icon: <Bell size={16} /> },
+      { to: "/social",   label: "Social",   icon: <Share2 size={16} /> },
+      { to: "/paid-ads", label: "Paid Ads", icon: <BadgeDollarSign size={16} /> },
+    ],
+  },
+  {
+    label: "Automate & publish",
     items: [
       { to: "/workflows",     label: "Workflows",     icon: <Workflow size={16} /> },
       { to: "/landing-pages", label: "Landing Pages", icon: <Globe size={16} /> },
@@ -49,7 +66,7 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
-    label: "Growth",
+    label: "Grow",
     items: [
       { to: "/affiliate",   label: "Affiliate",   icon: <Link2 size={16} /> },
       { to: "/influencers", label: "Influencers", icon: <Star size={16} /> },
@@ -64,13 +81,25 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   },
 ];
 
+// Account-level links, pinned at the bottom of the sidebar.
+const ACCOUNT_ITEMS: NavItem[] = [
+  { to: "/team",     label: "Team",           icon: <UsersRound size={16} /> },
+  { to: "/billing",  label: "Billing & Plan", icon: <CreditCard size={16} /> },
+  { to: "/settings", label: "Settings",       icon: <Settings size={16} /> },
+];
+const DEFAULT_COLLAPSED: Record<string, boolean> = { "Grow": true, "More channels": true };
+
+const isItemActive = (item: NavItem, pathname: string) =>
+  (pathname === item.to || pathname.startsWith(item.to + "/")) && !item.notActiveOn?.some((x) => pathname === x || pathname.startsWith(x + "/"));
+
 const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 
 
 function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/profile")) return "My Profile";
   if (pathname.startsWith("/settings")) return "Settings";
-  const match = ALL_ITEMS.find((item) => pathname.startsWith(item.to));
+  if (pathname.startsWith("/billing")) return "Billing & Plan";
+  const match = [...ALL_ITEMS].sort((x, y) => y.to.length - x.to.length).find((item) => isItemActive(item, pathname));
   return match?.label ?? "Dashboard";
 }
 
@@ -84,11 +113,11 @@ function loadCollapsed(): Record<string, boolean> {
   try { return JSON.parse(localStorage.getItem("nav-collapsed") ?? "{}"); } catch { return {}; }
 }
 
-const permFor = (to: string) => ROUTE_PERMISSION.find(([p]) => p === to)?.[1];
+const permFor = (to: string) => [...ROUTE_PERMISSION].sort((x, y) => y[0].length - x[0].length).find(([p]) => to === p || to.startsWith(p + "/"))?.[1];
 
 function NavGroup({ group, onLinkClick, collapsed, onToggle, badges }: { group: typeof NAV_GROUPS[0]; onLinkClick?: () => void; collapsed: boolean; onToggle: () => void; badges?: Record<string, number> }) {
   const { pathname } = useLocation();
-  const hasActive = group.items.some((i) => pathname.startsWith(i.to));
+  const hasActive = group.items.some((i) => isItemActive(i, pathname));
   const open = !collapsed || hasActive;
   return (
     <div className="mb-1.5">
@@ -107,21 +136,25 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges }: { group: 
               key={item.to}
               to={item.to}
               onClick={onLinkClick}
-              className={({ isActive }) =>
+              className={() =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-                  isActive
+                  isItemActive(item, pathname)
                     ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70"
                     : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
                 }`
               }
             >
-              {({ isActive }) => (
+              {() => {
+                const isActive = isItemActive(item, pathname);
+                return (
                 <>
                   <span className={`flex-shrink-0 ${isActive ? "text-brand-600" : "text-surface-500"}`}>{item.icon}</span>
                   <span className="truncate flex-1">{item.label}</span>
+                  {item.step && <span className="flex h-4 w-4 items-center justify-center rounded-full border border-surface-300 text-[10px] font-semibold text-surface-500" title={`Step ${item.step}`}>{item.step}</span>}
                   {!!badges?.[item.to] && <span className="rounded-full bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 leading-none">{badges[item.to] > 99 ? "99+" : badges[item.to]}</span>}
                 </>
-              )}
+                );
+              }}
             </NavLink>
           ))}
         </div>
@@ -133,6 +166,7 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges }: { group: 
 // ── Sidebar content ──────────────────────────────────────────────────────────
 function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const { can, me } = useMe();
   const [mailUnread, setMailUnread] = useState(0);
@@ -155,7 +189,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
 
   function toggle(label: string) {
     setCollapsed((prev) => {
-      const next = { ...prev, [label]: !prev[label] };
+      const next = { ...prev, [label]: !(prev[label] ?? DEFAULT_COLLAPSED[label] ?? false) };
       try { localStorage.setItem("nav-collapsed", JSON.stringify(next)); } catch { /* storage unavailable */ }
       return next;
     });
@@ -165,7 +199,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     <div className="flex h-full flex-col overflow-hidden">
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         {groups.map((group) => (
-          <NavGroup key={group.label} group={group} onLinkClick={onLinkClick} collapsed={!!collapsed[group.label]} onToggle={() => toggle(group.label)} badges={{ "/mail": mailUnread }} />
+          <NavGroup key={group.label} group={group} onLinkClick={onLinkClick} collapsed={collapsed[group.label] ?? DEFAULT_COLLAPSED[group.label] ?? false} onToggle={() => toggle(group.label)} badges={{ "/mail": mailUnread }} />
         ))}
       </nav>
 
@@ -187,18 +221,22 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       )}
 
       <div className="flex-shrink-0 px-3 py-3 border-t border-surface-200/80 space-y-0.5">
-        <NavLink
-          to="/settings"
-          onClick={onLinkClick}
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-              isActive ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70" : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
-            }`
-          }
-        >
-          <Settings size={16} className="flex-shrink-0 text-surface-500" />
-          <span>Settings</span>
-        </NavLink>
+        {ACCOUNT_ITEMS.filter((i) => can(permFor(i.to))).map((item) => {
+          const active = isItemActive(item, pathname);
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={onLinkClick}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+                active ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70" : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
+              }`}
+            >
+              <span className={`flex-shrink-0 ${active ? "text-brand-600" : "text-surface-500"}`}>{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
         <button
           onClick={() => { clearTokens(); navigate("/login"); }}
           className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900 transition-all duration-150"
