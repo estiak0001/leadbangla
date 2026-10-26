@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.cred_crypto import decrypt_creds, encrypt_creds
-from app.integrations.email_delivery import EmailSendError, friendly_ses_error, ses_client
+from app.integrations.email_delivery import EmailSendError, customer_safe, friendly_ses_error, ses_client
 from app.services.email_provider_service import EmailNotConfiguredError, get_provider, get_ses_config
 from app.integrations.email_client import email_client
 from app.models.campaign import Campaign
@@ -31,7 +31,7 @@ class NotFoundError(Exception):
 async def _ses_cfg(db: AsyncSession) -> dict:
     cfg = await get_ses_config(db)
     if cfg is None:
-        raise EmailDomainError("Amazon SES is not connected. An administrator must add the AWS credentials in the admin panel (Integration Hub → Amazon SES Email) first.")
+        raise EmailDomainError("Email delivery isn't set up on this platform yet. Please contact support.")
     return cfg
 
 
@@ -49,7 +49,7 @@ async def _register_in_ses(db: AsyncSession, domain: str) -> list[dict]:
     try:
         tokens = await asyncio.to_thread(_create)
     except Exception as e:
-        raise EmailDomainError(friendly_ses_error(e, region=cfg["region"]))
+        raise EmailDomainError(customer_safe(friendly_ses_error(e, region=cfg["region"]), log_prefix="domain setup"))
     records = [
         {"type": "CNAME", "host": f"{t}._domainkey.{domain}", "data": f"{t}.dkim.amazonses.com", "purpose": "dkim", "required": True, "verified": False}
         for t in tokens
@@ -274,7 +274,7 @@ async def verify_domain(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid.UUI
         try:
             ident = await asyncio.to_thread(_status)
         except Exception as e:
-            raise EmailDomainError(friendly_ses_error(e, region=cfg["region"]))
+            raise EmailDomainError(customer_safe(friendly_ses_error(e, region=cfg["region"]), log_prefix="domain setup"))
         dkim_status = ident.get("DkimAttributes", {}).get("Status", "NOT_STARTED")
         ok = bool(ident.get("VerifiedForSendingStatus")) and dkim_status == "SUCCESS"
         for r in records:
@@ -283,11 +283,11 @@ async def verify_domain(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid.UUI
             else:
                 r["verified"] = await asyncio.to_thread(_check_record_sync, r)
         if ok:
-            note = f"Verified by Amazon SES ({cfg['region']}). DKIM is active."
+            note = "Verified. Your domain is ready to send."
         elif dkim_status == "FAILED":
-            note = "Amazon SES could not find the DKIM CNAME records. Check they were added exactly as shown (no extra domain suffix) — then re-check."
+            note = "We could not find the DKIM records yet. Check they were added exactly as shown (no extra domain suffix), then re-check."
         else:
-            note = "Amazon SES hasn't detected the DKIM records yet (status: " + dkim_status.lower().replace("_", " ") + "). DNS can take up to 72 hours; usually minutes."
+            note = "We haven't detected the DKIM records yet. DNS can take up to 72 hours; usually minutes."
     else:
         for r in records:
             r["verified"] = await asyncio.to_thread(_check_record_sync, r)
@@ -364,7 +364,7 @@ async def register_with_ses(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid
     d.status = "pending"
     d.dkim_selector = None
     d.dkim_private_key_enc = None
-    d.status_note = "Registered with Amazon SES. Add the new DNS records, then click Verify DNS."
+    d.status_note = "Registered. Add the new DNS records, then click Verify DNS."
     d.dns_submitted_at = None
     d.last_checked_at = None
     await db.commit()
@@ -508,7 +508,7 @@ async def send_test_email(db: AsyncSession, org_id: uuid.UUID, sender_id: uuid.U
         raise EmailDomainError("This sender's domain is not verified yet — verify its DNS records first." if info["domain_status"] == "pending" else f"Sending is paused: {info['paused_reason']}")
     provider = await get_provider(db)
     if provider.kind == "ses" and info.get("domain_provider") != "ses":
-        raise EmailDomainError("This domain isn't registered with Amazon SES yet. Open the domain and click \"Register with Amazon SES\".")
+        raise EmailDomainError("This domain needs to be registered for sending first. Open the domain and click \"Register domain\".")
     try:
         return await email_client.send_email(
             db, org_id=org_id, to_email=to_email, subject="Test email from LeadBangla",
@@ -516,6 +516,6 @@ async def send_test_email(db: AsyncSession, org_id: uuid.UUID, sender_id: uuid.U
             from_email=info["from_email"], from_name=info["from_name"], dkim=info["dkim"],
         )
     except (EmailSendError, EmailNotConfiguredError) as e:
-        raise EmailDomainError(str(e))
+        raise EmailDomainError(customer_safe(str(e), log_prefix="test email"))
     except Exception as e:
-        raise EmailDomainError(f"Sending failed: {e}")
+        raise EmailDomainError(customer_safe(f"Sending failed: {e}", log_prefix="test email"))

@@ -304,8 +304,8 @@ function DomainCard({
           <div className="px-4 pt-3 space-y-3">
             {needsSesRegistration && (
               <div className="rounded-xl border border-warning-base/30 bg-warning-light px-4 py-3 text-sm text-warning-dark flex flex-wrap items-center gap-3">
-                <span className="flex-1 min-w-48">This domain was set up before Amazon SES was connected, so SES doesn't know it yet. Register it to get the DNS records SES needs.</span>
-                <Button size="xs" loading={registering} onClick={async () => { setRegistering(true); await run(async () => { await registerWithSes(domain.id); onChanged(); }); setRegistering(false); }}>Register with Amazon SES</Button>
+                <span className="flex-1 min-w-48">This domain was added before email delivery was connected. Register it to get the DNS records you need to add.</span>
+                <Button size="xs" loading={registering} onClick={async () => { setRegistering(true); await run(async () => { await registerWithSes(domain.id); onChanged(); }); setRegistering(false); }}>Register domain</Button>
               </div>
             )}
             {domain.status === "paused" && <Alert variant="error">{domain.paused_reason}</Alert>}

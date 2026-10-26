@@ -37,9 +37,9 @@ async def email_provider(m: OrganizationMember = Depends(get_current_membership)
 
     p = await get_provider(db)
     return EmailProviderInfo(
-        kind=p.kind, label=p.label, configured=p.configured,
-        message=(f"Emails are delivered through {p.label}." if p.configured else NOT_CONFIGURED_MESSAGE),
-        region=p.config.get("region") if p.kind == "ses" else None,
+        kind=p.kind, label="Email delivery", configured=p.configured,
+        message=("Email delivery is ready." if p.configured else NOT_CONFIGURED_MESSAGE),
+        region=None,
     )
 
 

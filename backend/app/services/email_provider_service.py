@@ -14,8 +14,7 @@ from app.core.cred_crypto import decrypt_creds
 from app.models.platform_service import PlatformService
 
 NOT_CONFIGURED_MESSAGE = (
-    "No email provider is connected, so emails cannot be sent. "
-    "An administrator needs to connect Amazon SES in the admin panel (Integration Hub)."
+    "Email delivery isn't set up on this platform yet, so emails can't be sent. Please contact support."
 )
 
 

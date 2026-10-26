@@ -21,7 +21,7 @@ from sqlalchemy.orm import undefer
 from app.core.config import settings
 from app.core.text_crypto import seal, unseal
 from app.integrations import mail_aws
-from app.integrations.email_delivery import EmailSendError, _plain_text
+from app.integrations.email_delivery import EmailSendError, _plain_text, customer_safe
 from app.models.contact import Contact
 from app.models.email_domain import SendingDomain
 from app.models.mail import InboxAddress, InboxDomain, MailAttachment, MailMessage, MailThread, MailUpload
@@ -150,13 +150,13 @@ async def create_inbox_domain(db: AsyncSession, org_id: uuid.UUID, sending_domai
     if sd is None:
         raise NotFound(sending_domain_id)
     if sd.status not in ("verified",) or sd.provider != "ses":
-        raise MailError("Verify this domain with Amazon SES first (Email Campaigns → Domains), then enable its inbox.")
+        raise MailError("Verify this domain for sending first (Email Setup → Sending), then enable its inbox.")
     receive = _validate_receive_domain(sd.domain, receive_domain)
     if await db.scalar(select(InboxDomain.id).where(InboxDomain.receive_domain == receive)):
         raise MailError(f"{receive} already has an inbox.")
     cfg = await get_ses_config(db)
     if cfg is None:
-        raise MailError("Amazon SES isn't connected on this platform.")
+        raise MailError("Email isn't set up on this platform yet. Please contact support.")
     try:
         await mail_aws.ensure_rule(cfg, receive)
     except mail_aws.MailSetupError as e:
@@ -225,7 +225,7 @@ async def set_inbox_enabled(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid
     d = await _get_domain(db, org_id, domain_id)
     cfg = await get_ses_config(db)
     if cfg is None:
-        raise MailError("Amazon SES isn't connected on this platform.")
+        raise MailError("Email isn't set up on this platform yet. Please contact support.")
     if enabled:
         try:
             await mail_aws.ensure_rule(cfg, d.receive_domain)
@@ -653,7 +653,7 @@ async def send_mail(db: AsyncSession, org_id: uuid.UUID, user_id: uuid.UUID, *, 
         raise MailError("This inbox is turned off.")
     cfg = await get_ses_config(db)
     if cfg is None:
-        raise MailError("Amazon SES isn't connected on this platform, so mail can't be sent.")
+        raise MailError("Email isn't set up on this platform yet, so mail can't be sent. Please contact support.")
     today = _now().replace(hour=0, minute=0, second=0, microsecond=0)
     sent_today = await db.scalar(select(func.count(MailMessage.id)).where(MailMessage.organization_id == org_id, MailMessage.direction == "out", MailMessage.sent_at >= today)) or 0
     if sent_today >= settings.mail_daily_send_cap_per_org:
@@ -692,7 +692,7 @@ async def send_mail(db: AsyncSession, org_id: uuid.UUID, user_id: uuid.UUID, *, 
     try:
         await mail_aws.send_raw(cfg, mime.as_bytes(), from_email=from_email, recipients=to + cc)
     except EmailSendError as e:
-        error = str(e)
+        error = customer_safe(str(e), log_prefix="inbox send")
     if thread is None:
         thread = MailThread(organization_id=org_id, address_id=address.id, subject=subj, folder="sent", participants=[{"email": r, "name": ""} for r in to + cc], last_message_at=now)
         db.add(thread)

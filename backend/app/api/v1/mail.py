@@ -40,9 +40,9 @@ async def setup(m: OrganizationMember = Depends(get_current_membership), db: Asy
     """Everything the Setup screen needs, and whether the platform itself is ready to receive mail."""
     cfg = await get_ses_config(db)
     if cfg is None:
-        ready, why = False, "Email isn't connected on this platform yet. An administrator must connect Amazon SES first."
+        ready, why = False, "Email isn't set up on this platform yet. Please contact support."
     elif not cfg.get("inbound_bucket"):
-        ready, why = False, "The shared inbox isn't enabled on this platform yet. An administrator needs to add the inbound mail bucket in the Amazon SES settings."
+        ready, why = False, "The shared inbox isn't available on this platform yet. Please contact support."
     else:
         ready, why = True, None
     domains = await ms.list_inbox_domains(db, m.organization_id)

@@ -79,6 +79,17 @@ class EmailSendError(Exception):
     """A delivery failure with a message that is safe and useful to show users."""
 
 
+def customer_safe(message: str, *, log_prefix: str = "email delivery") -> str:
+    """Wording for customers: no provider names, credentials or regions. The original goes to the server log."""
+    import logging  # noqa: PLC0415
+
+    logging.getLogger("email").warning("%s error (hidden from customer): %s", log_prefix, message)
+    low = message.lower()
+    if "sender" in low and "verif" in low and "recipient" not in low:
+        return "The From address isn't verified yet. Open Email Setup and verify your domain."
+    return "We couldn't deliver this email right now. Please try again later, or contact support if it keeps happening."
+
+
 def friendly_ses_error(e: Exception, *, region: str = "", sender: str = "", recipient: str = "") -> str:
     """Turns botocore errors into messages that say what to do."""
     code = ""

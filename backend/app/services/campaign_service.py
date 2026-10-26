@@ -17,7 +17,7 @@ from app.services import email_domain_service, email_event_service, merge_tag_se
 from app.services import unsubscribe_service
 from app.services.email_tracking import instrument_html, tracking_enabled
 from app.services.email_provider_service import NOT_CONFIGURED_MESSAGE, get_provider, public_api_base
-from app.integrations.email_delivery import EmailSendError
+from app.integrations.email_delivery import EmailSendError, customer_safe
 from app.core.config import settings
 from app.models.contact import Contact
 from app.models.enums import CampaignStatus, EventType
@@ -450,7 +450,7 @@ async def send_campaign(db: AsyncSession, org_id: uuid.UUID, campaign_id: uuid.U
                     campaign_id=campaign.id,
                     contact_id=contact.id,
                     type=EventType.FAILED,
-                    extra={"error": str(e)},
+                    extra={"error": customer_safe(str(e), log_prefix="campaign send")},
                 )
             )
             continue
