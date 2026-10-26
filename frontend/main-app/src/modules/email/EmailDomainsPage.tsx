@@ -241,7 +241,7 @@ function DomainCard({
   const needsSesRegistration = provider?.kind === "ses" && domain.provider !== "ses";
 
   return (
-    <section className="rounded-2xl border border-surface-200 bg-white shadow-sm">
+    <section className="rounded-xl border border-surface-200 bg-white shadow-sm">
       {/* header */}
       <div className="flex flex-wrap items-center gap-3 px-5 py-4">
         <div className="w-11 h-11 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0"><Globe size={20} /></div>
@@ -428,7 +428,7 @@ function Welcome(): ReactNode {
     ["Create a sender", "Make addresses like hello@yourbrand.com and pick one in your campaigns."],
   ];
   return (
-    <div className="rounded-2xl border border-surface-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-surface-200 bg-white p-6 shadow-sm">
       <h2 className="text-lg font-semibold text-surface-900">Send from your own brand address</h2>
       <p className="text-sm text-surface-600 mt-1">Emails sent from <strong>hello@yourbrand.com</strong> look more trustworthy and land in the inbox more often than a shared address.</p>
       <ol className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -500,7 +500,7 @@ export function SendingDomainsPanel({ onLoaded }: { onLoaded?: (d: SendingDomain
       {provider && !provider.configured && <Alert variant="warning" className="mb-4">{provider.message}</Alert>}
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
 
-      <form onSubmit={handleAdd} className="mb-6 rounded-2xl border border-surface-200 bg-white p-4 shadow-sm">
+      <form onSubmit={handleAdd} className="mb-6 rounded-xl border border-surface-200 bg-white p-4 shadow-sm">
         <label htmlFor="new-domain" className="block text-sm font-semibold text-surface-900 mb-2">Add a domain</label>
         <div className="flex flex-wrap items-center gap-2">
           <div className="relative flex-1 min-w-56">
