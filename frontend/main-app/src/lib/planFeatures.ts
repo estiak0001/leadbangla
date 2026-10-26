@@ -22,7 +22,7 @@ export function planFeatures(p: Plan, on: { whatsapp?: boolean; sms?: boolean } 
     p.team_members_limit === undefined ? null : { text: count(p.team_members_limit, "team members")!, included: true },
     { text: "Shared inbox on your own domain", included: true },
     { text: "Use your own domain for landing pages", included: !!p.custom_domain },
-    { text: p.priority_support ? "Priority support" : "Bangla support", included: true },
+    { text: p.priority_support ? "Priority support" : "Email support", included: true },
   ];
   return f.filter((x): x is PlanFeature => !!x);
 }

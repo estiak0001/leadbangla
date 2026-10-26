@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Users, Mail, MessageSquare, CreditCard, Workflow, BarChart3, Check, ArrowRight,
-  ShieldCheck, Smartphone, Menu, X, Layers, Languages, Wallet, Inbox,
+  ShieldCheck, Smartphone, Menu, X, Layers, Wallet, Inbox,
 } from "lucide-react";
 import Button from "../../components/Button";
 import { fetchPlans, type Plan } from "../../lib/billing";
@@ -20,7 +20,6 @@ const NAV = [
 
 const FACTS = [
   { icon: Layers, title: "সব চ্যানেল এক জায়গায়", desc: "ইমেইল, SMS ও WhatsApp ক্যাম্পেইন একই ড্যাশবোর্ড থেকে।" },
-  { icon: Languages, title: "পূর্ণ বাংলা সাপোর্ট", desc: "বাংলা ইউনিকোডে মেসেজ লিখুন, বাংলায় সাহায্য পান।" },
   { icon: Wallet, title: "টাকায় বিল", desc: "দাম BDT-তে, পেমেন্ট বিকাশ, নগদ, রকেট বা ব্যাংক ট্রান্সফারে।" },
   { icon: Inbox, title: "নিজের ডোমেইনে ইনবক্স", desc: "support@আপনার-ব্র্যান্ড-এ আসা মেইল এখানেই পড়ুন ও উত্তর দিন।" },
 ];
@@ -58,12 +57,12 @@ function planPoints(p: Plan): string[] {
     lim(p.team_members_limit, "টিম মেম্বার"),
     "নিজের ডোমেইনে শেয়ার্ড ইনবক্স",
     p.custom_domain ? "নিজের ডোমেইন ব্যবহার" : null,
-    p.priority_support ? "প্রাধান্য পাওয়া সাপোর্ট" : "বাংলা সাপোর্ট",
+    p.priority_support ? "প্রাধান্য পাওয়া সাপোর্ট" : "ইমেইল সাপোর্ট",
   ].filter((x): x is string => !!x);
 }
 
 const FAQ = [
-  { q: "আমি কি বাংলায় মেসেজ পাঠাতে পারব?", a: "হ্যাঁ। ইমেইল ও SMS দুটোতেই পূর্ণ বাংলা (ইউনিকোড) সাপোর্ট আছে এবং পুরো ড্যাশবোর্ড ব্যবহার করা সহজ।" },
+  { q: "আমি কি বাংলায় মেসেজ পাঠাতে পারব?", a: "হ্যাঁ। ইমেইল ও SMS দুটোতেই আপনি বাংলা (ইউনিকোড) লিখে পাঠাতে পারবেন। ড্যাশবোর্ডের ইন্টারফেস বর্তমানে ইংরেজিতে।" },
   { q: "পেমেন্ট কীভাবে করব?", a: "বিকাশ, নগদ, রকেট বা ব্যাংক ট্রান্সফারে বাংলাদেশি টাকায় (BDT) পেমেন্ট করে রসিদ আপলোড করুন। আমরা যাচাই করে আপনার প্ল্যান চালু করি।" },
   { q: "যেকোনো সময় বাতিল করা যাবে?", a: "অবশ্যই। কোনো লক-ইন নেই, যখন ইচ্ছা প্ল্যান বাতিল বা পরিবর্তন করতে পারবেন।" },
   { q: "নিজের ব্র্যান্ড নামে SMS পাঠানো যাবে?", a: "হ্যাঁ, মাস্কিং Sender ID ব্যবহার করা যায়। এর জন্য BTRC ও গেটওয়ের নিয়ম অনুযায়ী প্রয়োজনীয় ডকুমেন্ট জমা দিতে হয় — আবেদনটি আপনি LeadBangla থেকেই জমা দিতে পারবেন।" },
@@ -153,7 +152,7 @@ export default function LandingPage() {
               <a href="#pricing"><Button variant="secondary" size="lg">প্ল্যান দেখুন</Button></a>
             </div>
             <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm text-surface-600">
-              {["বিকাশ/নগদে পেমেন্ট", "যেকোনো সময় বাতিল", "বাংলা সাপোর্ট"].map((t) => (
+              {["বিকাশ/নগদে পেমেন্ট", "যেকোনো সময় বাতিল", "ইমেইল সাপোর্ট"].map((t) => (
                 <li key={t} className="flex items-center gap-1.5"><Check size={16} className="text-emerald-600" />{t}</li>
               ))}
             </ul>
@@ -166,7 +165,7 @@ export default function LandingPage() {
 
       {/* What you get */}
       <section className="mx-auto -mt-2 max-w-6xl px-4">
-        <div className="grid gap-5 rounded-xl border border-surface-200 bg-white p-6 shadow-lg sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 rounded-xl border border-surface-200 bg-white p-6 shadow-lg sm:grid-cols-3">
           {FACTS.map((f) => (
             <div key={f.title} className="flex gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><f.icon size={20} /></span>
