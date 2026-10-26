@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { UserPlus, Pencil, Mail, Copy, Check, ShieldCheck, ListChecks } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Alert from "../../components/Alert";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
@@ -62,6 +63,7 @@ export default function TeamPage() {
         description="Add your employees, choose what each person can open, and see who is working on what."
         actions={<Button size="sm" icon={<UserPlus size={15} />} onClick={() => setDialog({ member: null })}>Add person</Button>}
       />
+      <PlanUsageStrip items={["team"]} />
       {error && <Alert variant="error" className="mb-4" onDismiss={() => setError("")}>{error}</Alert>}
       {notice && (
         <Alert variant="success" className="mb-4" onDismiss={() => setNotice(null)}>

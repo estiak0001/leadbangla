@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Workflow, Plus, RefreshCw } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Badge from "../../components/Badge";
@@ -118,6 +119,7 @@ export default function WorkflowsPage() {
           </Link>
         }
       />
+      <PlanUsageStrip items={["workflows"]} />
 
       {error && <Alert variant="error" className="mb-4">{error}</Alert>}
 

@@ -5,6 +5,7 @@ import {
   RefreshCw, Repeat2, RotateCcw, Send, Share2, Trash2,
 } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import Spinner from "../../components/Spinner";
@@ -195,6 +196,7 @@ export default function SocialPage() {
           {accounts.some((a) => a.has_token) ? "New post" : "Connect an account"}
         </Button>
       </div>
+      <PlanUsageStrip items={["social"]} />
 
       <div className="flex gap-1 border-b border-surface-200 mb-4">
         {([["posts", "Posts", posts.length], ["accounts", "Accounts", accounts.length]] as const).map(([k, l, n]) => (

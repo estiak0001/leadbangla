@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { FileText, Plus, ExternalLink } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Badge from "../../components/Badge";
@@ -40,6 +41,7 @@ export default function LandingPagesPage() {
           </Link>
         }
       />
+      <PlanUsageStrip items={["landing_pages"]} />
 
       {error && <Alert variant="error" className="mb-4">{error}</Alert>}
 

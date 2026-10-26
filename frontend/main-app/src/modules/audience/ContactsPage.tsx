@@ -4,6 +4,7 @@ import {
   Archive, ChevronLeft, ChevronRight, Download, Globe, History, MessageCircle, MapPin, MessageSquare, MoreVertical, Pencil, Phone, Plus, RotateCcw, Search, Trash2, Upload, UserPlus, Users, X,
 } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Alert from "../../components/Alert";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
@@ -220,6 +221,7 @@ export default function ContactsPage() {
           <Button size="sm" className="hidden sm:inline-flex" icon={<Plus size={15} />} onClick={openAdd}>Add contact</Button>
         </div>
       </div>
+      <PlanUsageStrip items={["contacts"]} />
 
       {undo && (
         <div className="mb-3 flex items-center justify-between gap-3 rounded-[6px] border border-surface-200 bg-surface-900 px-4 py-2.5 text-sm text-white shadow-sm animate-slide-up">

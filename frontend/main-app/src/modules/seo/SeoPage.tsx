@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import Input from "../../components/Input";
@@ -179,6 +180,7 @@ export default function SeoPage() {
         title="SEO Audit"
         description="On-page audit: crawls up to 15 pages, checks meta tags, H1, canonical, broken links, noindex — zero third-party API cost."
       />
+      <PlanUsageStrip items={["seo"]} />
 
       <Card className="mb-6">
         <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">

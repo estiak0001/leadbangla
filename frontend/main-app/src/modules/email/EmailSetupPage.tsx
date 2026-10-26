@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Check, Inbox, Send } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Alert from "../../components/Alert";
 import Spinner from "../../components/Spinner";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import MailSetup from "../mail/MailSetup";
 import { SendingDomainsPanel } from "./EmailDomainsPage";
 import { fetchMailSetup, type MailSetup as InboxSetup } from "../../lib/mail";
@@ -71,6 +72,8 @@ export default function EmailSetupPage() {
         <h1 className="text-xl font-bold tracking-tight text-surface-900 sm:text-2xl">Email Setup</h1>
         <p className="mt-1 text-sm text-surface-600">Sending and receiving are set up separately. Do only what you need.</p>
       </div>
+
+      <PlanUsageStrip items={["emails"]} className="mb-5" />
 
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
 

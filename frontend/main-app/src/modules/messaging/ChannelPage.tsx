@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { BadgeCheck, FileText, Hash, History, Inbox, LayoutDashboard, MessageCircle, MessageSquare, Plus, Send, Wallet } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import { fetchSmsCampaigns, type SmsCampaign, type SmsChannel } from "../../lib/sms";
@@ -95,6 +96,7 @@ export default function ChannelPage({ channel }: { channel: SmsChannel }) {
           <Button icon={<Plus size={16} />} disabled={!allowed} onClick={() => navigate(`${cfg.path}/campaigns/new`)}>New campaign</Button>
         </div>
       </div>
+      <PlanUsageStrip items={channel === "whatsapp" ? ["whatsapp"] : []} />
 
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-3">{error}</Alert>}
 

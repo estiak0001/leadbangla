@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import CampaignHistoryModal from "./CampaignHistoryModal";
 import AppLayout from "../../components/AppLayout";
+import PlanUsageStrip from "../../components/PlanUsageStrip";
 import Button from "../../components/Button";
 import Badge from "../../components/Badge";
 import Alert from "../../components/Alert";
@@ -185,6 +186,7 @@ export default function CampaignsPage() {
           </div>
         }
       />
+      <PlanUsageStrip items={["emails"]} />
 
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
       {notice && (

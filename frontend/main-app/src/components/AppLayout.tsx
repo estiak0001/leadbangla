@@ -1,10 +1,9 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { clearTokens, fetchCurrentUser } from "../lib/auth";
-import { fetchPlanUsage, fetchWalletBalance, type PlanUsage } from "../lib/billing";
+import { fetchWalletBalance } from "../lib/billing";
 import { useMobileTables } from "../lib/mobileTables";
 import { ROUTE_PERMISSION, useMe } from "../lib/permissions";
-import { UsageMeter } from "./UsageMeter";
 import NotificationBell from "./NotificationBell";
 import {
   LayoutDashboard, Users, Filter, Mail, Share2, MessageSquare, MessageCircle,
@@ -178,13 +177,6 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     const t = setInterval(load, 60000);
     return () => clearInterval(t);
   }, [canMail]);
-  const [usage, setUsage] = useState<PlanUsage | null>(null);
-  useEffect(() => {
-    const load = () => fetchPlanUsage().then(setUsage).catch(() => undefined);
-    load();
-    const t = setInterval(load, 120000);
-    return () => clearInterval(t);
-  }, []);
   const groups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => can(permFor(i.to)) && !(me?.my_role === "sales" && i.to === "/segments")) })).filter((g) => g.items.length > 0);
 
   function toggle(label: string) {
@@ -202,23 +194,6 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
           <NavGroup key={group.label} group={group} onLinkClick={onLinkClick} collapsed={collapsed[group.label] ?? DEFAULT_COLLAPSED[group.label] ?? false} onToggle={() => toggle(group.label)} badges={{ "/mail": mailUnread }} />
         ))}
       </nav>
-
-      {usage && (
-        <Link to="/billing" onClick={onLinkClick} className="mx-3 mb-2 block flex-shrink-0 rounded-lg border border-surface-200 bg-white p-3 hover:border-brand-200">
-          <div className="mb-2 flex items-center justify-between">
-            <span className="text-xs font-semibold text-surface-900">{usage.plan_name} plan</span>
-            <span className="text-[11px] font-medium text-brand-600">Manage</span>
-          </div>
-          <div className="space-y-2.5">
-            <UsageMeter compact label="Emails left" used={usage.emails_monthly.used} limit={usage.emails_monthly.limit} />
-            {usage.sms_enabled !== false && usage.sms && usage.sms.limit !== 0 && <UsageMeter compact label="SMS allowance" used={usage.sms.used} limit={usage.sms.limit} />}
-            <div className="flex items-baseline justify-between border-t border-surface-100 pt-2 text-xs">
-              <span className="font-medium text-surface-700">Wallet balance</span>
-              <span className="font-semibold text-surface-900">৳{usage.wallet_balance_bdt.toLocaleString("en-BD", { maximumFractionDigits: 2 })}</span>
-            </div>
-          </div>
-        </Link>
-      )}
 
       <div className="flex-shrink-0 px-3 py-3 border-t border-surface-200/80 space-y-0.5">
         {ACCOUNT_ITEMS.filter((i) => can(permFor(i.to))).map((item) => {
