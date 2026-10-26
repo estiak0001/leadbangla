@@ -14,6 +14,7 @@ from app.models.campaign_history import CampaignHistory
 from app.models.user import User
 from app.services.personalize import personalize  # noqa: F401  (re-exported for callers/tests)
 from app.services import email_domain_service, email_event_service, merge_tag_service
+from app.services import unsubscribe_service
 from app.services.email_tracking import instrument_html, tracking_enabled
 from app.services.email_provider_service import NOT_CONFIGURED_MESSAGE, get_provider, public_api_base
 from app.integrations.email_delivery import EmailSendError
@@ -21,6 +22,7 @@ from app.core.config import settings
 from app.models.contact import Contact
 from app.models.enums import CampaignStatus, EventType
 from app.models.event import Event
+from app.models.organization import Organization
 from app.models.segment import Segment
 from app.schemas.audience import SegmentRule
 from app.services.audience_service import build_segment_query
@@ -372,6 +374,8 @@ async def send_campaign(db: AsyncSession, org_id: uuid.UUID, campaign_id: uuid.U
     daily_left = settings.email_daily_cap_per_org - await email_event_service.sent_today(db, org_id)
 
     custom_tags = await merge_tag_service.merge_tag_values(db, org_id)
+    sending_org = await db.get(Organization, org_id)
+    has_unsub_tag = bool(unsubscribe_service.PLACEHOLDER_RE.search(campaign.html_body or ""))
 
     cancelled = False
     processed = 0
@@ -384,7 +388,7 @@ async def send_campaign(db: AsyncSession, org_id: uuid.UUID, campaign_id: uuid.U
             await db.commit()
         if contact.email.lower() in suppressed:
             db.add(Event(organization_id=org_id, campaign_id=campaign.id, contact_id=contact.id,
-                         type=EventType.FAILED, extra={"error": "suppressed (earlier bounce or spam complaint)"}))
+                         type=EventType.FAILED, extra={"error": "not emailed: unsubscribed, or an earlier bounce / spam complaint"}))
             continue
         if daily_left <= 0:
             db.add(Event(organization_id=org_id, campaign_id=campaign.id, contact_id=contact.id,
@@ -426,14 +430,18 @@ async def send_campaign(db: AsyncSession, org_id: uuid.UUID, campaign_id: uuid.U
         # over_limit with no rate configured: allow free overage (admin's choice).
 
         try:
-            body = personalize(campaign.html_body, contact, custom_tags)
+            unsub_url = unsubscribe_service.unsubscribe_url(api_base, org_id, contact.email, campaign.id)
+            body = personalize(campaign.html_body, contact, {**custom_tags, "unsubscribe_url": unsub_url})
             html = instrument_html(body, campaign.id, contact.id, api_base) if track else body
+            # sender identity + unsubscribe link are added last, so the unsubscribe link is never rewritten by click tracking
+            html = unsubscribe_service.apply_footer(html, unsub_url, sending_org, has_placeholder=has_unsub_tag)
             message_id = await email_client.send_email(
                 db, org_id=org_id, to_email=contact.email, subject=personalize(campaign.subject or "", contact, custom_tags, escape=False), html_body=html,
                 from_email=sender_info["from_email"] if sender_info else None,
                 from_name=sender_info["from_name"] if sender_info else None,
                 dkim=sender_info["dkim"] if sender_info else None,
                 reply_to=campaign.reply_to,
+                headers=unsubscribe_service.one_click_headers(unsub_url),
             )
         except Exception as e:
             db.add(
@@ -499,7 +507,12 @@ async def campaign_precheck(db: AsyncSession, org_id: uuid.UUID, campaign_id: uu
     query = build_segment_query(org_id, rules, segment.match_type if segment else "all").where(
         Contact.email.isnot(None)
     )
-    recipient_count = await db.scalar(select(func.count()).select_from(query.subquery())) or 0
+    sub = query.subquery()
+    recipient_count = await db.scalar(select(func.count()).select_from(sub)) or 0
+    suppressed_now = await unsubscribe_service.suppressed_set(db, org_id)
+    excluded_count = (await db.scalar(select(func.count()).select_from(sub).where(func.lower(sub.c.email).in_(suppressed_now))) or 0) if suppressed_now else 0
+    sending_org = await db.get(Organization, org_id)
+    compliance_warning = None if (sending_org and sending_org.address) else "Add your business address in Settings → Company Profile. It is shown at the bottom of every marketing email (required by anti-spam rules)."
 
     monthly_limit = await get_plan_limit(db, org_id, "emails_monthly_limit")
     emails_sent_this_month = await count_emails_this_month(db, org_id)
@@ -533,6 +546,8 @@ async def campaign_precheck(db: AsyncSession, org_id: uuid.UUID, campaign_id: uu
     return {
         "from_email": sender_info["from_email"] if sender_info else None,
         "sender_warning": sender_warning,
+        "excluded_count": excluded_count,
+        "compliance_warning": compliance_warning,
         "daily_remaining": daily_remaining,
         "recipient_count": recipient_count,
         "free_remaining": free_remaining,

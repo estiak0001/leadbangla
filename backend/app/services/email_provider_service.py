@@ -51,6 +51,7 @@ async def get_ses_config(db: AsyncSession) -> dict | None:
                 "inbound_bucket": (c.get("inbound_bucket") or "").strip(),
                 "inbound_prefix": (c.get("inbound_prefix") or "inbox/").strip().strip("/") + "/",
                 "inbound_topic_arn": (c.get("inbound_topic_arn") or "").strip(),
+                "events_topic_arn": (c.get("events_topic_arn") or "").strip(),
             }
     if settings.email_provider == "ses" and settings.aws_access_key_id and settings.aws_secret_access_key:
         return {
@@ -61,7 +62,7 @@ async def get_ses_config(db: AsyncSession) -> dict | None:
             "default_from_email": settings.default_from_email,
             "public_api_url": "",
             "webhook_secret": "",
-            "inbound_bucket": "", "inbound_prefix": "inbox/", "inbound_topic_arn": "",
+            "inbound_bucket": "", "inbound_prefix": "inbox/", "inbound_topic_arn": "", "events_topic_arn": "",
         }
     return None
 

@@ -395,6 +395,18 @@ export default function CampaignDetailPage() {
                   {precheck.sender_warning && (
                     <div className="rounded-md border border-warning-base/30 bg-warning-light p-3 text-xs text-warning-dark">{precheck.sender_warning}</div>
                   )}
+                  {precheck.compliance_warning && (
+                    <div className="rounded-md border border-warning-base/30 bg-warning-light p-3 text-xs text-warning-dark">
+                      {precheck.compliance_warning} <Link to="/settings" className="underline font-medium">Open settings</Link>
+                    </div>
+                  )}
+                  {precheck.excluded_count > 0 && (
+                    <div className="rounded-md border border-surface-200 bg-surface-50 p-3 text-xs text-surface-700">
+                      <b>{precheck.excluded_count}</b> of {precheck.recipient_count} recipients will be skipped because they unsubscribed or an earlier email bounced.{" "}
+                      <Link to="/campaigns/suppressed" className="text-brand-600 underline font-medium">View the list</Link>
+                    </div>
+                  )}
+                  <p className="text-[11px] text-surface-500">Every email gets your business name, address and an unsubscribe link at the bottom automatically.</p>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-surface-500">From</span>

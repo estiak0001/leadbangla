@@ -13,7 +13,7 @@ import { INTEGRATION_INFO } from "../lib/integrationInfo";
 import { fetchSesWebhookUrls, generatePushKeys, sendWhatsAppTest } from "../lib/integrations";
 import {
   SERVICE_FIELDS, clearIntegrationCredentials, fetchSavedFields, listIntegrations, saveIntegrationCredentials,
-  checkMailSetup, sendSesTestEmail, testIntegration, updateIntegration, type IntegrationTestResult, type PlatformServiceAdmin, type SavedField,
+  checkBounceTracking, checkMailSetup, setupBounceTracking, sendSesTestEmail, testIntegration, updateIntegration, type IntegrationTestResult, type PlatformServiceAdmin, type SavedField,
 } from "../lib/integrations";
 import { CATEGORY_META, pageFor, statusOf } from "./IntegrationHubPage";
 
@@ -60,6 +60,35 @@ function Snippet({ title, text }: { title: string; text: string }) {
   );
 }
 
+const EVENTS_IAM = `{
+  "Version": "2012-10-17",
+  "Statement": [{
+    "Effect": "Allow",
+    "Action": [
+      "ses:CreateConfigurationSet", "ses:GetConfigurationSet",
+      "ses:CreateConfigurationSetEventDestination", "ses:UpdateConfigurationSetEventDestination",
+      "ses:GetConfigurationSetEventDestinations"
+    ],
+    "Resource": "*"
+  }]
+}`;
+
+function EventsGuide({ webhook }: { webhook: string }) {
+  return (
+    <ol className="mt-3 list-decimal list-inside space-y-3 text-xs text-surface-700 rounded-[4px] border border-surface-200 bg-white p-3">
+      <li><b>Create a second SNS topic</b> in the same region, named <code>leadbangla-events</code>, with an access policy that lets <code>ses.amazonaws.com</code> publish (same shape as the inbox topic; use this topic's own ARN).
+        <Snippet title="Topic policy — replace YOUR_TOPIC_ARN and YOUR_AWS_ACCOUNT_ID" text={TOPIC_POLICY} /></li>
+      <li><b>Add permissions</b> to the IAM user (a small extra policy):
+        <Snippet title="IAM policy" text={EVENTS_IAM} /></li>
+      <li>Paste the topic ARN into “Events: SNS topic ARN” above and <b>save</b>.</li>
+      <li>Press <b>Set up bounce &amp; complaint tracking</b>. It creates the configuration set <code>leadbangla-events</code>, sends BOUNCE and COMPLAINT events to your topic, and saves it as the Configuration Set used for every email. Safe to press again.</li>
+      <li><b>Subscribe the webhook</b> to the topic (HTTPS subscription; needs a public address, as for the inbox):
+        <Snippet title="Subscription endpoint" text={webhook} /></li>
+      <li>Press <b>Check</b>: every line should be green.</li>
+    </ol>
+  );
+}
+
 function InboxGuide({ webhook, eventsUrl }: { webhook: string; eventsUrl?: string }) {
   return (
     <ol className="mt-3 list-decimal list-inside space-y-3 text-xs text-surface-700 rounded-[4px] border border-surface-200 bg-white p-3">
@@ -102,6 +131,9 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
   const [inboxChecks, setInboxChecks] = useState<{ ok: boolean; region: string; mx: string; checks: { name: string; ok: boolean; message: string }[] } | null>(null);
   const [inboxBusy, setInboxBusy] = useState(false);
   const [inboxGuide, setInboxGuide] = useState(false);
+  const [evChecks, setEvChecks] = useState<{ ok: boolean; set: string; checks: { name: string; ok: boolean; message: string }[] } | null>(null);
+  const [evBusy, setEvBusy] = useState<"check" | "setup" | null>(null);
+  const [evGuide, setEvGuide] = useState(false);
   const [sesUrls, setSesUrls] = useState<{ inbound: string; events: string } | null>(null);
   useEffect(() => {
     if (code === "amazon_ses" && inboxGuide && !sesUrls) fetchSesWebhookUrls().then(setSesUrls).catch(() => undefined);
@@ -151,6 +183,7 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
   }
   async function test() { setTesting(true); setError(null); try { setResult(await testIntegration(code)); await reload(); } catch (err) { fail(err); } finally { setTesting(false); } }
   async function sendWa(e: FormEvent) { e.preventDefault(); setWaBusy(true); try { setWaResult(await sendWhatsAppTest(waTo)); } catch (err) { fail(err); } finally { setWaBusy(false); } }
+  async function runEvents(kind: "check" | "setup") { setEvBusy(kind); setError(null); try { setEvChecks(await (kind === "check" ? checkBounceTracking() : setupBounceTracking())); if (kind === "setup") await reload(); } catch (err) { fail(err); } finally { setEvBusy(null); } }
   async function runInboxCheck() { setInboxBusy(true); setError(null); try { setInboxChecks(await checkMailSetup()); } catch (err) { fail(err); } finally { setInboxBusy(false); } }
   async function sendMail(e: FormEvent) { e.preventDefault(); setMailing(true); try { setMailResult(await sendSesTestEmail(mailTo)); } catch (err) { fail(err); } finally { setMailing(false); } }
   async function toggle(key: "is_live" | "is_enabled", v: boolean) {
@@ -272,6 +305,24 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
                   </div>
                 )}
                 {inboxGuide && <InboxGuide webhook={sesUrls?.inbound ?? `${window.location.origin}/api/v1/public/mail/inbound?secret=YOUR_WEBHOOK_SECRET`} eventsUrl={sesUrls?.events} />}
+              </div>
+            )}
+            {code === "amazon_ses" && (
+              <div className="mt-6 pt-5 border-t border-surface-100">
+                <div className="flex flex-wrap items-center gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-surface-800">Bounce &amp; complaint tracking</h3>
+                  <Button type="button" size="xs" variant="secondary" loading={evBusy === "check"} disabled={!svc.has_credentials} onClick={() => runEvents("check")}>Check</Button>
+                  <Button type="button" size="xs" loading={evBusy === "setup"} disabled={!svc.has_credentials} onClick={() => runEvents("setup")}>Set up bounce &amp; complaint tracking</Button>
+                  <button type="button" onClick={() => { setEvGuide((v) => !v); if (!sesUrls) fetchSesWebhookUrls().then(setSesUrls).catch(() => undefined); }} className="text-xs font-medium text-brand-600 hover:underline">{evGuide ? "Hide" : "Show"} guide</button>
+                </div>
+                <p className="text-xs text-surface-500">Tells LeadBangla when an email bounces or someone reports spam, so those addresses are never emailed again and unhealthy senders are paused. AWS reviewers ask about this when you request production access.</p>
+                {evChecks && (
+                  <div className="mt-3 space-y-1.5">
+                    {evChecks.checks.map((c) => <div key={c.name} className={`rounded-[3px] px-3 py-2 text-xs ${c.ok ? "bg-success-light text-success-dark" : "bg-danger-light text-danger-dark"}`}><b>{c.ok ? "✓" : "✗"} {c.name}.</b> {c.message}</div>)}
+                    {evChecks.ok && <p className="text-[11px] text-surface-500">All set. New emails are sent with the “{evChecks.set}” configuration set.</p>}
+                  </div>
+                )}
+                {evGuide && <EventsGuide webhook={sesUrls?.events ?? `${window.location.origin}/api/v1/public/email/events?secret=YOUR_WEBHOOK_SECRET`} />}
               </div>
             )}
           </Card>

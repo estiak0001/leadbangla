@@ -17,6 +17,7 @@ export const SERVICE_FIELDS: Record<string, PlatformServiceField[]> = {
     { key: "public_api_url", label: "Public API URL (for open/click tracking)", type: "text", hint: "Publicly reachable URL of this API, e.g. https://api.yourdomain.com/api — leave empty on localhost (tracking links won't work from outside)" },
     { key: "inbound_bucket", label: "Inbox: S3 bucket name (receiving)", type: "text", hint: "Optional. Turns on the shared inbox: SES drops every received email into this bucket. Same AWS region as SES. See the inbox guide below." },
     { key: "inbound_topic_arn", label: "Inbox: SNS topic ARN (receiving)", type: "text", hint: "Optional but needed for new mail to appear on its own. arn:aws:sns:<region>:<account>:<topic>" },
+    { key: "events_topic_arn", label: "Events: SNS topic ARN (bounces & complaints)", type: "text", hint: "Optional but strongly recommended before asking AWS for production access. A second SNS topic that receives bounce/complaint notices. See “Bounce & complaint tracking” below." },
     { key: "webhook_secret", label: "Webhook Secret", type: "password", hint: "Pick any long random string. In SNS, subscribe https://<public-api>/v1/public/email/events?secret=<this value> to receive bounces & complaints" },
   ],
   sslcommerz: [
@@ -240,3 +241,15 @@ export const fetchSesWebhookUrls = async (): Promise<{ inbound: string; events: 
   if (!res.ok) throw new Error("Could not load the webhook URLs");
   return res.json();
 };
+
+export interface EventsReport { ok: boolean; set: string; checks: MailCheck[] }
+async function eventsCall(path: string): Promise<EventsReport> {
+  const res = await fetch(`/api/v1/admin/mail/events/${path}`, { method: "POST", headers: authHeaders() });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(res.status === 401 || res.status === 403 ? "UNAUTHORIZED" : body.detail ?? "Request failed");
+  }
+  return res.json();
+}
+export const checkBounceTracking = () => eventsCall("check");
+export const setupBounceTracking = () => eventsCall("setup");

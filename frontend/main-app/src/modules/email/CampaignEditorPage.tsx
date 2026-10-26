@@ -267,6 +267,9 @@ export default function CampaignEditorPage() {
                 spellCheck={false}
                 className="block w-full h-[420px] lg:h-[calc(100vh-24rem)] lg:min-h-[320px] resize-none border-0 px-3 py-2 text-[12.5px] leading-relaxed text-surface-800 placeholder:text-surface-400 focus:outline-none focus:ring-0 font-mono"
               />
+              <p className="border-t border-surface-100 bg-surface-50 px-3 py-1.5 text-[11px] text-surface-500">
+                Your business name, address and an <b>Unsubscribe</b> link are added to the bottom of every email automatically. To choose where the link goes, put <code className="font-mono">{"{{unsubscribe_url}}"}</code> in a link yourself.
+              </p>
             </Card>
           </div>
 

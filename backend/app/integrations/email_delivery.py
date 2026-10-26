@@ -20,13 +20,15 @@ def _plain_text(html: str) -> str:
 
 
 def build_message(
-    *, to_email: str, subject: str, html_body: str, from_email: str, from_name: str | None
+    *, to_email: str, subject: str, html_body: str, from_email: str, from_name: str | None, headers: dict | None = None
 ) -> EmailMessage:
     msg = EmailMessage()
     msg["From"] = formataddr((from_name, from_email)) if from_name else from_email
     msg["To"] = to_email
     msg["Subject"] = subject
     msg["Message-ID"] = make_msgid(domain=from_email.split("@")[-1])
+    for k, v in (headers or {}).items():
+        msg[k] = v
     msg.set_content(_plain_text(html_body) or " ")
     msg.add_alternative(html_body, subtype="html")
     return msg
@@ -62,9 +64,10 @@ async def send_via_smtp(
     from_email: str,
     from_name: str | None,
     dkim: dict | None = None,
+    headers: dict | None = None,
 ) -> str:
     """dkim = {"domain", "selector", "private_key_pem"} to sign as the customer's domain."""
-    msg = build_message(to_email=to_email, subject=subject, html_body=html_body, from_email=from_email, from_name=from_name)
+    msg = build_message(to_email=to_email, subject=subject, html_body=html_body, from_email=from_email, from_name=from_name, headers=headers)
     raw = msg.as_bytes()
     if dkim:
         raw = _dkim_sign(raw, domain=dkim["domain"], selector=dkim["selector"], private_key_pem=dkim["private_key_pem"])
@@ -147,7 +150,8 @@ def ses_client(config: dict):
 
 
 async def send_via_ses(
-    config: dict, *, to_email: str, subject: str, html_body: str, from_email: str, from_name: str | None, reply_to: str | None = None
+    config: dict, *, to_email: str, subject: str, html_body: str, from_email: str, from_name: str | None, reply_to: str | None = None,
+    headers: dict | None = None,
 ) -> str:
     source = formataddr((from_name, from_email)) if from_name else from_email
 
@@ -157,11 +161,13 @@ async def send_via_ses(
             kwargs["ConfigurationSetName"] = config["configuration_set"]
         if reply_to:
             kwargs["ReplyToAddresses"] = [reply_to]
+        simple_headers = {"Headers": [{"Name": k, "Value": v} for k, v in headers.items()]} if headers else {}
         resp = ses_client(config).send_email(
             FromEmailAddress=source,
             Destination={"ToAddresses": [to_email]},
             Content={
                 "Simple": {
+                    **simple_headers,
                     "Subject": {"Data": subject, "Charset": "UTF-8"},
                     "Body": {
                         "Html": {"Data": html_body, "Charset": "UTF-8"},

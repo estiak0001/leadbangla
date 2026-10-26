@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.merge_tag import MergeTag
 
 KEY_RE = re.compile(r"^[a-z][a-z0-9_]{0,39}$")
-BUILTIN_KEYS = ("first_name", "last_name", "email", "phone")
+BUILTIN_KEYS = ("first_name", "last_name", "email", "phone", "unsubscribe_url")
 
 
 class MergeTagNotFoundError(Exception):

@@ -182,3 +182,74 @@ async def send_raw(cfg: dict, raw: bytes, *, from_email: str, recipients: list[s
         return await asyncio.to_thread(_send)
     except Exception as e:  # noqa: BLE001
         raise EmailSendError(friendly_ses_error(e, region=cfg["region"], sender=from_email, recipient=recipients[0] if recipients else "")) from e
+
+
+# ── Bounce & complaint feed (SES configuration set -> SNS) ───────────────────
+
+EVENTS_SET = "leadbangla-events"
+EVENTS_DEST = "leadbangla-sns"
+
+
+def _events_status_sync(cfg: dict, name: str) -> list[dict]:
+    out: list[dict] = []
+    c = _client("sesv2", cfg)
+    try:
+        c.get_configuration_set(ConfigurationSetName=name)
+        out.append({"name": "Configuration set", "ok": True, "message": f"'{name}' exists."})
+    except Exception as e:  # noqa: BLE001
+        if _code(e) == "NotFoundException":
+            out.append({"name": "Configuration set", "ok": False, "message": f"'{name}' doesn't exist yet. Press “Set up bounce & complaint tracking”."})
+            return out
+        out.append({"name": "Configuration set", "ok": False, "message": explain(e, cfg, "Configuration set")})
+        return out
+    try:
+        dests = c.get_configuration_set_event_destinations(ConfigurationSetName=name).get("EventDestinations", [])
+        mine = [d for d in dests if (d.get("SnsDestination") or {}).get("TopicArn") == cfg.get("events_topic_arn")]
+        types = sorted({t for d in mine for t in d.get("MatchingEventTypes", [])})
+        if not mine:
+            out.append({"name": "Event destination", "ok": False, "message": "Bounces and complaints are not being sent to your SNS topic yet. Press “Set up bounce & complaint tracking”."})
+        elif not {"BOUNCE", "COMPLAINT"} <= set(types):
+            out.append({"name": "Event destination", "ok": False, "message": f"Only {', '.join(types) or 'no'} events are sent. Bounces and complaints are both needed — press “Set up bounce & complaint tracking” to fix it."})
+        else:
+            out.append({"name": "Event destination", "ok": True, "message": f"Bounce and complaint events go to {cfg.get('events_topic_arn')}."})
+    except Exception as e:  # noqa: BLE001
+        out.append({"name": "Event destination", "ok": False, "message": explain(e, cfg, "Event destination")})
+    if (cfg.get("configuration_set") or "") != name:
+        out.append({"name": "Used for sending", "ok": False, "message": f"The saved Configuration Set is '{cfg.get('configuration_set') or '(empty)'}', so emails are not tagged for tracking. Press “Set up bounce & complaint tracking” to save it."})
+    else:
+        out.append({"name": "Used for sending", "ok": True, "message": "Every email is sent with this configuration set."})
+    return out
+
+
+async def events_status(cfg: dict, name: str = EVENTS_SET) -> list[dict]:
+    if not cfg.get("events_topic_arn"):
+        return [{"name": "SNS topic", "ok": False, "message": "No events SNS topic ARN is set. Create a topic (see the guide), add it as “Events: SNS topic ARN”, save, then check again."}]
+    return await asyncio.to_thread(_events_status_sync, cfg, name)
+
+
+def _setup_events_sync(cfg: dict, name: str) -> None:
+    topic = cfg.get("events_topic_arn")
+    if not topic:
+        raise MailSetupError("Add the “Events: SNS topic ARN” first.")
+    c = _client("sesv2", cfg)
+    dest = {"Enabled": True, "MatchingEventTypes": ["BOUNCE", "COMPLAINT"], "SnsDestination": {"TopicArn": topic}}
+    try:
+        try:
+            c.create_configuration_set(ConfigurationSetName=name)
+        except Exception as e:  # noqa: BLE001
+            if _code(e) != "AlreadyExistsException":
+                raise
+        existing = c.get_configuration_set_event_destinations(ConfigurationSetName=name).get("EventDestinations", [])
+        if any(d["Name"] == EVENTS_DEST for d in existing):
+            c.update_configuration_set_event_destination(ConfigurationSetName=name, EventDestinationName=EVENTS_DEST, EventDestination=dest)
+        else:
+            c.create_configuration_set_event_destination(ConfigurationSetName=name, EventDestinationName=EVENTS_DEST, EventDestination=dest)
+    except Exception as e:  # noqa: BLE001
+        code = _code(e)
+        if code == "BadRequestException" and "sns" in str(e).lower():
+            raise MailSetupError("SES can't publish to that SNS topic. Add the topic access policy that lets SES publish (see the guide).") from e
+        raise MailSetupError(explain(e, cfg, "Could not set up bounce & complaint tracking")) from e
+
+
+async def setup_events(cfg: dict, name: str = EVENTS_SET) -> None:
+    await asyncio.to_thread(_setup_events_sync, cfg, name)

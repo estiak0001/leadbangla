@@ -68,6 +68,8 @@ class CampaignPrecheck(BaseModel):
     connection_note: str
     from_email: str | None = None
     sender_warning: str | None = None
+    excluded_count: int = 0
+    compliance_warning: str | None = None
     daily_remaining: int | None = None
 
 

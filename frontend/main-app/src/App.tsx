@@ -1,5 +1,6 @@
 import { Navigate, Routes, Route } from "react-router-dom";
 import LandingPage from "./modules/marketing/LandingPage";
+import { AcceptableUsePage, PrivacyPage, TermsPage } from "./modules/marketing/LegalPages";
 import SignupPage from "./modules/auth/SignupPage";
 import LoginPage from "./modules/auth/LoginPage";
 import AcceptInvitePage from "./modules/auth/AcceptInvitePage";
@@ -42,6 +43,7 @@ import PushPage from "./modules/push/PushPage";
 import SubscribePage from "./modules/push/SubscribePage";
 import EventsPage from "./modules/events/EventsPage";
 import PaidAdsPage from "./modules/paid-ads/PaidAdsPage";
+import SuppressedPage from "./modules/email/SuppressedPage";
 import MailPage from "./modules/mail/MailPage";
 import SettingsPage from "./modules/settings/SettingsPage";
 import ProfilePage from "./modules/settings/ProfilePage";
@@ -63,6 +65,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<LandingPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/acceptable-use" element={<AcceptableUsePage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/subscribe/:key" element={<SubscribePage />} />
@@ -87,6 +92,7 @@ export default function App() {
       <Route path="/segments/:id" element={<Gate path="/segments/:id"><SegmentDetailPage /></Gate>} />
       <Route path="/segments/:id/edit" element={<Gate path="/segments/:id/edit"><SegmentBuilderPage /></Gate>} />
       <Route path="/campaigns" element={<Gate path="/campaigns"><CampaignsPage /></Gate>} />
+      <Route path="/campaigns/suppressed" element={<Gate path="/campaigns/suppressed"><SuppressedPage /></Gate>} />
       <Route path="/mail" element={<Gate path="/mail"><MailPage /></Gate>} />
       <Route path="/email-setup" element={<Gate path="/email-setup"><EmailSetupPage /></Gate>} />
       <Route path="/email-domains" element={<Navigate to="/email-setup?tab=sending" replace />} />

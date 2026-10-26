@@ -29,6 +29,8 @@ from app.api.v1.verifications import admin_router as verifications_admin_router,
 from app.api.v1.message_templates import router as message_templates_router
 from app.api.v1.email_domains import router as email_domains_router
 from app.api.v1.mail import router as mail_router
+from app.api.v1.unsubscribe import router as unsubscribe_router
+from app.api.v1.suppressions import router as suppressions_router
 from app.api.v1.mail_admin import router as mail_admin_router
 from app.api.v1.mail_inbound import router as mail_inbound_router
 from app.api.v1.email_events import router as email_events_router
@@ -51,6 +53,8 @@ api_router.include_router(email_domains_router, dependencies=[Depends(require_pe
 api_router.include_router(mail_router, dependencies=[Depends(require_permission("email"))])
 api_router.include_router(mail_admin_router)
 api_router.include_router(mail_inbound_router)
+api_router.include_router(unsubscribe_router)
+api_router.include_router(suppressions_router, dependencies=[Depends(require_permission("email"))])
 api_router.include_router(email_events_router)
 api_router.include_router(onboarding_router)
 api_router.include_router(organization_router)

@@ -24,6 +24,7 @@ class EmailClient:
         from_name: str | None = None,
         dkim: dict | None = None,
         reply_to: str | None = None,
+        headers: dict | None = None,
     ) -> str:
         """Returns the provider's message id for the SENT event."""
         provider = await get_provider(db)
@@ -37,12 +38,12 @@ class EmailClient:
                 )
             return await send_via_ses(
                 provider.config, to_email=to_email, subject=subject, html_body=html_body,
-                from_email=sender, from_name=from_name, reply_to=reply_to,
+                from_email=sender, from_name=from_name, reply_to=reply_to, headers=headers,
             )
         try:
             return await send_via_smtp(
                 to_email=to_email, subject=subject, html_body=html_body,
-                from_email=from_email or settings.default_from_email, from_name=from_name, dkim=dkim,
+                from_email=from_email or settings.default_from_email, from_name=from_name, dkim=dkim, headers=headers,
             )
         except Exception as e:
             raise EmailSendError(f"SMTP server {settings.smtp_host}:{settings.smtp_port} failed: {e}") from e

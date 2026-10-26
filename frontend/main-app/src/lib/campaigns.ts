@@ -42,6 +42,8 @@ export interface CampaignPrecheck {
   connection_note: string;
   from_email: string | null;
   sender_warning: string | null;
+  excluded_count: number;
+  compliance_warning: string | null;
   daily_remaining: number | null;
 }
 

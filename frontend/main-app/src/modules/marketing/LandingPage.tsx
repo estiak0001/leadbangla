@@ -345,6 +345,12 @@ export default function LandingPage() {
           <a className="underline" href="https://commons.wikimedia.org/wiki/File:Pohela_Boishakh_Celebration_at_Chittagong_01.jpg">IqbalHossain</a> (CC BY-SA 4.0),{" "}
           <a className="underline" href="https://commons.wikimedia.org/wiki/File:Dhaka_skyline_at_golden_hour_02.jpg">Wasiul Bahar</a> (CC BY-SA 4.0)
         </p>
+        <p className="relative mt-4 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-xs">
+          <Link to="/privacy" className="underline hover:text-white">Privacy Policy</Link>
+          <Link to="/terms" className="underline hover:text-white">Terms of Service</Link>
+          <Link to="/acceptable-use" className="underline hover:text-white">Acceptable Use &amp; Anti-Spam</Link>
+          <a href="mailto:support@leadbangla.com" className="underline hover:text-white">support@leadbangla.com</a>
+        </p>
         <p className="relative mt-4">© {toBn(new Date().getFullYear())} LeadBangla. সর্বস্বত্ব সংরক্ষিত।</p>
       </footer>
     </div>

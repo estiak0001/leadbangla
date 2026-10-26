@@ -17,6 +17,7 @@ export const BUILTIN_TAGS = [
   { key: "last_name", label: "Last name", sample: "আহমেদ" },
   { key: "email", label: "Email", sample: "rahim@example.com" },
   { key: "phone", label: "Phone", sample: "01712-345678" },
+  { key: "unsubscribe_url", label: "Unsubscribe link", sample: "https://…/unsubscribe/…" },
 ] as const;
 
 function headers(): HeadersInit {

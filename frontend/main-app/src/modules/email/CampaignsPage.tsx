@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Mail, Plus, X, Send, BarChart2, Search, Info, ShieldCheck, ShieldAlert,
-  Pencil, Copy, Users, ShieldQuestion, Loader2, ListChecks, ChevronRight, Trash2, History, Archive, Globe,
+  Pencil, Copy, Users, ShieldQuestion, Loader2, ListChecks, ChevronRight, Trash2, History, Archive, Globe, Inbox, MailX,
 } from "lucide-react";
 import CampaignHistoryModal from "./CampaignHistoryModal";
 import AppLayout from "../../components/AppLayout";
@@ -169,6 +169,12 @@ export default function CampaignsPage() {
             </button>
             <Link to="/email-setup?tab=sending">
               <Button variant="secondary" size="sm" icon={<Globe size={15} />}>Domains</Button>
+            </Link>
+            <Link to="/mail">
+              <Button variant="secondary" size="sm" icon={<Inbox size={15} />}>Inbox</Button>
+            </Link>
+            <Link to="/campaigns/suppressed">
+              <Button variant="secondary" size="sm" icon={<MailX size={15} />}>Unsubscribed</Button>
             </Link>
             <Link to="/campaigns/trash">
               <Button variant="secondary" size="sm" icon={<Archive size={15} />}>Trash</Button>
