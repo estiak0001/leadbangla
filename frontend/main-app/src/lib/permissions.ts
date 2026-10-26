@@ -18,10 +18,17 @@ export const forgetMe = () => { cache = null; };
 
 export function useMe() {
   const [me, setMe] = useState<OrganizationProfile | null>(null);
-  useEffect(() => { let live = true; getMe().then((m) => live && setMe(m)).catch(() => undefined); return () => { live = false; }; }, []);
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    let live = true;
+    // A person with no company yet (new signup, just-approved payment) gets a 403 here. That still ends the
+    // loading state, otherwise the page spinner never goes away and they never reach onboarding.
+    getMe().then((m) => live && setMe(m)).catch(() => undefined).finally(() => live && setDone(true));
+    return () => { live = false; };
+  }, []);
   // While loading (or if the profile call fails) don't hide anything — the server still enforces access.
   const can = (perm?: string) => !perm || !me || me.my_permissions.includes(perm);
-  return { me, can, loading: me === null };
+  return { me, can, loading: !done };
 }
 
 /** Which permission each page needs (longest matching prefix wins). */
