@@ -32,7 +32,7 @@ export default function StatusTab() {
       <Card className="p-0 overflow-hidden">
         <div className="divide-y divide-surface-100">
           {platformStatus.map((s) => (
-            <div key={s.name} className="flex items-center justify-between px-5 py-3">
+            <div key={s.name} className="flex items-center justify-between px-4 py-3">
               <div>
                 <p className="text-sm font-medium text-surface-800">{s.name}</p>
                 {s.note && <p className="text-xs text-surface-400 mt-0.5">{s.note}</p>}

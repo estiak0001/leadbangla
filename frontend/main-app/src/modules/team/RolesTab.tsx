@@ -80,7 +80,7 @@ export default function RolesTab({ members, canEdit }: { members: TeamMember[]; 
           </div>
         )}
 
-        {presets.length === 0 && !edit ? <p className="p-8 text-center text-sm text-surface-500">No custom roles yet.{canEdit && " Create one for a job like Telesales or Page admin."}</p> : (
+        {presets.length === 0 && !edit ? <p className="p-5 text-center text-sm text-surface-500">No custom roles yet.{canEdit && " Create one for a job like Telesales or Page admin."}</p> : (
           <ul className="divide-y divide-surface-100">
             {presets.map((p) => (
               <li key={p.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4">

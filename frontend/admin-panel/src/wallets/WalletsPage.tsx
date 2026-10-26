@@ -52,7 +52,7 @@ function AdjustModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full">
+      <div className="bg-white rounded-xl shadow-2xl p-4 max-w-sm w-full">
         <h3 className="font-bold text-lg text-surface-900 mb-1">Adjust wallet</h3>
         <p className="text-sm text-surface-500 mb-4">{wallet.org_name} — current balance {wallet.balance_bdt.toFixed(2)} BDT</p>
 
@@ -135,7 +135,7 @@ function HistoryContent({ orgId }: { orgId: string }) {
 function HistoryRow({ orgId }: { orgId: string }) {
   return (
     <tr>
-      <td colSpan={6} className="bg-surface-50 px-5 py-4">
+      <td colSpan={6} className="bg-surface-50 px-4 py-4">
         <HistoryContent orgId={orgId} />
       </td>
     </tr>
@@ -226,7 +226,7 @@ export default function WalletsPage() {
                 <thead className="border-b border-surface-200 bg-surface-50">
                   <tr>
                     {["Org Name", "Balance (BDT)", "Threshold (BDT)", "Status", "Last Updated", "Actions"].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
+                      <th key={h} className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -234,14 +234,14 @@ export default function WalletsPage() {
                   {visible.map((w) => (
                     <Fragment key={w.org_id}>
                       <tr className="hover:bg-surface-50 transition-colors">
-                        <td className="px-5 py-3.5 font-semibold text-surface-900">{w.org_name}</td>
-                        <td className="px-5 py-3.5 text-surface-700">{w.balance_bdt.toFixed(2)}</td>
-                        <td className="px-5 py-3.5 text-surface-500">{w.low_balance_threshold_bdt.toFixed(2)}</td>
-                        <td className="px-5 py-3.5">
+                        <td className="px-4 py-3.5 font-semibold text-surface-900">{w.org_name}</td>
+                        <td className="px-4 py-3.5 text-surface-700">{w.balance_bdt.toFixed(2)}</td>
+                        <td className="px-4 py-3.5 text-surface-500">{w.low_balance_threshold_bdt.toFixed(2)}</td>
+                        <td className="px-4 py-3.5">
                           <Badge variant={w.is_low ? "danger" : "success"}>{w.is_low ? "Low" : "OK"}</Badge>
                         </td>
-                        <td className="px-5 py-3.5 text-surface-500">{w.updated_at ? new Date(w.updated_at).toLocaleString() : "—"}</td>
-                        <td className="px-5 py-3.5">
+                        <td className="px-4 py-3.5 text-surface-500">{w.updated_at ? new Date(w.updated_at).toLocaleString() : "—"}</td>
+                        <td className="px-4 py-3.5">
                           <div className="flex gap-3 items-center">
                             <Button size="xs" variant="secondary" onClick={() => setAdjusting(w)}>Adjust</Button>
                             <button

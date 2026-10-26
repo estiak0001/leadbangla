@@ -66,7 +66,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       {opts && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4 animate-fade-in" onClick={() => close(false)}>
           <div role="alertdialog" aria-modal="true" aria-labelledby="confirm-title"
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-4 animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3.5">
               <span className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${tone.ring}`}><Icon size={18} /></span>
               <div className="min-w-0">

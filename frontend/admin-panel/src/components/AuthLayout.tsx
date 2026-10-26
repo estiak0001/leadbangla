@@ -13,7 +13,7 @@ export default function AuthLayout({ title, children }: { title: string; childre
             Internal Admin
           </p>
         </div>
-        <div className="rounded-md border border-slate-700 bg-slate-800 p-6 shadow-xl shadow-black/30">
+        <div className="rounded-md border border-slate-700 bg-slate-800 p-4 shadow-xl shadow-black/30">
           <h1 className="mb-4 text-lg font-semibold text-white">{title}</h1>
           {children}
         </div>

@@ -42,13 +42,13 @@ export default function ImportContactsModal({ onClose, onImported }: { onClose: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => !busy && onClose()}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[92vh] flex flex-col" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100 flex-shrink-0">
           <div><h2 className="font-semibold text-surface-900">{result ? "Import finished" : "Import contacts from a CSV file"}</h2>
             {!result && <p className="text-xs text-surface-500">Add many people at once. Existing contacts are updated, never duplicated.</p>}</div>
           <button onClick={onClose} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button>
         </div>
 
-        <div className="p-5 overflow-y-auto space-y-5">
+        <div className="p-4 overflow-y-auto space-y-5">
           {error && <Alert variant="error" onDismiss={() => setError(null)}>{error}</Alert>}
 
           {result ? (
@@ -97,7 +97,7 @@ export default function ImportContactsModal({ onClose, onImported }: { onClose: 
               <section>
                 <h3 className="text-sm font-semibold text-surface-800 mb-2"><span className="mr-2 inline-flex w-5 h-5 rounded-full bg-brand-50 text-brand-700 text-xs items-center justify-center">2</span>Choose your file</h3>
                 <div onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={onDrop} onClick={() => input.current?.click()}
-                  className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-7 text-center transition ${dragging ? "border-brand-500 bg-brand-50" : file ? "border-success-base/40 bg-success-light/40" : "border-surface-300 hover:border-brand-400 hover:bg-surface-50"}`}>
+                  className={`cursor-pointer rounded-xl border-2 border-dashed px-4 py-5 text-center transition ${dragging ? "border-brand-500 bg-brand-50" : file ? "border-success-base/40 bg-success-light/40" : "border-surface-300 hover:border-brand-400 hover:bg-surface-50"}`}>
                   <input ref={input} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
                   {file ? (
                     <div className="flex items-center justify-center gap-3"><FileSpreadsheet size={26} className="text-success-dark" />
@@ -141,7 +141,7 @@ export default function ImportContactsModal({ onClose, onImported }: { onClose: 
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-2 px-5 py-3.5 border-t border-surface-100 flex-shrink-0">
+        <div className="flex items-center justify-between gap-2 px-4 py-3.5 border-t border-surface-100 flex-shrink-0">
           {result ? (
             <><Button size="sm" variant="ghost" onClick={reset}>Import another file</Button><Button size="sm" onClick={onClose}>Done</Button></>
           ) : (

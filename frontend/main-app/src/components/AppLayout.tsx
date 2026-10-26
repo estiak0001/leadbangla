@@ -120,12 +120,12 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges, expanded }:
   const hasActive = group.items.some((i) => isItemActive(i, pathname));
   const open = !expanded || !collapsed || hasActive; // the icon rail always shows every icon
   return (
-    <div className="mb-1.5">
+    <div className="mb-1">
       {expanded ? (
         <button
           type="button"
           onClick={onToggle}
-          className="flex w-full items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-surface-500 hover:text-surface-800 select-none"
+          className="flex w-full items-center justify-between px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-surface-500 hover:text-surface-800 select-none"
         >
           {group.label}
           <ChevronDown size={14} className={`transition-transform ${open ? "" : "-rotate-90"}`} />
@@ -144,7 +144,7 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges, expanded }:
                 to={item.to}
                 onClick={onLinkClick}
                 title={expanded ? undefined : item.label}
-                className={`relative flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center px-0 py-2.5"} ${
+                className={`relative flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-2.5 px-2.5 py-1.5" : "justify-center px-0 py-2"} ${
                   isActive
                     ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70"
                     : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
@@ -220,7 +220,7 @@ function SidebarContent({ onLinkClick, expanded = true, pinned = false, onToggle
               to={item.to}
               onClick={onLinkClick}
               title={expanded ? undefined : item.label}
-              className={`flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center py-2.5"} ${
+              className={`flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-2.5 px-2.5 py-1.5" : "justify-center py-2"} ${
                 active ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70" : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
               }`}
             >
@@ -232,7 +232,7 @@ function SidebarContent({ onLinkClick, expanded = true, pinned = false, onToggle
         <button
           onClick={() => { clearTokens(); navigate("/login"); }}
           title={expanded ? undefined : "Log out"}
-          className={`flex w-full items-center rounded-lg text-sm font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900 transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center py-2.5"}`}
+          className={`flex w-full items-center rounded-lg text-sm font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900 transition-all duration-150 ${expanded ? "gap-2.5 px-2.5 py-1.5" : "justify-center py-2"}`}
         >
           <LogOut size={16} className="flex-shrink-0 text-surface-500" />
           {expanded && <span>Log out</span>}
@@ -482,7 +482,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             className="pointer-events-none absolute inset-0 bg-no-repeat opacity-[0.16]"
             style={{ backgroundImage: "url(/img/bd-dots.svg)", backgroundPosition: "center", backgroundSize: "auto min(80%, 640px)" }}
           />
-          <main className="relative h-full overflow-y-auto p-3 pb-24 sm:p-5 sm:pb-24 lg:p-6">
+          <main className="relative h-full overflow-y-auto p-3 pb-24 sm:p-4 sm:pb-24 lg:p-4">
             {children}
           </main>
         </div>

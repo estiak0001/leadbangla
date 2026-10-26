@@ -23,7 +23,7 @@ export default function UpgradeLimitModal({ resource, current, limit, onClose }:
   const label = LABELS[resource] ?? resource;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-md shadow-2xl p-6 max-w-sm w-full animate-slide-up">
+      <div className="bg-white rounded-md shadow-2xl p-4 max-w-sm w-full animate-slide-up">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 rounded-full bg-warning-light flex items-center justify-center">
             <Lock size={18} className="text-warning-base" />

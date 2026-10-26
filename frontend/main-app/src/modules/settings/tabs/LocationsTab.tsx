@@ -42,11 +42,11 @@ function PlaceDialog({ kind, place, all, onClose, onSaved }: { kind: PlaceKind; 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
       <form onSubmit={submit} className="bg-white rounded-[6px] shadow-2xl w-full max-w-md max-h-[92vh] flex flex-col animate-slide-up" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">{place ? `Edit ${LABEL[kind].one.toLowerCase()}` : `Add a ${LABEL[kind].one.toLowerCase()}`}</h2>
           <button type="button" onClick={onClose} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button>
         </div>
-        <div className="px-5 py-4 space-y-3 overflow-y-auto">
+        <div className="px-4 py-4 space-y-3 overflow-y-auto">
           {error && <Alert variant="error">{error}</Alert>}
           <div className="grid grid-cols-2 gap-3">
             <div><label className="text-xs text-surface-500">Name (English)</label><input autoFocus className={f} value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder={kind === "area" ? "Uttara" : kind === "district" ? "Gazipur" : "Dhaka"} /></div>
@@ -67,7 +67,7 @@ function PlaceDialog({ kind, place, all, onClose, onSaved }: { kind: PlaceKind; 
           <GeoField lat={lat} lng={lng} onChange={(a, b) => { setLat(a); setLng(b); }} label="Map point (optional)" />
           {place && place.contacts > 0 && place.name !== name.trim() && <p className="text-xs text-surface-500">{place.contacts} contact(s) in “{place.name}” will be renamed too.</p>}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100">
+        <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100">
           <Button type="button" size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" size="sm" loading={busy} disabled={!name.trim() || (!!parentKind && !parent)}>{place ? "Save" : "Add"}</Button>
         </div>
@@ -190,7 +190,7 @@ export default function LocationsTab() {
                 )}
               </tr>
             ))}
-            {shown.length === 0 && <tr><td colSpan={7} data-kind="span" className="px-3 py-8 text-center text-surface-500">{kind === "area" && !q && !parentFilter ? "No areas yet — add one, or import a CSV." : "Nothing matches."}</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={7} data-kind="span" className="px-3 py-5 text-center text-surface-500">{kind === "area" && !q && !parentFilter ? "No areas yet — add one, or import a CSV." : "Nothing matches."}</td></tr>}
           </tbody>
         </table>
       </div>

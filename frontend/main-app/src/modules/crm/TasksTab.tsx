@@ -37,11 +37,11 @@ function NewTaskDialog({ team, onClose, onCreated }: { team: TeamMember[]; onClo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
       <form onSubmit={submit} className="bg-white rounded-[6px] shadow-2xl w-full max-w-md animate-slide-up" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">New task</h2>
           <button type="button" onClick={onClose} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button>
         </div>
-        <div className="px-5 py-4 space-y-3">
+        <div className="px-4 py-4 space-y-3">
           {error && <Alert variant="error">{error}</Alert>}
           <input autoFocus className={f} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="What needs to be done? (e.g. Prepare Eid SMS list)" maxLength={300} />
           <textarea className={f} rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Details (optional)" maxLength={2000} />
@@ -54,7 +54,7 @@ function NewTaskDialog({ team, onClose, onCreated }: { team: TeamMember[]; onClo
           <div><label className="text-xs text-surface-500">Due</label><input type="datetime-local" className={f} value={due} onChange={(e) => setDue(e.target.value)} /></div>
           <p className="text-xs text-surface-500">The assignee gets an email now and another when it is due. To link a task to a lead, add it from the lead’s page.</p>
         </div>
-        <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100">
+        <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100">
           <Button type="button" size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button type="submit" size="sm" loading={busy} disabled={!title.trim()}>Create task</Button>
         </div>

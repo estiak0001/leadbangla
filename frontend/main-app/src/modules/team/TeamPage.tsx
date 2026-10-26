@@ -137,7 +137,7 @@ export default function TeamPage() {
         </div>
       ) : (
         <div className="bg-white border border-surface-200 rounded-lg">
-          {activity.length === 0 ? <p className="p-8 text-center text-sm text-surface-500">Nothing yet. Invites, role changes and access changes appear here.</p> : (
+          {activity.length === 0 ? <p className="p-5 text-center text-sm text-surface-500">Nothing yet. Invites, role changes and access changes appear here.</p> : (
             <ul className="divide-y divide-surface-100">
               {activity.map((a) => (
                 <li key={a.id} className="flex items-start gap-3 px-4 py-3">

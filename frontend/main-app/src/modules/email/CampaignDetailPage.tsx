@@ -360,7 +360,7 @@ export default function CampaignDetailPage() {
 
       {confirmDelete && (
         <div className="fixed inset-0 z-50 bg-surface-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setConfirmDelete(false)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-5" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-base font-semibold text-surface-900">Delete “{campaign.name}”?</h2>
             <p className="text-sm text-surface-600 mt-2">
               It moves to the trash and its history is kept. You can restore it any time from <strong>Trash</strong>.
@@ -377,12 +377,12 @@ export default function CampaignDetailPage() {
       {showPrecheck && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md animate-slide-up">
-            <div className="px-6 py-4 border-b border-surface-100">
+            <div className="px-4 py-4 border-b border-surface-100">
               <h2 className="font-semibold text-surface-900">Confirm Send</h2>
             </div>
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-4 py-3.5 space-y-4">
               {precheckLoading || !precheck ? (
-                <div className="flex justify-center py-8"><Spinner size="md" /></div>
+                <div className="flex justify-center py-5"><Spinner size="md" /></div>
               ) : (
                 <>
                   <div className={`rounded-md border p-3 flex items-start gap-2.5 ${precheck.connection_ok ? "border-success-base/30 bg-success-light" : "border-warning-base/30 bg-warning-light"}`}>
@@ -442,7 +442,7 @@ export default function CampaignDetailPage() {
                 </>
               )}
             </div>
-            <div className="px-6 py-4 border-t border-surface-100 flex justify-end gap-2">
+            <div className="px-4 py-4 border-t border-surface-100 flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowPrecheck(false)}>Cancel</Button>
               <Button size="sm" loading={sending} disabled={precheckLoading || !precheck} onClick={handleConfirmSend}>
                 Confirm & Send

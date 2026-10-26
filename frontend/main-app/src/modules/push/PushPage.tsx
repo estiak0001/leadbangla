@@ -85,7 +85,7 @@ function CampaignsTab({ config, onSent }: { config: PushConfig; onSent: () => vo
 
       <section className="bg-white border border-surface-200 rounded-[4px]">
         <h2 className="px-4 py-2.5 border-b border-surface-100 text-sm font-semibold text-surface-900">History</h2>
-        {!campaigns ? <div className="py-8 flex justify-center"><Spinner /></div> : campaigns.length === 0 ? <p className="py-8 text-center text-sm text-surface-500">Nothing sent yet.</p> : (
+        {!campaigns ? <div className="py-5 flex justify-center"><Spinner /></div> : campaigns.length === 0 ? <p className="py-5 text-center text-sm text-surface-500">Nothing sent yet.</p> : (
           <ul className="divide-y divide-surface-100">
             {campaigns.map((c) => (
               <li key={c.id} className="px-4 py-2.5 flex items-center gap-3">
@@ -170,7 +170,7 @@ function SubscribersTab({ config, onChanged }: { config: PushConfig; onChanged: 
 
       <section className="bg-white border border-surface-200 rounded-[4px]">
         <h2 className="px-4 py-2.5 border-b border-surface-100 text-sm font-semibold text-surface-900">Devices ({tokens?.length ?? "…"})</h2>
-        {!tokens ? <div className="py-6 flex justify-center"><Spinner /></div> : tokens.length === 0 ? <p className="py-6 text-center text-sm text-surface-500">No subscribers yet.</p> : (
+        {!tokens ? <div className="py-4 flex justify-center"><Spinner /></div> : tokens.length === 0 ? <p className="py-4 text-center text-sm text-surface-500">No subscribers yet.</p> : (
           <ul className="divide-y divide-surface-100">
             {tokens.slice(0, 100).map((t) => (
               <li key={t.id} className="px-4 py-2 flex items-center gap-3 text-sm">

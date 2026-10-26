@@ -94,13 +94,13 @@ function CreateModal({ onClose, onCreated, workflows }: CreateModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 animate-slide-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">New Event</h2>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-600">
             <X size={18} />
           </button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-4 py-3.5 space-y-4">
           {error && <Alert variant="error">{error}</Alert>}
           <Input
             label="Event Title *"
@@ -155,7 +155,7 @@ function CreateModal({ onClose, onCreated, workflows }: CreateModalProps) {
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-surface-100">
+        <div className="flex justify-end gap-3 px-4 py-4 border-t border-surface-100">
           <Button variant="ghost" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
@@ -198,13 +198,13 @@ function RegisterModal({ eventId, onClose, onRegistered, contacts }: RegisterMod
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 animate-slide-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">Register Contact</h2>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-600">
             <X size={18} />
           </button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-4 py-3.5 space-y-4">
           {error && <Alert variant="error">{error}</Alert>}
           <div>
             <label className="block text-sm font-medium text-surface-700 mb-1">Contact</label>
@@ -222,7 +222,7 @@ function RegisterModal({ eventId, onClose, onRegistered, contacts }: RegisterMod
             </select>
           </div>
         </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-surface-100">
+        <div className="flex justify-end gap-3 px-4 py-4 border-t border-surface-100">
           <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={submit} loading={saving}>Register</Button>
         </div>
@@ -275,7 +275,7 @@ function EventRow({ event, contacts, onDelete }: EventRowProps) {
     <>
       <div className="bg-white rounded-xl border border-surface-100 shadow-sm">
         <div
-          className="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-surface-50 rounded-xl"
+          className="flex items-center gap-4 px-4 py-4 cursor-pointer hover:bg-surface-50 rounded-xl"
           onClick={loadRegs}
         >
           <div className="flex-shrink-0 text-brand-600">
@@ -314,7 +314,7 @@ function EventRow({ event, contacts, onDelete }: EventRowProps) {
         </div>
 
         {open && (
-          <div className="border-t border-surface-100 px-5 py-4">
+          <div className="border-t border-surface-100 px-4 py-4">
             {event.description && (
               <p className="text-sm text-surface-600 mb-4">{event.description}</p>
             )}

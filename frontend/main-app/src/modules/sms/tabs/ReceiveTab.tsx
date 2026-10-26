@@ -36,7 +36,7 @@ export default function ReceiveTab() {
       ) : (
         <div className="space-y-2">
           {messages.map((m) => (
-            <Card key={m.id} className="py-3 px-5">
+            <Card key={m.id} className="py-3 px-4">
               <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                 <span className="font-mono text-sm text-surface-800">
                   {m.contact_name ? `${m.contact_name} (${m.from_phone})` : m.from_phone}

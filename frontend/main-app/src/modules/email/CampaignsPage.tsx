@@ -43,13 +43,13 @@ function HowItWorksModal({ status, onClose }: { status: EmailConnectionStatus | 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-slide-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-100 flex-shrink-0">
           <h2 className="font-semibold text-surface-900">How Email Campaigns Work</h2>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-600">
             <X size={18} />
           </button>
         </div>
-        <div className="px-6 py-5 overflow-y-auto space-y-5">
+        <div className="px-4 py-3.5 overflow-y-auto space-y-5">
           <p className="text-sm text-surface-600">
             Build an email, aim it at a segment of your contacts, and send it — with a cost and connection
             check before anything goes out, and a live delivered/failed report as it runs.
@@ -86,7 +86,7 @@ function HowItWorksModal({ status, onClose }: { status: EmailConnectionStatus | 
             </div>
           </div>
         </div>
-        <div className="px-6 py-4 border-t border-surface-100 flex justify-end flex-shrink-0">
+        <div className="px-4 py-4 border-t border-surface-100 flex justify-end flex-shrink-0">
           <Button variant="ghost" size="sm" onClick={onClose}>Close</Button>
         </div>
       </div>
@@ -227,7 +227,7 @@ export default function CampaignsPage() {
       )}
 
       {campaigns.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-surface-200 bg-white py-16 px-6 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-surface-200 bg-white py-16 px-4 text-center">
           <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4"><Mail size={26} /></div>
           <h2 className="text-lg font-semibold text-surface-900">Send your first email campaign</h2>
           <p className="text-sm text-surface-600 mt-1 mb-5 max-w-md mx-auto">Pick a segment, write your message, and send it — with a cost check and live delivery report.</p>
@@ -367,7 +367,7 @@ export default function CampaignsPage() {
 
       {deleting && (
         <div className="fixed inset-0 z-50 bg-surface-900/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setDeleting(null)}>
-          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-5" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-xl shadow-xl max-w-sm w-full p-4" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-base font-semibold text-surface-900">Delete “{deleting.name}”?</h2>
             <p className="text-sm text-surface-600 mt-2">
               It moves to the trash and its history is kept. You can restore it any time from <strong>Trash</strong>.

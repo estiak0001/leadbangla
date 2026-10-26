@@ -79,7 +79,7 @@ export default function TenantPlanCard({ orgId, onChanged }: { orgId: string; on
   return (
     <>
       <Card className="mb-6 !p-0 overflow-hidden">
-        <div className="p-4 sm:p-5 flex items-start justify-between gap-4 flex-wrap border-b border-surface-100">
+        <div className="p-4 sm:p-4 flex items-start justify-between gap-4 flex-wrap border-b border-surface-100">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-surface-500">Plan &amp; subscription</p>
             {cur ? (
@@ -103,21 +103,21 @@ export default function TenantPlanCard({ orgId, onChanged }: { orgId: string; on
           </div>
         </div>
 
-        {error && <div className="px-5 pt-3"><Alert onDismiss={() => setError(null)}>{error}</Alert></div>}
+        {error && <div className="px-4 pt-3"><Alert onDismiss={() => setError(null)}>{error}</Alert></div>}
 
         {cur && (
-          <div className="p-4 sm:p-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
+          <div className="p-4 sm:p-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3">
             {METERS.map((m) => <Meter key={m.label} label={m.label} used={sub.usage[m.use]} limit={cur[m.limit] as number} />)}
           </div>
         )}
 
-        <button onClick={() => setShowHistory((v) => !v)} className="w-full flex items-center justify-between px-5 py-2.5 text-xs font-medium text-surface-600 hover:bg-surface-50 border-t border-surface-100">
+        <button onClick={() => setShowHistory((v) => !v)} className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-medium text-surface-600 hover:bg-surface-50 border-t border-surface-100">
           <span className="inline-flex items-center gap-1.5"><History size={13} /> Plan history ({sub.history.length})</span><span>{showHistory ? "Hide" : "Show"}</span>
         </button>
         {showHistory && (
           <div className="divide-y divide-surface-100 border-t border-surface-100 max-h-72 overflow-y-auto">
             {sub.history.map((h) => (
-              <div key={h.id} className="px-5 py-2.5 text-sm flex items-center justify-between gap-3">
+              <div key={h.id} className="px-4 py-2.5 text-sm flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-medium text-surface-900">{h.plan_name} <span className="font-normal text-surface-400">· ৳{h.price_bdt.toLocaleString()}</span></p>
                   <p className="text-xs text-surface-500">{fmt(h.created_at)} · {h.source === "admin" ? `set by ${h.changed_by ?? "staff"}` : "paid by customer"}{h.note && ` · ${h.note}`}</p>
@@ -132,11 +132,11 @@ export default function TenantPlanCard({ orgId, onChanged }: { orgId: string; on
       {picking && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => !busy && setPicking(false)}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100">
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100">
               <div><h2 className="font-semibold text-surface-900">{cur ? "Change plan" : "Set a plan"}</h2><p className="text-xs text-surface-500">Takes effect immediately. No payment is taken.</p></div>
               <button onClick={() => setPicking(false)} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button>
             </div>
-            <div className="p-5 overflow-y-auto space-y-4">
+            <div className="p-4 overflow-y-auto space-y-4">
               <div className="grid sm:grid-cols-3 gap-3">
                 {plans.map((p) => {
                   const isCur = cur?.id === p.id;
@@ -172,7 +172,7 @@ export default function TenantPlanCard({ orgId, onChanged }: { orgId: string; on
                 <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} placeholder="e.g. Paid by bKash outside the app, promo, goodwill upgrade" className="w-full rounded-md border border-surface-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
               </div>
             </div>
-            <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100">
+            <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100">
               <Button size="sm" variant="ghost" onClick={() => setPicking(false)} disabled={busy}>Cancel</Button>
               <Button size="sm" loading={busy} disabled={!choice} onClick={() => apply("change")}>
                 {target ? `${direction === "up" ? "Upgrade" : direction === "down" ? "Downgrade" : "Set"} to ${target.name}` : "Choose a plan"}
@@ -184,7 +184,7 @@ export default function TenantPlanCard({ orgId, onChanged }: { orgId: string; on
 
       {cancelling && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => !busy && setCancelling(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-4" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3.5">
               <span className="w-10 h-10 rounded-full flex items-center justify-center bg-danger-light text-danger-base flex-shrink-0"><AlertTriangle size={18} /></span>
               <div><h2 className="font-semibold text-surface-900">Cancel this tenant's plan?</h2><p className="mt-1.5 text-sm text-surface-600">They keep their data but lose plan features (including SMS) until you set a plan again.</p></div>

@@ -10,7 +10,7 @@ export default function LostReasonDialog({
   const [reason, setReason] = useState("");
   return (
     <div className="fixed inset-0 z-[60] bg-black/40 flex items-center justify-center p-4" onClick={onCancel}>
-      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-5" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-lg shadow-xl max-w-sm w-full p-4" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-base font-semibold text-surface-900">Why was {name} lost?</h2>
         <p className="text-sm text-surface-600 mt-1">Pick a reason or type your own. It helps you see what to fix.</p>
         <div className="flex flex-wrap gap-1.5 mt-3">

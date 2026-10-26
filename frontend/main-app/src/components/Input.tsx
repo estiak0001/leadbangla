@@ -11,8 +11,8 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 
 const sizeClasses = {
   sm:  'py-1.5 text-xs',
-  md:  'py-2.5 text-sm',
-  lg:  'py-3 text-base',
+  md:  'py-2 text-sm',
+  lg:  'py-2.5 text-base',
 };
 
 const Input = forwardRef<HTMLInputElement, InputProps>(

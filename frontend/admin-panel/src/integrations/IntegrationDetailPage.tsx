@@ -382,7 +382,7 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
 
       {confirmClear && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => setConfirmClear(false)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-4" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3.5">
               <span className="w-10 h-10 rounded-full flex items-center justify-center bg-danger-light text-danger-base flex-shrink-0"><AlertTriangle size={18} /></span>
               <div><h2 className="font-semibold text-surface-900">Remove all credentials?</h2><p className="mt-1.5 text-sm text-surface-600">{svc.name} is switched off and everything saved here is deleted. {info?.ifMissing}</p></div>

@@ -152,7 +152,7 @@ function PlanEditModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-2xl p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <h3 className="font-bold text-lg text-surface-900 mb-1">{plan ? `Edit ${plan.code} plan` : "New plan"}</h3>
         <p className="text-xs text-surface-500 mb-4">
           Use -1 for unlimited. Changes apply to the pricing page and to limit checks immediately.
@@ -244,8 +244,8 @@ function CreditRateRow({ rate, onSaved }: { rate: CreditRate; onSaved: (updated:
 
   return (
     <tr className="hover:bg-surface-50 transition-colors">
-      <td className="px-5 py-3.5 font-semibold text-surface-900 capitalize">{rate.service.replace(/_/g, " ")}</td>
-      <td className="px-5 py-3.5">
+      <td className="px-4 py-3.5 font-semibold text-surface-900 capitalize">{rate.service.replace(/_/g, " ")}</td>
+      <td className="px-4 py-3.5">
         {editing ? (
           <Input
             className="w-28"
@@ -258,11 +258,11 @@ function CreditRateRow({ rate, onSaved }: { rate: CreditRate; onSaved: (updated:
           <span className="text-surface-700">{Number(rate.rate_bdt).toFixed(2)} BDT</span>
         )}
       </td>
-      <td className="px-5 py-3.5 text-surface-600">{rate.unit_label}</td>
-      <td className="px-5 py-3.5 text-surface-500">{rate.description ?? "—"}</td>
-      <td className="px-5 py-3.5 text-surface-500">{new Date(rate.updated_at).toLocaleString()}</td>
-      <td className="px-5 py-3.5 text-surface-500">{rate.updated_by ?? "—"}</td>
-      <td className="px-5 py-3.5">
+      <td className="px-4 py-3.5 text-surface-600">{rate.unit_label}</td>
+      <td className="px-4 py-3.5 text-surface-500">{rate.description ?? "—"}</td>
+      <td className="px-4 py-3.5 text-surface-500">{new Date(rate.updated_at).toLocaleString()}</td>
+      <td className="px-4 py-3.5 text-surface-500">{rate.updated_by ?? "—"}</td>
+      <td className="px-4 py-3.5">
         {editing ? (
           <div className="flex gap-1.5">
             <Button size="xs" variant="primary" loading={saving} onClick={handleSave}>
@@ -392,24 +392,24 @@ export default function PlansPage() {
             <thead className="border-b border-surface-200 bg-surface-50">
               <tr>
                 {["Name", "Code", "Price (BDT/mo)", ...LIMIT_FIELDS.map((f) => f.label), "Tenants", "Active", ""].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100">
               {plans.map((plan) => (
                 <tr key={plan.id} className="hover:bg-surface-50 transition-colors">
-                  <td className="px-5 py-3.5 font-semibold text-surface-900 whitespace-nowrap">{plan.name}</td>
-                  <td className="px-5 py-3.5 text-surface-500">{plan.code}</td>
-                  <td className="px-5 py-3.5 text-surface-700">{plan.price_bdt.toLocaleString()}</td>
+                  <td className="px-4 py-3.5 font-semibold text-surface-900 whitespace-nowrap">{plan.name}</td>
+                  <td className="px-4 py-3.5 text-surface-500">{plan.code}</td>
+                  <td className="px-4 py-3.5 text-surface-700">{plan.price_bdt.toLocaleString()}</td>
                   {LIMIT_FIELDS.map((f) => (
-                    <td key={f.key} className="px-5 py-3.5 text-surface-700 whitespace-nowrap">{limitLabel(plan[f.key] as number)}</td>
+                    <td key={f.key} className="px-4 py-3.5 text-surface-700 whitespace-nowrap">{limitLabel(plan[f.key] as number)}</td>
                   ))}
-                  <td className="px-5 py-3.5 text-surface-600 font-medium">{plan.tenant_count}</td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-4 py-3.5 text-surface-600 font-medium">{plan.tenant_count}</td>
+                  <td className="px-4 py-3.5">
                     <Badge variant={plan.is_active ? "success" : "danger"}>{plan.is_active ? "Yes" : "No"}</Badge>
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-4 py-3.5">
                     <Button size="xs" variant="secondary" onClick={() => setEditingPlan(plan)}>Edit</Button>
                   </td>
                 </tr>
@@ -452,7 +452,7 @@ export default function PlansPage() {
             <thead className="border-b border-surface-200 bg-surface-50">
               <tr>
                 {["Service", "Rate (BDT)", "Unit", "Description", "Last Updated", "Updated By", ""].map((h) => (
-                  <th key={h} className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
+                  <th key={h} className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
                 ))}
               </tr>
             </thead>

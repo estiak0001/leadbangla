@@ -79,7 +79,7 @@ export default function TemplatesTab({ channel }: { channel: SmsChannel }) {
           <Button size="sm" icon={<Plus size={14} />} onClick={() => openEditor("new")}>New template</Button>
         </div>
         {items.length === 0 ? (
-          <Card className="text-center !py-8 text-sm text-surface-500">No saved templates yet. Create one, or start from an idea below.</Card>
+          <Card className="text-center !py-5 text-sm text-surface-500">No saved templates yet. Create one, or start from an idea below.</Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             {items.map((t) => (

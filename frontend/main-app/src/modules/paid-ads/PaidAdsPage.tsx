@@ -103,11 +103,11 @@ function CreateCampaignModal({ accounts, onClose, onCreated }: CreateCampaignMod
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 animate-slide-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">New Campaign</h2>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-600"><X size={18} /></button>
         </div>
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-4 py-3.5 space-y-4">
           {error && <Alert variant="error">{error}</Alert>}
 
           <div>
@@ -164,7 +164,7 @@ function CreateCampaignModal({ accounts, onClose, onCreated }: CreateCampaignMod
 
           <Alert variant="info">Campaign is created in PAUSED status. Activate it in the ad platform after review.</Alert>
         </div>
-        <div className="flex justify-end gap-3 px-6 py-4 border-t border-surface-100">
+        <div className="flex justify-end gap-3 px-4 py-4 border-t border-surface-100">
           <Button variant="ghost" onClick={onClose} disabled={saving}>Cancel</Button>
           <Button onClick={submit} loading={saving}>Create Campaign</Button>
         </div>
@@ -200,7 +200,7 @@ function CampaignRow({ campaign: c, onSync, syncing }: CampaignRowProps) {
   return (
     <div className="bg-white rounded-xl border border-surface-100 shadow-sm">
       <div
-        className="flex items-center gap-3 px-5 py-4 cursor-pointer hover:bg-surface-50 rounded-xl"
+        className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-surface-50 rounded-xl"
         onClick={loadSpend}
       >
         <div className="text-brand-500 flex-shrink-0">
@@ -258,7 +258,7 @@ function CampaignRow({ campaign: c, onSync, syncing }: CampaignRowProps) {
       </div>
 
       {open && (
-        <div className="border-t border-surface-100 px-5 py-4">
+        <div className="border-t border-surface-100 px-4 py-4">
           <p className="text-xs font-semibold text-surface-500 uppercase tracking-wide mb-3">
             Daily Spend (last 30 days)
           </p>
@@ -411,7 +411,7 @@ export default function PaidAdsPage() {
           ) : (
             <div className="space-y-3">
               {accounts.map((a) => (
-                <div key={a.id} className="flex items-center justify-between bg-white rounded-xl border border-surface-100 shadow-sm px-5 py-4">
+                <div key={a.id} className="flex items-center justify-between bg-white rounded-xl border border-surface-100 shadow-sm px-4 py-4">
                   <div>
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-surface-900">{a.label}</p>

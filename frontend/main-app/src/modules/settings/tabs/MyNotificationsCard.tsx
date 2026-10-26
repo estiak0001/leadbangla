@@ -21,7 +21,7 @@ export default function MyNotificationsCard() {
       <h3 className="font-semibold text-surface-900 mb-1">My notifications</h3>
       <p className="text-xs text-surface-500 mb-3">Choose what appears in the bell and what is also emailed to you. This only affects you, not your teammates.</p>
       {error && <Alert variant="error" className="mb-3">{error}</Alert>}
-      {!prefs ? <div className="py-6 flex justify-center"><Spinner /></div> : (
+      {!prefs ? <div className="py-4 flex justify-center"><Spinner /></div> : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead><tr className="text-xs text-surface-500 text-left"><th className="py-1.5 font-medium">Update</th><th className="py-1.5 px-3 font-medium text-center">In app</th><th className="py-1.5 px-3 font-medium text-center">Email</th></tr></thead>

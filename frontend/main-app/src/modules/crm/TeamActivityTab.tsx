@@ -169,7 +169,7 @@ export default function TeamActivityTab({ canManage }: { canManage: boolean }) {
             <h2 className="text-sm font-semibold text-surface-900">Recent activity {sel ? `— ${sel.name}` : ""}</h2>
             <div className="flex flex-wrap gap-1 mt-2">{KINDS.map(([k, l]) => <button key={k} onClick={() => setKind(k)} className={`px-2 py-0.5 rounded-[3px] text-[11px] font-medium border ${kind === k ? "bg-brand-500 text-white border-brand-500" : "bg-white text-surface-600 border-surface-200 hover:bg-surface-50"}`}>{l}</button>)}</div>
           </header>
-          {data.feed.length === 0 ? <p className="p-8 text-center text-sm text-surface-500">No activity matches.</p> : (
+          {data.feed.length === 0 ? <p className="p-5 text-center text-sm text-surface-500">No activity matches.</p> : (
             <div className="relative flex-1 min-h-[340px]"><ul className="divide-y divide-surface-100 max-h-[340px] xl:max-h-none xl:absolute xl:inset-0 overflow-y-auto">
               {data.feed.map((f) => (
                 <li key={f.id} className="flex gap-2.5 px-4 py-2.5">

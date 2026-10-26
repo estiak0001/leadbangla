@@ -28,7 +28,7 @@ function Modal({ title, onClose, children, wide }: { title: string; onClose: () 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div className={`bg-white rounded-2xl shadow-2xl w-full ${wide ? "max-w-2xl" : "max-w-md"} max-h-[90vh] overflow-y-auto`} role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100"><h2 className="font-semibold text-surface-900">{title}</h2>
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100"><h2 className="font-semibold text-surface-900">{title}</h2>
           <button onClick={onClose} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button></div>
         {children}
       </div>
@@ -129,7 +129,7 @@ export default function TenantDetailPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4 items-start">
         {/* Company details */}
-        <Card className="xl:col-span-2 !p-4 sm:!p-5">
+        <Card className="xl:col-span-2 !p-4 sm:!p-4">
           <div className="flex items-center justify-between mb-4"><h2 className="text-sm font-semibold text-surface-800">Company details</h2>
             <button onClick={openEdit} className="text-xs font-medium text-brand-600 hover:text-brand-700 inline-flex items-center gap-1"><Pencil size={12} /> Edit</button></div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3.5">
@@ -146,7 +146,7 @@ export default function TenantDetailPage() {
         </Card>
 
         {/* Wallet */}
-        <Card className="!p-4 sm:!p-5">
+        <Card className="!p-4 sm:!p-4">
           <div className="flex items-center gap-2 mb-1"><Wallet size={15} className="text-surface-500" /><h2 className="text-sm font-semibold text-surface-800">Wallet</h2></div>
           <p className="text-3xl font-bold text-surface-900 tabular-nums">৳{t.wallet_balance_bdt.toLocaleString("en-BD", { minimumFractionDigits: 2 })}</p>
           <p className="text-xs text-surface-500">Used for SMS, WhatsApp and email overage.</p>
@@ -183,7 +183,7 @@ export default function TenantDetailPage() {
       </Card>
 
       {/* Private notes */}
-      <Card className="!p-4 sm:!p-5">
+      <Card className="!p-4 sm:!p-4">
         <div className="flex items-center gap-2 mb-2"><StickyNote size={15} className="text-surface-500" /><h2 className="text-sm font-semibold text-surface-800">Private notes</h2><span className="text-xs text-surface-400">only your team sees these</span></div>
         <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} maxLength={4000} placeholder="Agreements, special terms, who to call…"
           className="block w-full rounded-md border border-surface-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
@@ -194,7 +194,7 @@ export default function TenantDetailPage() {
       {editing && (
         <Modal title="Edit company" wide onClose={() => setEditing(false)}>
           <form onSubmit={saveProfile}>
-            <div className="p-5 grid sm:grid-cols-2 gap-3">
+            <div className="p-4 grid sm:grid-cols-2 gap-3">
               <Input inputSize="sm" label="Company name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required minLength={2} />
               <Input inputSize="sm" label="Trading / branch name" value={form.display_name} onChange={(e) => setForm({ ...form, display_name: e.target.value })} />
               <Select selectSize="sm" label="Industry" value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })}>{INDUSTRY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</Select>
@@ -209,7 +209,7 @@ export default function TenantDetailPage() {
               <Input inputSize="sm" label="Trade license no." value={form.trade_license_no} onChange={(e) => setForm({ ...form, trade_license_no: e.target.value })} />
               <Input inputSize="sm" label="TIN" value={form.tin} onChange={(e) => setForm({ ...form, tin: e.target.value })} />
             </div>
-            <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "profile"}>Save changes</Button></div>
+            <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "profile"}>Save changes</Button></div>
           </form>
         </Modal>
       )}
@@ -218,13 +218,13 @@ export default function TenantDetailPage() {
       {addOpen && (
         <Modal title="Add a person" onClose={() => setAddOpen(false)}>
           <form onSubmit={addMember}>
-            <div className="p-5 space-y-3">
+            <div className="p-4 space-y-3">
               <Input inputSize="sm" label="Email" type="email" value={newMember.email} onChange={(e) => setNewMember({ ...newMember, email: e.target.value })} required autoFocus />
               <Select selectSize="sm" label="Role" value={newMember.role} onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}><option value="member">Member</option><option value="sales">Sales (own leads only)</option><option value="admin">Admin</option><option value="owner">Owner</option></Select>
               <label className="flex items-start gap-2 text-sm text-surface-700 cursor-pointer"><input type="checkbox" className="mt-1" checked={newMember.invite} onChange={(e) => setNewMember({ ...newMember, invite: e.target.checked })} /><span>Email them a link to set a password</span></label>
               <p className="text-xs text-surface-500">A person can belong to one company only.</p>
             </div>
-            <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "add"}>Add person</Button></div>
+            <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setAddOpen(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "add"}>Add person</Button></div>
           </form>
         </Modal>
       )}
@@ -233,14 +233,14 @@ export default function TenantDetailPage() {
       {creditOpen && (
         <Modal title="Adjust wallet" onClose={() => setCreditOpen(false)}>
           <form onSubmit={submitCredit}>
-            <div className="p-5 space-y-3">
+            <div className="p-4 space-y-3">
               <div className="flex gap-1 bg-surface-100 p-0.5 rounded-md w-fit">
                 {([[1, "Add credit"], [-1, "Remove credit"]] as const).map(([s, label]) => <button type="button" key={s} onClick={() => setCredit({ ...credit, sign: s })} className={`px-3 py-1 rounded text-xs font-medium ${credit.sign === s ? "bg-white shadow-sm text-surface-900" : "text-surface-600"}`}>{label}</button>)}
               </div>
               <Input inputSize="sm" label="Amount (৳)" type="number" min={1} step="1" value={credit.amount} onChange={(e) => setCredit({ ...credit, amount: e.target.value })} required autoFocus />
               <Input inputSize="sm" label="Reason" value={credit.note} onChange={(e) => setCredit({ ...credit, note: e.target.value })} placeholder="e.g. bKash payment received, refund, goodwill" />
             </div>
-            <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setCreditOpen(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "credit"} disabled={!credit.amount}>Apply</Button></div>
+            <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setCreditOpen(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy === "credit"} disabled={!credit.amount}>Apply</Button></div>
           </form>
         </Modal>
       )}
@@ -248,12 +248,12 @@ export default function TenantDetailPage() {
       {/* Suspend */}
       {suspendOpen && (
         <Modal title="Suspend this company?" onClose={() => setSuspendOpen(false)}>
-          <div className="p-5">
+          <div className="p-4">
             <div className="flex items-start gap-3"><span className="w-10 h-10 rounded-full bg-danger-light text-danger-base flex items-center justify-center flex-shrink-0"><AlertTriangle size={18} /></span>
               <p className="text-sm text-surface-600">Everyone in {t.name} is locked out until you reactivate it. Their data is kept and nothing is deleted.</p></div>
             <input value={reason} onChange={(e) => setReason(e.target.value)} maxLength={300} placeholder="Reason (shown to them), e.g. unpaid invoice" className="mt-3 w-full rounded-md border border-surface-200 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
           </div>
-          <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button size="sm" variant="ghost" onClick={() => setSuspendOpen(false)}>Cancel</Button>
+          <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button size="sm" variant="ghost" onClick={() => setSuspendOpen(false)}>Cancel</Button>
             <Button size="sm" variant="danger" loading={busy === "suspend"} onClick={async () => { if (await apply("suspend", () => suspendTenant(orgId, reason), "Company suspended.")) setSuspendOpen(false); }}>Suspend</Button></div>
         </Modal>
       )}
@@ -261,8 +261,8 @@ export default function TenantDetailPage() {
       {/* Remove person */}
       {removing && (
         <Modal title="Remove this person?" onClose={() => setRemoving(null)}>
-          <div className="p-5 text-sm text-surface-600">{t.members.find((m) => m.user_id === removing)?.email} will lose access to {t.name}. Their login is kept, but they won't belong to any company.</div>
-          <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button size="sm" variant="ghost" onClick={() => setRemoving(null)}>Cancel</Button>
+          <div className="p-4 text-sm text-surface-600">{t.members.find((m) => m.user_id === removing)?.email} will lose access to {t.name}. Their login is kept, but they won't belong to any company.</div>
+          <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button size="sm" variant="ghost" onClick={() => setRemoving(null)}>Cancel</Button>
             <Button size="sm" variant="danger" loading={busy === "remove"} onClick={async () => { if (await apply("remove", () => removeTenantMember(orgId, removing), "Person removed.")) setRemoving(null); }}>Remove</Button></div>
         </Modal>
       )}

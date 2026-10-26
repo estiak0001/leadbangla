@@ -75,7 +75,7 @@ export default function SegmentDetailPage() {
         {error && <Alert variant="error" className="mb-3" onDismiss={() => setError("")}>{error}</Alert>}
         {notice && <Alert variant="success" className="mb-3" onDismiss={() => setNotice("")}>{notice}</Alert>}
 
-        <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-6 mb-4">
+        <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-4 mb-4">
           <span className="inline-block text-[10px] font-semibold uppercase tracking-wide bg-brand-50 text-brand-700 px-1.5 py-0.5 rounded-sm mb-2">Template</span>
           <h1 className="text-xl sm:text-2xl font-bold text-surface-900 tracking-tight">{seg.name}</h1>
           <p className="text-sm text-surface-600 mt-1 max-w-2xl">{seg.description || "A ready-made starting point for a segment."}</p>
@@ -95,7 +95,7 @@ export default function SegmentDetailPage() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-4 mb-4">
-          <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-5">
+          <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-4">
             <h2 className="text-sm font-semibold text-surface-900">What it selects</h2>
             <p className="text-sm text-surface-600 mt-1">Contacts who match {seg.rules.length > 1 ? <strong>{seg.match_type === "all" ? "all" : "any"} of these</strong> : "this rule"}:</p>
             <ul className="mt-3 space-y-2">
@@ -113,7 +113,7 @@ export default function SegmentDetailPage() {
             </ol>
           </section>
 
-          <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-5">
+          <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-4">
             <h2 className="text-sm font-semibold text-surface-900">If you used it today</h2>
             <p className="text-sm text-surface-600 mt-1"><strong>{seg.contact_count}</strong> contact{seg.contact_count === 1 ? "" : "s"} match right now.</p>
             <div className="grid grid-cols-3 gap-2 mt-3">
@@ -122,7 +122,7 @@ export default function SegmentDetailPage() {
               ))}
             </div>
             <div className="mt-3 divide-y divide-surface-100 border-t border-surface-100">
-              {contacts === null ? <div className="flex justify-center py-6"><Spinner /></div> : sample.length === 0 ? <p className="py-6 text-center text-sm text-surface-500">Nobody matches yet — that is fine, it fills up as contacts come in.</p> : sample.map((c) => (
+              {contacts === null ? <div className="flex justify-center py-4"><Spinner /></div> : sample.length === 0 ? <p className="py-4 text-center text-sm text-surface-500">Nobody matches yet — that is fine, it fills up as contacts come in.</p> : sample.map((c) => (
                 <Link key={c.id} to={`/contacts/${c.id}`} className="flex items-center gap-2.5 py-2 hover:bg-surface-50">
                   <span className="w-7 h-7 rounded-full bg-brand-50 text-brand-600 text-[11px] font-bold flex items-center justify-center uppercase flex-shrink-0">{nameOf(c)[0]}</span>
                   <span className="min-w-0 flex-1"><span className="block text-[13px] font-medium text-surface-900 truncate">{nameOf(c)}</span><span className="block text-[11px] text-surface-500 truncate">{c.phone ?? c.email}</span></span>
@@ -174,7 +174,7 @@ export default function SegmentDetailPage() {
       {error && <Alert variant="error" className="mb-3" onDismiss={() => setError("")}>{error}</Alert>}
       {notice && <Alert variant="success" className="mb-3" onDismiss={() => setNotice("")}>{notice}</Alert>}
 
-      <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-5 mb-4">
+      <section className="bg-white border border-surface-200 rounded-sm p-4 sm:p-4 mb-4">
         <div className="flex items-start gap-3 flex-wrap">
           <div className="min-w-0 flex-1 basis-64">
             <div className="flex items-center gap-2 flex-wrap">

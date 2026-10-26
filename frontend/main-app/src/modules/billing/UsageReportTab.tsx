@@ -62,7 +62,7 @@ export default function UsageReportTab() {
 
         <Card className="!p-4">
           <h2 className="text-sm font-semibold text-surface-700 mb-3">What you spent on</h2>
-          {data.by_service.length === 0 ? <p className="text-sm text-surface-400 py-6 text-center">No spending in this period.</p> : (
+          {data.by_service.length === 0 ? <p className="text-sm text-surface-400 py-4 text-center">No spending in this period.</p> : (
             <div className="space-y-3">
               {data.by_service.map((s) => (
                 <div key={s.service}>
@@ -79,7 +79,7 @@ export default function UsageReportTab() {
       <Card padding={false} className="overflow-hidden">
         <div className="px-4 py-3 border-b border-surface-100 flex items-center justify-between"><h2 className="text-sm font-semibold text-surface-700">Costliest campaigns</h2>
           <Link to="/billing?tab=history" className="text-xs font-medium text-brand-600 hover:text-brand-700">All transactions →</Link></div>
-        {data.top_campaigns.length === 0 ? <p className="py-8 text-center text-sm text-surface-400">No campaign spending in this period.</p> : (
+        {data.top_campaigns.length === 0 ? <p className="py-5 text-center text-sm text-surface-400">No campaign spending in this period.</p> : (
           <div className="divide-y divide-surface-100">
             {data.top_campaigns.map((c, i) => (
               <div key={`${c.name}-${i}`} className="px-4 py-2.5 flex items-center justify-between gap-3">

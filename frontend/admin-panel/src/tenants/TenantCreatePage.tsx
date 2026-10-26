@@ -13,7 +13,7 @@ import { COMPANY_SIZE_OPTIONS, INDUSTRY_OPTIONS } from "./tenantOptions";
 
 function Section({ icon, title, hint, children }: { icon: React.ReactNode; title: string; hint?: string; children: React.ReactNode }) {
   return (
-    <Card className="!p-4 sm:!p-5">
+    <Card className="!p-4 sm:!p-4">
       <div className="flex items-start gap-3 mb-4">
         <span className="w-8 h-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0">{icon}</span>
         <div><h2 className="text-sm font-semibold text-surface-900">{title}</h2>{hint && <p className="text-xs text-surface-500">{hint}</p>}</div>

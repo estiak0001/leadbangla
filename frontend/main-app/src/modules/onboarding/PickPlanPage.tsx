@@ -12,7 +12,7 @@ import { useFeatures } from "../../lib/features";
 function PlanCard({ plan, featured, current, onSubscribe, busy }: { plan: Plan; featured: boolean; current: boolean; onSubscribe: () => void; busy: boolean }) {
   const { on } = useFeatures();
   return (
-    <div className={`relative flex flex-col rounded-2xl bg-white p-7 ${featured ? "border-2 border-brand-500 shadow-xl lg:-translate-y-3" : "border border-surface-200 shadow-sm"}`}>
+    <div className={`relative flex flex-col rounded-2xl bg-white p-5 ${featured ? "border-2 border-brand-500 shadow-xl lg:-translate-y-3" : "border border-surface-200 shadow-sm"}`}>
       {featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white">Most popular</span>}
       <h2 className="text-lg font-bold text-surface-900">{plan.name}</h2>
       <div className="mt-3">

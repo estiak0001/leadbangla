@@ -41,7 +41,7 @@ export default function ServicesPage() {
         <Card padding={false}>
           <ul className="divide-y divide-surface-100">
             {items.map((f) => (
-              <li key={f.code} className="flex items-start justify-between gap-4 p-4 sm:p-5">
+              <li key={f.code} className="flex items-start justify-between gap-4 p-4 sm:p-4">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2 text-sm font-semibold text-surface-900">
                     {f.name}

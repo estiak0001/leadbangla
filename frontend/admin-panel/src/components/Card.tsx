@@ -30,7 +30,7 @@ export default function Card({
     <div
       onClick={onClick}
       className={`rounded-md ${variantClasses[variant]}
-        ${padding ? "p-6" : ""}
+        ${padding ? "p-4" : ""}
         ${hoverable ? "cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-200" : ""}
         ${className}`}
     >

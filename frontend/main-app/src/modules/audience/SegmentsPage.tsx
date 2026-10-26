@@ -145,7 +145,7 @@ export default function SegmentsPage() {
           {/* ── My segments ── */}
           {tab === "segments" && (
             segments!.length === 0 ? (
-              <div className="bg-white border border-surface-200 rounded-sm py-14 px-6 text-center">
+              <div className="bg-white border border-surface-200 rounded-sm py-14 px-4 text-center">
                 <Users size={30} className="mx-auto text-surface-300 mb-3" />
                 <h2 className="text-base font-semibold text-surface-900">You haven’t made a segment yet</h2>
                 <p className="text-sm text-surface-600 mt-1 max-w-md mx-auto">A segment is a saved group — like “wholesale customers in Dhaka” or “people who owe me money”. You can message them in one go.</p>

@@ -49,7 +49,7 @@ export default function TemplateApprovals({ onChanged }: { onChanged?: () => voi
 
       <div className="bg-white border border-surface-200 rounded-[4px] overflow-hidden">
         {!rows ? <p className="py-10 text-center text-sm text-surface-400">Loading…</p> : shown.length === 0 ? (
-          <p className="py-8 text-center text-sm text-surface-500">{filter === "pending" ? "You’re all caught up. New template requests will show up here." : "Nothing here."}</p>
+          <p className="py-5 text-center text-sm text-surface-500">{filter === "pending" ? "You’re all caught up. New template requests will show up here." : "Nothing here."}</p>
         ) : (
           <ul className="divide-y divide-surface-100">
             {shown.map((r) => {

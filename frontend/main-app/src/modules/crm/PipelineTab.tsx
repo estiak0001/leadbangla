@@ -161,7 +161,7 @@ function KanbanCol({
         {shown.map((c) => <ContactCard key={c.id} contact={c} stages={stages} team={team} tier={tier} prefs={prefs}
           staleDays={prefs.stale_highlight && column.stale_days && c.stage_changed_at && column.outcome === "open" ? ((d) => (d > column.stale_days! ? d : null))(Math.floor((Date.now() - new Date(c.stage_changed_at).getTime()) / 86400000)) : null} onDragStart={onDragStart} onDragEnd={onDragEnd} onMove={onMove} dragging={draggedId === c.id} />)}
         {shown.length === 0 && (
-          <div className={`text-center text-[11px] rounded-[3px] border border-dashed py-5 ${over ? "border-brand-400 text-brand-600" : "border-surface-200 text-surface-400"}`}>{draggedId ? "Drop here" : "Empty"}</div>
+          <div className={`text-center text-[11px] rounded-[3px] border border-dashed py-3.5 ${over ? "border-brand-400 text-brand-600" : "border-surface-200 text-surface-400"}`}>{draggedId ? "Drop here" : "Empty"}</div>
         )}
         {remaining > 0 && <button type="button" onClick={onMore} disabled={loadingMore} className="w-full text-[11px] py-1 rounded-[3px] border border-surface-200 bg-white text-surface-600 hover:bg-surface-50 disabled:opacity-60">{loadingMore ? "…" : `+${Math.min(remaining, 20)} more (${remaining})`}</button>}
       </div>

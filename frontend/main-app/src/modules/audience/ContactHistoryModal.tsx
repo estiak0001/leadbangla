@@ -84,7 +84,7 @@ export default function ContactHistoryModal({ contactId, contactLabel, onClose, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm px-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-slide-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-surface-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-4 py-4 border-b border-surface-100 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0">
               <HistoryIcon size={16} />
@@ -99,13 +99,13 @@ export default function ContactHistoryModal({ contactId, contactLabel, onClose, 
           </button>
         </div>
 
-        <div className="px-6 py-5 overflow-y-auto flex-1">
+        <div className="px-4 py-3.5 overflow-y-auto flex-1">
           {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
 
           {loading ? (
             <div className="flex justify-center py-12"><Spinner size="lg" /></div>
           ) : entries.length === 0 ? (
-            <p className="text-sm text-surface-500 italic text-center py-8">No history recorded yet.</p>
+            <p className="text-sm text-surface-500 italic text-center py-5">No history recorded yet.</p>
           ) : (
             <div className="space-y-0">
               {entries.map((entry, i) => {
@@ -169,7 +169,7 @@ export default function ContactHistoryModal({ contactId, contactLabel, onClose, 
           )}
         </div>
 
-        <div className="px-6 py-3 border-t border-surface-100 flex justify-end flex-shrink-0">
+        <div className="px-4 py-3 border-t border-surface-100 flex justify-end flex-shrink-0">
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>Close</Button>
         </div>
       </div>

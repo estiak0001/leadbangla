@@ -115,8 +115,8 @@ export default function WhatsAppPanelPage() {
           <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-4 items-start">
             <div className="bg-white border border-surface-200 rounded-[4px] overflow-hidden">
               <h2 className="px-4 py-2.5 border-b border-surface-100 text-sm font-semibold text-surface-800">Customers with a WhatsApp number{rows && <span className="ml-1.5 text-xs font-normal text-surface-400">{rows.length}</span>}</h2>
-              {!rows ? <p className="py-6 text-center text-sm text-surface-400">Loading…</p> : rows.length === 0 ? (
-                <p className="py-6 text-center text-sm text-surface-500">No customer has set up WhatsApp yet.</p>
+              {!rows ? <p className="py-4 text-center text-sm text-surface-400">Loading…</p> : rows.length === 0 ? (
+                <p className="py-4 text-center text-sm text-surface-500">No customer has set up WhatsApp yet.</p>
               ) : (
                 <div className="divide-y divide-surface-100">
                   {rows.map((r) => (

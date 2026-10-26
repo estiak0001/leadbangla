@@ -214,7 +214,7 @@ export default function MailPage() {
             <div className="flex-1 overflow-y-auto divide-y divide-surface-100" style={{ maxHeight: "calc(100vh - 300px)" }}>
               {listBusy && rows.length === 0 ? <div className="py-10 flex justify-center"><Spinner /></div>
                 : rows.length === 0 ? (
-                  <div className="py-14 px-6 text-center"><Mail size={26} className="mx-auto text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">{q || filter !== "all" ? "Nothing matches" : folder === "inbox" ? "Your inbox is empty" : `No mail in ${folder}`}</p>
+                  <div className="py-14 px-4 text-center"><Mail size={26} className="mx-auto text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">{q || filter !== "all" ? "Nothing matches" : folder === "inbox" ? "Your inbox is empty" : `No mail in ${folder}`}</p>
                     {folder === "inbox" && !q && filter === "all" && <p className="text-xs text-surface-500 mt-1">New mail to your addresses appears here within a minute.</p>}</div>
                 ) : rows.map((t) => {
                   const other = (t.participants.find((p) => !setup?.addresses.some((a) => a.email === p.email)) ?? t.participants[0]) ?? { email: "", name: "" };
@@ -244,7 +244,7 @@ export default function MailPage() {
                 imagesLoaded={imagesFor === detail.id} onLoadImages={() => { setImagesFor(detail.id); openThread(detail.id, true); }}
                 onSent={(id) => { setNotice("Message sent."); set({ t: id }); openThread(id); loadList(true); loadCounts(); }} />
             ) : selected ? <div className="py-16 flex justify-center"><Spinner /></div> : (
-              <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-center px-6"><Paperclip size={0} /><Mail size={30} className="text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">Select a conversation</p><p className="text-xs text-surface-500 mt-1">Pick a message on the left to read and reply.</p></div>
+              <div className="h-full min-h-[320px] flex flex-col items-center justify-center text-center px-4"><Paperclip size={0} /><Mail size={30} className="text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">Select a conversation</p><p className="text-xs text-surface-500 mt-1">Pick a message on the left to read and reply.</p></div>
             )}
           </section>
         </div>

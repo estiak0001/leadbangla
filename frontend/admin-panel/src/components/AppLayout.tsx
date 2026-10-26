@@ -43,7 +43,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       {/* Logo */}
-      <div className="flex-shrink-0 px-4 py-5 border-b border-slate-800">
+      <div className="flex-shrink-0 px-4 py-3.5 border-b border-slate-800">
         <Link to="/tenants" onClick={onLinkClick} className="flex items-center gap-2.5">
           <div className="min-w-0">
             <img src={`${import.meta.env.BASE_URL}logo-white.png`} alt="LeadBangla" className="block h-5 w-auto" />
@@ -159,7 +159,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
         </header>
 
         {/* ── Page content ───────────────────────────────────────── */}
-        <main className="flex-1 p-3 sm:p-5 lg:p-7">
+        <main className="flex-1 p-3 sm:p-4 lg:p-7">
           {children}
         </main>
       </div>

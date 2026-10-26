@@ -218,22 +218,22 @@ function CreditWalletTab() {
       </Card>
 
       <Card padding={false} className="overflow-hidden">
-        <p className="section-label px-6 pt-5 mb-3">Credit Rates</p>
+        <p className="section-label px-4 pt-5 mb-3">Credit Rates</p>
         <table className="w-full text-sm">
           <thead className="border-y border-surface-200 bg-surface-50">
             <tr>
               {["Service", "Rate", "Unit", "Description"].map((h) => (
-                <th key={h} className="px-6 py-2.5 text-xs font-semibold uppercase tracking-wide text-surface-500 text-left">{h}</th>
+                <th key={h} className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-surface-500 text-left">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-100">
             {rates.map((r) => (
               <tr key={r.id}>
-                <td className="px-6 py-3 font-medium text-surface-800 capitalize">{r.service.replace("_", " ")}</td>
-                <td className="px-6 py-3 text-surface-700">{Number(r.rate_bdt).toFixed(2)} BDT</td>
-                <td className="px-6 py-3 text-surface-500">{r.unit_label}</td>
-                <td className="px-6 py-3 text-surface-500">{r.description ?? "—"}</td>
+                <td className="px-4 py-3 font-medium text-surface-800 capitalize">{r.service.replace("_", " ")}</td>
+                <td className="px-4 py-3 text-surface-700">{Number(r.rate_bdt).toFixed(2)} BDT</td>
+                <td className="px-4 py-3 text-surface-500">{r.unit_label}</td>
+                <td className="px-4 py-3 text-surface-500">{r.description ?? "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -327,20 +327,20 @@ function TransactionHistoryTab() {
             <thead className="border-b border-surface-200 bg-surface-50">
               <tr>
                 {["Date", "Type", "Description", "Amount (BDT)", "Balance After (BDT)"].map((h) => (
-                  <th key={h} className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-surface-500 text-left whitespace-nowrap">{h}</th>
+                  <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-surface-500 text-left whitespace-nowrap">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-100">
               {txns.map((t) => (
                 <tr key={t.id} className="hover:bg-surface-50 transition-colors">
-                  <td className="px-5 py-3 text-surface-500 whitespace-nowrap">{new Date(t.created_at).toLocaleString()}</td>
-                  <td className="px-5 py-3">{txnBadge(t)}</td>
-                  <td className="px-5 py-3 text-surface-700 capitalize">{txnDescription(t)}</td>
-                  <td className={`px-5 py-3 font-medium ${t.amount_bdt >= 0 ? "text-success-dark" : "text-danger-dark"}`}>
+                  <td className="px-4 py-3 text-surface-500 whitespace-nowrap">{new Date(t.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-3">{txnBadge(t)}</td>
+                  <td className="px-4 py-3 text-surface-700 capitalize">{txnDescription(t)}</td>
+                  <td className={`px-4 py-3 font-medium ${t.amount_bdt >= 0 ? "text-success-dark" : "text-danger-dark"}`}>
                     {t.amount_bdt >= 0 ? "+" : ""}{t.amount_bdt.toFixed(2)}
                   </td>
-                  <td className="px-5 py-3 text-surface-600">{t.balance_after_bdt.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-surface-600">{t.balance_after_bdt.toFixed(2)}</td>
                 </tr>
               ))}
             </tbody>

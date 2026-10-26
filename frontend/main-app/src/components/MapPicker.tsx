@@ -103,7 +103,7 @@ export default function MapPicker({ lat, lng, onChange, hint, readOnly = false, 
       )}
 
       <div className="relative rounded-lg overflow-hidden border border-surface-200 bg-surface-100" style={{ height }}>
-        {error ? <div className="h-full flex items-center justify-center text-sm text-surface-500 px-6 text-center">{error}</div> : <div ref={el} className="h-full w-full z-0" />}
+        {error ? <div className="h-full flex items-center justify-center text-sm text-surface-500 px-4 text-center">{error}</div> : <div ref={el} className="h-full w-full z-0" />}
         {!has && readOnly && !error && <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-sm text-surface-600 pointer-events-none">No location saved</div>}
         {!has && !readOnly && !error && <div className="absolute left-2 top-2 bg-white/95 border border-surface-200 rounded px-2 py-1 text-xs text-surface-600 pointer-events-none z-[500]">Click the map to drop a pin</div>}
       </div>

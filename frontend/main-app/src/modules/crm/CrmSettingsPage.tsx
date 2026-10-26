@@ -36,7 +36,7 @@ function Section({ id, icon: Icon, title, hint, children, status }: { id: string
         <div className="min-w-0 flex-1"><h2 className="text-sm font-semibold text-surface-900">{title}</h2><p className="text-xs text-surface-500 mt-0.5">{hint}</p></div>
         {status}
       </header>
-      <div className="p-4 sm:p-5">{children}</div>
+      <div className="p-4 sm:p-4">{children}</div>
     </section>
   );
 }

@@ -29,7 +29,7 @@ export default function SubscribePage() {
 
   return (
     <div className="min-h-screen bg-surface-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm bg-white border border-surface-200 rounded-[6px] p-6 text-center shadow-sm">
+      <div className="w-full max-w-sm bg-white border border-surface-200 rounded-[6px] p-4 text-center shadow-sm">
         <span className="mx-auto w-12 h-12 rounded-[8px] bg-brand-50 text-brand-600 flex items-center justify-center mb-3">{state === "done" ? <CheckCircle2 size={24} /> : <Bell size={24} />}</span>
         {!info && !error ? <p className="text-sm text-surface-500">Loading…</p> : !info ? <p className="text-sm text-danger-dark">{error}</p> : state === "done" ? (
           <>

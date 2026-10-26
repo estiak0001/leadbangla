@@ -89,9 +89,9 @@ export default function SenderIdsTab({ onChanged }: { onChanged: () => void }) {
       {assigning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => !busy && setAssigning(false)}>
           <form onSubmit={assign} className="bg-white rounded-2xl shadow-2xl w-full max-w-md" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100"><div><h2 className="font-semibold text-surface-900">Assign a Sender ID</h2><p className="text-xs text-surface-500">For an ID you already registered with the provider.</p></div>
+            <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100"><div><h2 className="font-semibold text-surface-900">Assign a Sender ID</h2><p className="text-xs text-surface-500">For an ID you already registered with the provider.</p></div>
               <button type="button" onClick={() => setAssigning(false)} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button></div>
-            <div className="p-5 space-y-3">
+            <div className="p-4 space-y-3">
               <div><label className="block text-sm font-medium text-surface-700 mb-1">Customer</label>
                 <select value={orgId} onChange={(e) => setOrgId(e.target.value)} required className="w-full rounded-md border border-surface-200 bg-white px-2.5 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20">
                   <option value="">Choose a customer…</option>
@@ -101,14 +101,14 @@ export default function SenderIdsTab({ onChanged }: { onChanged: () => void }) {
                 <input value={senderId} onChange={(e) => setSenderId(e.target.value)} maxLength={20} required placeholder="BrandName" className="w-full rounded-md border border-surface-200 px-3 py-2 text-sm font-mono focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" /></div>
               <p className="text-xs text-surface-500">It becomes active straight away. The customer's plan must allow masking for it to be used.</p>
             </div>
-            <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setAssigning(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy} disabled={!orgId || !senderId.trim()}>Assign &amp; activate</Button></div>
+            <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100"><Button type="button" size="sm" variant="ghost" onClick={() => setAssigning(false)}>Cancel</Button><Button type="submit" size="sm" loading={busy} disabled={!orgId || !senderId.trim()}>Assign &amp; activate</Button></div>
           </form>
         </div>
       )}
 
       {revoke && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={() => !busy && setRevoke(null)}>
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-4" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3.5"><span className="w-10 h-10 rounded-full bg-danger-light text-danger-base flex items-center justify-center flex-shrink-0"><AlertTriangle size={18} /></span>
               <div><h2 className="font-semibold text-surface-900">Remove this Sender ID?</h2><p className="mt-1.5 text-sm text-surface-600"><b className="font-mono">{revoke.sender_id}</b> will be taken away from {revoke.org_name}. They go back to the shared sender.</p></div></div>
             <div className="mt-5 flex justify-end gap-2"><Button size="sm" variant="ghost" onClick={() => setRevoke(null)} disabled={busy}>Cancel</Button><Button size="sm" variant="danger" loading={busy} onClick={doRevoke}>Remove</Button></div>

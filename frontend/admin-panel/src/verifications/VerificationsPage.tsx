@@ -215,7 +215,7 @@ export function VerificationQueue({ kind, onChanged }: { kind: "sms_sender_id" |
 
       <div className="bg-white border border-surface-200 rounded-[4px] overflow-hidden">
         {!all ? <p className="py-12 text-center text-sm text-surface-400">Loading…</p> : rows.length === 0 ? (
-          <div className="py-6 text-center">
+          <div className="py-4 text-center">
             <Inbox size={22} className="mx-auto text-surface-300 mb-1.5" />
             <p className="text-sm font-medium text-surface-700">{filter === "pending" ? "You're all caught up" : "Nothing here"}</p>
             <p className="text-xs text-surface-500">{filter === "pending" ? "New requests from customers will show up here." : "Try another status above or clear the search."}</p>

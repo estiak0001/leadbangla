@@ -17,7 +17,7 @@ function loadUsage(): Promise<PlanUsage> {
 }
 
 /** Slim "what your plan allows and what is left" bar for the page it sits on. Renders nothing if unavailable. */
-export default function PlanUsageStrip({ items, className = "mb-4" }: { items: Key[]; className?: string }) {
+export default function PlanUsageStrip({ items, className = "mb-4", chip = false }: { items: Key[]; className?: string; chip?: boolean }) {
   const [u, setU] = useState<PlanUsage | null>(null);
   useEffect(() => { let live = true; loadUsage().then((x) => live && setU(x)).catch(() => undefined); return () => { live = false; }; }, []);
   if (!u) return null;
@@ -36,6 +36,17 @@ export default function PlanUsageStrip({ items, className = "mb-4" }: { items: K
   const shown = items.filter((k) => k === "wallet" || meters[k as Exclude<Key, "wallet">].r);
   if (!shown.length) return null;
 
+  if (chip) {
+    const k = shown[0];
+    if (!k || k === "wallet") return null;
+    const r = meters[k].r!;
+    const left = r.limit < 0 ? "Unlimited" : Math.max(0, r.limit - r.used).toLocaleString();
+    return (
+      <Link to="/billing" title={`${u.plan_name} plan: ${meters[k].label}`} className={`${className} inline-flex items-center gap-1.5 rounded-full border border-surface-200 bg-white px-3 py-1 text-xs text-surface-600 hover:border-brand-200 hover:text-surface-900`}>
+        <b className="font-semibold text-surface-900">{left}</b> {k === "emails" ? "emails left" : "left"} <span className="text-surface-300">·</span> {u.plan_name}
+      </Link>
+    );
+  }
   return (
     <div className={`${className} flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-surface-200 bg-white px-4 py-3`}>
       <Link to="/billing" className="text-xs font-semibold text-surface-900 hover:text-brand-700" title="View your plan">{u.plan_name} plan</Link>

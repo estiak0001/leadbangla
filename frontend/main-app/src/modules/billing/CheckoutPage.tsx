@@ -61,7 +61,7 @@ export default function CheckoutPage() {
           <p className="text-center text-sm text-surface-600">We couldn't find that plan. <Link to="/pick-plan" className="font-medium text-brand-600">Choose a plan</Link></p>
         ) : (
           <>
-            <div className="mb-5 flex items-center justify-between rounded-xl border border-surface-200 bg-white px-5 py-4">
+            <div className="mb-5 flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-4">
               <div><p className="text-xs text-surface-500">Plan</p><p className="text-base font-semibold text-surface-900">{plan.name}</p></div>
               <p className="text-right"><span className="text-xl font-bold text-surface-900">{plan.price_bdt.toLocaleString()}</span><span className="ml-1 text-sm text-surface-500">BDT / {plan.billing_interval}</span></p>
             </div>

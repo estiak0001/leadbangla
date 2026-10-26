@@ -383,7 +383,7 @@ export default function ContactDetailPage() {
                   </div>
                 )}
                 {shownTimeline.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-5">
                     <MessageSquare size={24} className="mx-auto text-surface-300 mb-2" />
                     <p className="text-sm font-medium text-surface-700">No activity yet</p>
                     <p className="text-xs text-surface-500 mt-1">Emails, SMS, calls, stage moves and notes show up here.</p>

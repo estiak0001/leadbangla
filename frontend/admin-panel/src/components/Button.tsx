@@ -13,10 +13,10 @@ const variantClasses: Record<Variant, string> = {
 };
 
 const sizeClasses: Record<Size, string> = {
-  xs: "px-2.5 py-1.5 text-xs rounded-sm gap-1",
-  sm: "px-3 py-2 text-sm rounded gap-1.5",
-  md: "px-4 py-2.5 text-sm rounded gap-2",
-  lg: "px-5 py-3 text-base rounded-md gap-2",
+  xs: "px-2 py-1 text-xs rounded-sm gap-1",
+  sm: "px-2.5 py-1.5 text-sm rounded gap-1.5",
+  md: "px-3.5 py-2 text-sm rounded gap-2",
+  lg: "px-4 py-2.5 text-base rounded-md gap-2",
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

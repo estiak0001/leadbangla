@@ -12,7 +12,7 @@ const STEPS = [
 export default function MaskingGuideTab() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
-      <Card className="lg:col-span-2 !p-5">
+      <Card className="lg:col-span-2 !p-4">
         <h2 className="text-sm font-semibold text-surface-800 flex items-center gap-2 mb-4"><ShieldCheck size={16} className="text-brand-600" /> How a masking Sender ID is processed</h2>
         <ol className="space-y-4">
           {STEPS.map(([title, body], i) => (

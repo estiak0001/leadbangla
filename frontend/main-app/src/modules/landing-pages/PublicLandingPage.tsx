@@ -7,7 +7,7 @@ import {
 
 function HeroSection({ heading, subheading }: { heading: string; subheading: string }) {
   return (
-    <div className="bg-gradient-to-br from-brand-600 to-purple-600 text-white py-20 px-6 text-center">
+    <div className="bg-gradient-to-br from-brand-600 to-purple-600 text-white py-20 px-4 text-center">
       <h1 className="text-4xl font-extrabold tracking-tight leading-tight max-w-2xl mx-auto">{heading}</h1>
       {subheading && (
         <p className="mt-4 text-lg text-brand-100 max-w-xl mx-auto leading-relaxed">{subheading}</p>
@@ -18,7 +18,7 @@ function HeroSection({ heading, subheading }: { heading: string; subheading: str
 
 function TextSection({ content }: { content: string }) {
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8 text-surface-600 text-base leading-relaxed whitespace-pre-wrap">{content}</div>
+    <div className="max-w-2xl mx-auto px-4 py-5 text-surface-600 text-base leading-relaxed whitespace-pre-wrap">{content}</div>
   );
 }
 
@@ -39,7 +39,7 @@ function FormSection({ block, slug }: { block: FormBlock; slug: string }) {
 
   if (success) {
     return (
-      <div className="max-w-md mx-auto px-6 py-12 text-center">
+      <div className="max-w-md mx-auto px-4 py-12 text-center">
         <div className="text-5xl mb-4">🎉</div>
         <p className="text-xl font-semibold text-surface-900">{block.success_message}</p>
       </div>
@@ -47,7 +47,7 @@ function FormSection({ block, slug }: { block: FormBlock; slug: string }) {
   }
 
   return (
-    <div className="max-w-md mx-auto px-6 py-12">
+    <div className="max-w-md mx-auto px-4 py-12">
       <form onSubmit={handleSubmit} className="space-y-4">
         {block.fields.map((field) => (
           <div key={field.id ?? field.name}>
@@ -108,7 +108,7 @@ export default function PublicLandingPage() {
 
   if (notFound || !page) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center text-center px-6">
+      <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
         <div className="text-5xl mb-4">🔍</div>
         <h1 className="text-2xl font-bold text-surface-900">Page not found</h1>
         <p className="text-surface-500 mt-2">This landing page doesn't exist or is no longer published.</p>
@@ -118,7 +118,7 @@ export default function PublicLandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-surface-50 border-b border-surface-100 py-2 px-6 text-center text-xs text-surface-600">
+      <div className="bg-surface-50 border-b border-surface-100 py-2 px-4 text-center text-xs text-surface-600">
         Powered by <span className="font-semibold text-brand-600">LeadBangla</span>
       </div>
       {page.blocks.map((block, i) => {

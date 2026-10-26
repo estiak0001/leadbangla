@@ -34,7 +34,7 @@ function ConversionModal({ code, onClose, onDone }: { code: string; onClose: () 
 
   return (
     <div className="fixed inset-0 bg-surface-900/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-md shadow-xl w-full max-w-sm p-6 animate-slide-up">
+      <div className="bg-white rounded-md shadow-xl w-full max-w-sm p-4 animate-slide-up">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-bold text-surface-900">Record Conversion</h3>
           <button onClick={onClose} className="text-surface-400 hover:text-surface-600 transition-colors"><X size={18} /></button>

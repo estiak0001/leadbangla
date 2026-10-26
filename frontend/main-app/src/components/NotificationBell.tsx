@@ -51,9 +51,9 @@ export default function NotificationBell() {
             {count > 0 && <button onClick={markAll} className="inline-flex items-center gap-1 text-xs text-brand-600 hover:underline"><CheckCheck size={13} />Mark all read</button>}
           </div>
           <div className="max-h-[70vh] sm:max-h-[420px] overflow-y-auto divide-y divide-surface-100">
-            {items === null ? <p className="p-6 text-center text-sm text-surface-400">Loading…</p>
+            {items === null ? <p className="p-4 text-center text-sm text-surface-400">Loading…</p>
               : items.length === 0 ? (
-                <div className="p-8 text-center"><Bell size={24} className="mx-auto text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">You’re all caught up</p><p className="text-xs text-surface-500 mt-1">Assigned tasks, comments and alerts appear here.</p></div>
+                <div className="p-5 text-center"><Bell size={24} className="mx-auto text-surface-300 mb-2" /><p className="text-sm font-medium text-surface-700">You’re all caught up</p><p className="text-xs text-surface-500 mt-1">Assigned tasks, comments and alerts appear here.</p></div>
               ) : items.map((n) => <NotificationItem key={n.id} n={n} onClick={() => openItem(n)} />)}
           </div>
           <div className="flex justify-between px-3.5 py-2 border-t border-surface-100 text-xs">

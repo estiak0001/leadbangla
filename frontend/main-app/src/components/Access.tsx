@@ -14,7 +14,7 @@ export default function Access({ perm, redirect = false, children }: { perm: str
   if (redirect) return <Navigate to={firstAllowedRoute(can)} replace />;
   return (
     <AppLayout>
-      <div className="max-w-md mx-auto mt-16 text-center bg-white border border-surface-200 rounded-lg p-8">
+      <div className="max-w-md mx-auto mt-16 text-center bg-white border border-surface-200 rounded-lg p-5">
         <Lock size={28} className="mx-auto text-surface-300 mb-3" />
         <h1 className="text-base font-semibold text-surface-900">You don’t have access to this page</h1>
         <p className="text-sm text-surface-600 mt-1">Ask your company owner or admin to turn it on for you (Team → your name → Access).</p>

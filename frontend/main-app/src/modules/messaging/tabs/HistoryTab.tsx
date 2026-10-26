@@ -59,7 +59,7 @@ export default function HistoryTab({ channel, campaigns }: { channel: SmsChannel
               <span className="text-xs text-surface-400 flex-shrink-0">{formatDate(e.occurred_at)}</span>
             </div>
           ))}
-          {rows.length === 0 && <p className="text-center text-sm text-surface-500 py-8">No matching messages.</p>}
+          {rows.length === 0 && <p className="text-center text-sm text-surface-500 py-5">No matching messages.</p>}
         </div>
       </Card>
     </div>

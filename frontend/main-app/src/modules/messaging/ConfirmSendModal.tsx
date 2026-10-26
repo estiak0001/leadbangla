@@ -20,7 +20,7 @@ export default function ConfirmSendModal({ channel, campaignName, recipients, es
   const short = estimate != null && balance != null && balance < estimate;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-5" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-4" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-3 ${CHANNELS[channel].tone}`}><Send size={18} /></div>
         <h2 className="font-semibold text-surface-900">Send “{campaignName}”?</h2>
         <p className="mt-2 text-sm text-surface-600">

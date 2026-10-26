@@ -28,7 +28,7 @@ function Confirm({ title, body, confirmLabel, danger, busy, onConfirm, onClose }
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-4" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start gap-3.5">
           <span className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${danger ? "bg-danger-light text-danger-base" : "bg-brand-50 text-brand-600"}`}>
             {danger ? <AlertTriangle size={18} /> : <Radio size={18} />}

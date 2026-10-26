@@ -93,11 +93,11 @@ export default function MemberDialog({ member, myRole, onClose, onDone, onLimit 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-900/40 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="bg-white rounded-[6px] shadow-2xl w-full max-w-xl max-h-[92vh] flex flex-col animate-slide-up" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-surface-100">
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-surface-100">
           <h2 className="font-semibold text-surface-900">{editing ? member!.email : "Add a person"}</h2>
           <button onClick={onClose} className="p-1 rounded text-surface-400 hover:bg-surface-100" aria-label="Close"><X size={18} /></button>
         </div>
-        <div className="overflow-y-auto px-5 py-4 space-y-4">
+        <div className="overflow-y-auto px-4 py-4 space-y-4">
           {error && <Alert variant="error">{error}</Alert>}
           {!editing && (
             <div>
@@ -221,7 +221,7 @@ export default function MemberDialog({ member, myRole, onClose, onDone, onLimit 
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2 px-5 py-3.5 border-t border-surface-100">
+        <div className="flex justify-end gap-2 px-4 py-3.5 border-t border-surface-100">
           <Button size="sm" variant="ghost" onClick={onClose}>Cancel</Button>
           <Button size="sm" loading={busy} disabled={!editing && !email.trim()} onClick={save}>{editing ? "Save changes" : method === "set" ? "Create account" : "Send invite"}</Button>
         </div>

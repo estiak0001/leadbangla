@@ -102,7 +102,7 @@ function PreviewCard({ form, tags, team, fields, custom, hasPin, lat, lng, editi
           {form.address.trim() && <p className="py-2 text-[13px] text-surface-700">{form.address}</p>}
           <div className="pt-2">
             {hasPin ? <MapPicker readOnly lat={lat} lng={lng} height={150} /> : (
-              <div className="rounded-lg border border-dashed border-surface-200 bg-surface-50 text-center text-xs text-surface-500 py-6">No map pin yet — tap “Pin here”</div>
+              <div className="rounded-lg border border-dashed border-surface-200 bg-surface-50 text-center text-xs text-surface-500 py-4">No map pin yet — tap “Pin here”</div>
             )}
           </div>
         </div>
@@ -300,7 +300,7 @@ export default function ContactFormPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] xl:grid-cols-[minmax(0,1fr)_420px] gap-6 items-start">
         <form onSubmit={save} className="space-y-3 min-w-0">
           {/* ── the essentials ── */}
-          <section className="bg-white border border-surface-200 rounded-xl p-4 sm:p-5 space-y-4 shadow-sm">
+          <section className="bg-white border border-surface-200 rounded-xl p-4 sm:p-4 space-y-4 shadow-sm">
             <div className="grid grid-cols-2 gap-3">
               <Input label="First name" value={form.first_name} onChange={(e) => set("first_name", e.target.value)} placeholder="Rahim" autoFocus={!editing} autoComplete="given-name" />
               <Input label="Last name" value={form.last_name} onChange={(e) => set("last_name", e.target.value)} placeholder="Uddin" autoComplete="family-name" />

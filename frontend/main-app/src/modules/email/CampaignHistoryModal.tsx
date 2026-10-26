@@ -89,9 +89,9 @@ export default function CampaignHistoryModal({ campaignId, campaignLabel, canRes
           {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-3">{error}</Alert>}
           {!canRestore && <Alert variant="info" className="mb-3">Versions can only be restored while the campaign is a draft.</Alert>}
           {loading ? (
-            <div className="flex justify-center py-8"><Spinner size="lg" /></div>
+            <div className="flex justify-center py-5"><Spinner size="lg" /></div>
           ) : entries.length === 0 ? (
-            <p className="text-sm text-surface-500 italic text-center py-8">No history recorded yet.</p>
+            <p className="text-sm text-surface-500 italic text-center py-5">No history recorded yet.</p>
           ) : (
             entries.map((entry, i) => {
               const meta = ACTION_META[entry.action];

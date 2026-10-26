@@ -76,7 +76,7 @@ export default function SocialComposer({ accounts, post, presetDate, onClose, on
     <div className="fixed inset-0 z-50 flex justify-end">
       <div className="absolute inset-0 bg-surface-900/40 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex w-full max-w-3xl flex-col bg-white shadow-xl animate-slide-in-right">
-        <div className="flex items-center justify-between border-b border-surface-200 px-5 py-3">
+        <div className="flex items-center justify-between border-b border-surface-200 px-4 py-3">
           <div>
             <h2 className="text-base font-semibold text-surface-900">{editing ? "Edit post" : "New post"}</h2>
             <p className="text-xs text-surface-500">{editing ? "Changes apply before it is published." : "Write once, post to one or more accounts."}</p>
@@ -85,7 +85,7 @@ export default function SocialComposer({ accounts, post, presetDate, onClose, on
         </div>
 
         <div className="flex-1 overflow-y-auto grid md:grid-cols-[minmax(0,1fr)_260px] gap-0">
-          <div className="p-5 space-y-4 min-w-0">
+          <div className="p-4 space-y-4 min-w-0">
             {error && <Alert variant="error" onDismiss={() => setError(null)}>{error}</Alert>}
 
             {!editing && (
@@ -168,7 +168,7 @@ export default function SocialComposer({ accounts, post, presetDate, onClose, on
           </aside>
         </div>
 
-        <div className="border-t border-surface-200 px-5 py-3 flex flex-wrap items-center justify-end gap-2">
+        <div className="border-t border-surface-200 px-4 py-3 flex flex-wrap items-center justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onClose}>Cancel</Button>
           <Button variant="secondary" size="sm" icon={<FileText size={14} />} loading={busy === "draft"} disabled={!content.trim() || (!editing && picked.length === 0) || content.length > limit} onClick={() => submit(true)}>Save draft</Button>
           <Button size="sm" icon={<Send size={14} />} loading={busy === "go"} disabled={!canGo} onClick={() => submit(false)}>

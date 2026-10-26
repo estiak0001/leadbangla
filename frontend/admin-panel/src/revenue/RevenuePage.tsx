@@ -128,20 +128,20 @@ export default function RevenuePage() {
                 <thead className="border-y border-surface-200 bg-surface-50">
                   <tr>
                     {["Date", "Org", "Type", "Amount (BDT)", "Service"].map((h) => (
-                      <th key={h} className="px-5 py-2.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-100">
                   {txns.map((t) => (
                     <tr key={t.id} className="hover:bg-surface-50 transition-colors">
-                      <td className="px-5 py-3 text-surface-500 whitespace-nowrap">{new Date(t.created_at).toLocaleString()}</td>
-                      <td className="px-5 py-3 font-medium text-surface-800">{t.org_name}</td>
-                      <td className="px-5 py-3 text-surface-600">{TYPE_LABELS[t.type] ?? t.type}</td>
-                      <td className={`px-5 py-3 font-medium ${t.amount_bdt >= 0 ? "text-emerald-700" : "text-danger-dark"}`}>
+                      <td className="px-4 py-3 text-surface-500 whitespace-nowrap">{new Date(t.created_at).toLocaleString()}</td>
+                      <td className="px-4 py-3 font-medium text-surface-800">{t.org_name}</td>
+                      <td className="px-4 py-3 text-surface-600">{TYPE_LABELS[t.type] ?? t.type}</td>
+                      <td className={`px-4 py-3 font-medium ${t.amount_bdt >= 0 ? "text-emerald-700" : "text-danger-dark"}`}>
                         {t.amount_bdt >= 0 ? "+" : ""}{t.amount_bdt.toFixed(2)}
                       </td>
-                      <td className="px-5 py-3 text-surface-500">{t.service ? (SERVICE_LABELS[t.service] ?? t.service) : "—"}</td>
+                      <td className="px-4 py-3 text-surface-500">{t.service ? (SERVICE_LABELS[t.service] ?? t.service) : "—"}</td>
                     </tr>
                   ))}
                 </tbody>

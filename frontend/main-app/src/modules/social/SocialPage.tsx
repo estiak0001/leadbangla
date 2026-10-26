@@ -213,7 +213,7 @@ export default function SocialPage() {
       {loading ? <div className="flex justify-center py-16"><Spinner size="lg" /></div> : tab === "accounts" ? (
         <SocialAccountsTab accounts={accounts} onAccountsChange={setAccounts} />
       ) : accounts.length === 0 ? (
-        <div className="rounded-2xl border-2 border-dashed border-surface-200 bg-white py-14 px-6 text-center">
+        <div className="rounded-2xl border-2 border-dashed border-surface-200 bg-white py-14 px-4 text-center">
           <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4"><Share2 size={26} /></div>
           <h2 className="text-lg font-semibold text-surface-900">Connect your first page</h2>
           <p className="text-sm text-surface-600 mt-1 mb-5 max-w-md mx-auto">Link Facebook, Instagram or LinkedIn, then write once and schedule posts from one place.</p>

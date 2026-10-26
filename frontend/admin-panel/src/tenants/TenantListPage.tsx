@@ -94,23 +94,23 @@ export default function TenantListPage() {
                 <thead className="border-b border-surface-200 bg-surface-50">
                   <tr>
                     {["Organization", "Owner", "Plan", "Status", "Members"].map((h) => (
-                      <th key={h} className="px-5 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
+                      <th key={h} className="px-4 py-3.5 text-xs font-semibold uppercase tracking-wide text-surface-400 text-left">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-100">
                   {shown.map((t) => (
                     <tr key={t.id} className="hover:bg-surface-50 transition-colors">
-                      <td className="px-5 py-3.5">
+                      <td className="px-4 py-3.5">
                         <Link to={`/tenants/${t.id}`} className="font-semibold text-brand-600 hover:text-brand-700 transition-colors">
                           {t.name}
                         </Link>
                         {t.is_suspended && <Badge variant="danger" size="sm" className="ml-2">Suspended</Badge>}
                       </td>
-                      <td className="px-5 py-3.5 text-surface-600">{t.owner_email ?? "—"}</td>
-                      <td className="px-5 py-3.5 text-surface-600">{t.plan_name ?? "—"}</td>
-                      <td className="px-5 py-3.5"><StatusBadge status={t.subscription_status} /></td>
-                      <td className="px-5 py-3.5 text-surface-600 font-medium">{t.member_count}</td>
+                      <td className="px-4 py-3.5 text-surface-600">{t.owner_email ?? "—"}</td>
+                      <td className="px-4 py-3.5 text-surface-600">{t.plan_name ?? "—"}</td>
+                      <td className="px-4 py-3.5"><StatusBadge status={t.subscription_status} /></td>
+                      <td className="px-4 py-3.5 text-surface-600 font-medium">{t.member_count}</td>
                     </tr>
                   ))}
                 </tbody>

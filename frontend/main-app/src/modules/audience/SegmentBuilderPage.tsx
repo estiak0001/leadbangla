@@ -161,7 +161,7 @@ export default function SegmentBuilderPage() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_380px] gap-5 items-start pb-2">
         <div className="space-y-4 min-w-0">
 
-          <section className="bg-white border border-surface-200 rounded-[4px] p-4 sm:p-5 space-y-3">
+          <section className="bg-white border border-surface-200 rounded-[4px] p-4 sm:p-4 space-y-3">
             <div>
               <label className="text-xs font-medium text-surface-600">{isTemplate ? "Template name" : "Segment name"}</label>
               <input className={`${box} text-base font-medium`} value={name} onChange={(e) => setName(e.target.value)} maxLength={200} placeholder="e.g. Dhaka wholesale customers" autoFocus={!editing} />
@@ -302,7 +302,7 @@ export default function SegmentBuilderPage() {
                   ))}
                   {count! > sample.length && <li className="px-2 py-2 text-xs text-surface-500">+ {count! - sample.length} more</li>}
                 </ul>
-              ) : <div className="py-6 text-center text-xs text-surface-400"><Users size={20} className="mx-auto mb-1 text-surface-300" />People who match will appear here</div>}
+              ) : <div className="py-4 text-center text-xs text-surface-400"><Users size={20} className="mx-auto mb-1 text-surface-300" />People who match will appear here</div>}
             </div>
           </div>
         </aside>

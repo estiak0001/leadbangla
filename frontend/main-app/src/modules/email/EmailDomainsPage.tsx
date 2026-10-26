@@ -243,7 +243,7 @@ function DomainCard({
   return (
     <section className="rounded-xl border border-surface-200 bg-white shadow-sm">
       {/* header */}
-      <div className="flex flex-wrap items-center gap-3 px-5 py-4">
+      <div className="flex flex-wrap items-center gap-3 px-4 py-4">
         <div className="w-11 h-11 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center flex-shrink-0"><Globe size={20} /></div>
         <button onClick={() => setOpen((v) => !v)} aria-expanded={open} className="min-w-0 flex-1 text-left">
           <div className="flex flex-wrap items-center gap-2">
@@ -299,9 +299,9 @@ function DomainCard({
 
       {open && (
         <div className="border-t border-surface-100">
-          <div className="px-5 pt-4"><Stepper domain={domain} senderCount={senders.length} /></div>
+          <div className="px-4 pt-4"><Stepper domain={domain} senderCount={senders.length} /></div>
 
-          <div className="px-5 pt-3 space-y-3">
+          <div className="px-4 pt-3 space-y-3">
             {needsSesRegistration && (
               <div className="rounded-xl border border-warning-base/30 bg-warning-light px-4 py-3 text-sm text-warning-dark flex flex-wrap items-center gap-3">
                 <span className="flex-1 min-w-48">This domain was set up before Amazon SES was connected, so SES doesn't know it yet. Register it to get the DNS records SES needs.</span>
@@ -319,7 +319,7 @@ function DomainCard({
           </div>
 
           {/* tabs */}
-          <div className="px-5 mt-3 flex gap-1 border-b border-surface-100">
+          <div className="px-4 mt-3 flex gap-1 border-b border-surface-100">
             {([["dns", "DNS records", domain.dns_records.length], ["senders", "Sender addresses", senders.length]] as const).map(([k, label, n]) => (
               <button key={k} onClick={() => setTab(k)}
                 className={`px-3 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${tab === k ? "border-brand-500 text-brand-700" : "border-transparent text-surface-500 hover:text-surface-800"}`}>
@@ -328,7 +328,7 @@ function DomainCard({
             ))}
           </div>
 
-          <div className="px-5 py-5">
+          <div className="px-4 py-3.5">
             {tab === "dns" ? (
               <div className="space-y-4">
                 {domain.status === "pending" && (
@@ -428,7 +428,7 @@ function Welcome(): ReactNode {
     ["Create a sender", "Make addresses like hello@yourbrand.com and pick one in your campaigns."],
   ];
   return (
-    <div className="rounded-xl border border-surface-200 bg-white p-6 shadow-sm">
+    <div className="rounded-xl border border-surface-200 bg-white p-4 shadow-sm">
       <h2 className="text-lg font-semibold text-surface-900">Send from your own brand address</h2>
       <p className="text-sm text-surface-600 mt-1">Emails sent from <strong>hello@yourbrand.com</strong> look more trustworthy and land in the inbox more often than a shared address.</p>
       <ol className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -487,30 +487,26 @@ export function SendingDomainsPanel({ onLoaded }: { onLoaded?: (d: SendingDomain
 
   return (
     <>
-      {provider && (
-        <div className="mb-4 flex justify-end">
-          <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${provider.configured ? "border-success-base/30 bg-success-light text-success-dark" : "border-warning-base/30 bg-warning-light text-warning-dark"}`}
-            title={provider.message}>
-            {provider.configured ? <ShieldCheck size={13} /> : <PauseCircle size={13} />}
-            {provider.configured ? `Delivery: ${provider.label}` : "Email delivery not connected"}
-          </span>
-        </div>
-      )}
-
       {provider && !provider.configured && <Alert variant="warning" className="mb-4">{provider.message}</Alert>}
       {error && <Alert variant="error" onDismiss={() => setError(null)} className="mb-4">{error}</Alert>}
 
-      <form onSubmit={handleAdd} className="mb-6 rounded-xl border border-surface-200 bg-white p-4 shadow-sm">
-        <label htmlFor="new-domain" className="block text-sm font-semibold text-surface-900 mb-2">Add a domain</label>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative flex-1 min-w-56">
-            <Globe size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
-            <input id="new-domain" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} placeholder="yourbrand.com" required className={`${inputCls} w-full pl-9`} />
+      <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <form onSubmit={handleAdd} className="flex min-w-0 flex-1 items-center gap-2 sm:max-w-md" title="Use the domain without https:// or www. You must be able to edit its DNS settings.">
+          <div className="relative min-w-0 flex-1">
+            <Globe size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400" />
+            <input id="new-domain" value={newDomain} onChange={(e) => setNewDomain(e.target.value)} placeholder="Add a domain, e.g. yourbrand.com" required aria-label="Domain to add"
+              className="w-full rounded-lg border border-surface-200 bg-white py-2 pl-9 pr-3 text-sm placeholder:text-surface-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20" />
           </div>
-          <Button type="submit" icon={<Plus size={15} />} loading={adding}>Add domain</Button>
-        </div>
-        <p className="text-xs text-surface-500 mt-2">Use the domain without “https://” or “www”. You must be able to edit its DNS settings.</p>
-      </form>
+          <Button type="submit" size="sm" icon={<Plus size={14} />} loading={adding}>Add</Button>
+        </form>
+        {domains.length > 0 && (
+          <div className="ml-auto flex items-center gap-1 text-xs text-surface-500">
+            <span>{domains.length} domain{domains.length === 1 ? "" : "s"}</span>
+            <Button size="xs" variant="ghost" onClick={() => setOpenIds(new Set(domains.map((d) => d.id)))} disabled={openIds.size === domains.length}>Expand</Button>
+            <Button size="xs" variant="ghost" onClick={() => setOpenIds(new Set())} disabled={openIds.size === 0}>Collapse</Button>
+          </div>
+        )}
+      </div>
 
       {loading ? (
         <div className="flex justify-center py-16"><Spinner size="lg" /></div>
@@ -518,13 +514,6 @@ export function SendingDomainsPanel({ onLoaded }: { onLoaded?: (d: SendingDomain
         <Welcome />
       ) : (
         <>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-surface-600">{domains.length} domain{domains.length === 1 ? "" : "s"}</p>
-            <div className="flex gap-1">
-              <Button size="xs" variant="ghost" onClick={() => setOpenIds(new Set(domains.map((d) => d.id)))} disabled={openIds.size === domains.length}>Expand all</Button>
-              <Button size="xs" variant="ghost" onClick={() => setOpenIds(new Set())} disabled={openIds.size === 0}>Collapse all</Button>
-            </div>
-          </div>
           <div className="space-y-3">
             {domains.map((d) => (
               <DomainCard

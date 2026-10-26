@@ -1,7 +1,7 @@
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  AlertTriangle, ArrowRight, AtSign, Check, CheckCircle2, Circle, Clock, Copy, Globe, Inbox, Mail, Pencil, Plus, Power,
+  AlertTriangle, ArrowRight, AtSign, Check, CheckCircle2, Circle, Clock, Copy, Globe, Inbox, Pencil, Plus, Power,
   RefreshCw, Send, ShieldCheck, Star, Trash2,
 } from "lucide-react";
 import Alert from "../../components/Alert";
@@ -48,7 +48,7 @@ function ProgressBanner({ setup }: { setup: Setup }) {
   ];
   const current = steps.findIndex((s) => !s.done);
   return (
-    <section className="rounded-xl border border-surface-200 bg-white p-5">
+    <section className="rounded-xl border border-surface-200 bg-white p-4">
       <h2 className="text-base font-semibold text-surface-900">Receive email on your own domain</h2>
       <p className="mt-1 text-sm text-surface-600">Get mail sent to support@yourbrand.com here, read it and reply from one shared inbox. Kept for {setup.retention_days} days.</p>
       <ol className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
@@ -153,7 +153,7 @@ function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Se
 
   return (
     <section className="overflow-hidden rounded-xl border border-surface-200 bg-white shadow-sm">
-      <header className="flex flex-wrap items-center gap-4 border-b border-surface-100 bg-surface-50/60 px-5 py-4 sm:px-6">
+      <header className="flex flex-wrap items-center gap-4 border-b border-surface-100 bg-surface-50/60 px-4 py-4 sm:px-4">
         <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 text-brand-600"><Globe size={20} /></span>
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-lg font-semibold text-surface-900">{d.receive_domain}</h3>
@@ -165,7 +165,7 @@ function DomainCard({ d, setup, onChange, onError }: { d: InboxDomain; setup: Se
       </header>
 
       {d.status !== "disabled" && (
-        <div className="space-y-6 p-5 sm:p-6">
+        <div className="space-y-6 p-4 sm:p-4">
           {d.status === "pending" && (
             <div>
               <div className="mb-3 flex items-center gap-2">
@@ -230,7 +230,7 @@ function AddressesSection({ setup, onChange, onError }: { setup: Setup; onChange
   const chosen = setup.domains.find((d) => d.id === domainId);
 
   return (
-    <section className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="rounded-xl border border-surface-200 bg-white p-4 shadow-sm sm:p-4">
       <div className="mb-4 flex items-center gap-2">
         <AtSign size={18} className="text-brand-600" />
         <h3 className="text-base font-semibold text-surface-900">Addresses</h3>
@@ -267,7 +267,7 @@ function AddressesSection({ setup, onChange, onError }: { setup: Setup; onChange
 
 function Panel({ title, icon, children }: { title: string; icon: ReactNode; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-surface-200 bg-white p-5 shadow-sm">
+    <section className="rounded-xl border border-surface-200 bg-white p-4 shadow-sm">
       <h3 className="mb-4 flex items-center gap-2 text-sm font-semibold text-surface-900"><span className="text-brand-600">{icon}</span>{title}</h3>
       {children}
     </section>
@@ -292,15 +292,15 @@ export default function MailSetup({ setup, onChange, hideBanner = false }: { set
   }
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
       {error && <Alert variant="error" onDismiss={() => setError(null)}>{error}</Alert>}
       {!setup.platform_ready && <Alert variant="warning">{setup.platform_message}</Alert>}
 
       {!hideBanner && <ProgressBanner setup={setup} />}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         {/* domains */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {setup.domains.length > 0 && <AddressesSection setup={setup} onChange={onChange} onError={setError} />}
           {setup.domains.length === 0 ? (
             <div className="rounded-xl border border-dashed border-surface-300 bg-white p-10 text-center">
@@ -314,7 +314,7 @@ export default function MailSetup({ setup, onChange, hideBanner = false }: { set
         </div>
 
         {/* sidebar */}
-        <aside className="space-y-6 xl:sticky xl:top-4">
+        <aside className="space-y-4 xl:sticky xl:top-16">
           {setup.sending_domains.length === 0 ? (
             <Panel title="Verify a domain first" icon={<Globe size={16} />}>
               <p className="text-sm text-surface-600">To receive mail you first need a domain that's verified for sending.</p>
@@ -364,17 +364,6 @@ export default function MailSetup({ setup, onChange, hideBanner = false }: { set
               </form>
             </Panel>
           )}
-
-          <Panel title="Good to know" icon={<Mail size={16} />}>
-            <ul className="space-y-2.5 text-sm text-surface-600">
-              {[
-                `Mail is kept for ${setup.retention_days} days, then deleted automatically.`,
-                "Replies go out from the same address with your brand.",
-                "Anyone on your team with email access can read and answer.",
-                "DNS changes can take up to a few hours to reach everyone.",
-              ].map((t) => <li key={t} className="flex gap-2"><Check size={15} className="mt-0.5 shrink-0 text-success-base" />{t}</li>)}
-            </ul>
-          </Panel>
         </aside>
       </div>
     </div>
