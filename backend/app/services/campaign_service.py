@@ -496,7 +496,7 @@ async def get_email_connection_status(db: AsyncSession, org_id: uuid.UUID | None
     """Whether email can really be delivered — reports the real provider, never a simulation."""
     provider = await get_provider(db)
     if provider.configured:
-        return {"connection_ok": True, "connection_note": f"Connected: emails are delivered through {provider.label}."}
+        return {"connection_ok": True, "connection_note": "Email delivery is ready."}
     return {"connection_ok": False, "connection_note": NOT_CONFIGURED_MESSAGE}
 
 

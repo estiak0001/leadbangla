@@ -160,7 +160,8 @@ async def create_inbox_domain(db: AsyncSession, org_id: uuid.UUID, sending_domai
     try:
         await mail_aws.ensure_rule(cfg, receive)
     except mail_aws.MailSetupError as e:
-        raise MailError(str(e)) from e
+        log.warning("inbox setup error (hidden from customer): %s", e)
+        raise MailError("We couldn't turn on the inbox for this domain right now. Please contact support.") from e
     d = InboxDomain(organization_id=org_id, sending_domain_id=sd.id, receive_domain=receive, status="pending",
                     mx_value=mail_aws.mx_value(cfg["region"]),
                     status_note="Add the MX record below at your DNS provider, then press Verify.")
@@ -230,7 +231,8 @@ async def set_inbox_enabled(db: AsyncSession, org_id: uuid.UUID, domain_id: uuid
         try:
             await mail_aws.ensure_rule(cfg, d.receive_domain)
         except mail_aws.MailSetupError as e:
-            raise MailError(str(e)) from e
+            log.warning("inbox setup error (hidden from customer): %s", e)
+            raise MailError("We couldn't turn on the inbox for this domain right now. Please contact support.") from e
         d.status = "pending"
         await db.commit()
         return await verify_inbox_domain(db, org_id, domain_id)
@@ -420,7 +422,7 @@ async def process_notification(db: AsyncSession, note: dict) -> int:
         return 0
     cfg = await get_ses_config(db)
     if cfg is None:
-        raise MailError("Amazon SES isn't connected.")
+        raise MailError("Email isn't set up on this platform.")
     raw = await mail_aws.fetch_raw(cfg, bucket, key)
     verdict = lambda k: (receipt.get(k) or {}).get("status")  # noqa: E731
     made = await ingest_raw_email(db, raw, recipients=receipt.get("recipients") or mail.get("destination") or [], raw_key=key,
