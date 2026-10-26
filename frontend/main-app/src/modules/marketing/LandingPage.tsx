@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Button from "../../components/Button";
 import { fetchPlans, type Plan } from "../../lib/billing";
+import { useFeatures } from "../../lib/features";
 
 const toBn = (n: number | string) => String(n).replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]);
 const INTERVAL_BN: Record<string, string> = { monthly: "মাস", month: "মাস", yearly: "বছর", year: "বছর" };
@@ -88,7 +89,14 @@ function Decor({ arts, className = "", children }: { arts: Art[]; className?: st
   );
 }
 
+// While WhatsApp is switched off, the marketing copy stops mentioning it.
+const withoutWhatsApp = (t: string) => t
+  .replace("ইমেইল, SMS ও WhatsApp", "ইমেইল ও SMS").replace("ইমেইল, SMS বা WhatsApp", "ইমেইল বা SMS")
+  .replace("SMS ও WhatsApp মেসেজ", "SMS মেসেজ").replace("SMS ও WhatsApp", "SMS");
+
 export default function LandingPage() {
+  const { on } = useFeatures();
+  const t = (x: string) => (on("whatsapp") ? x : withoutWhatsApp(x));
   const [plans, setPlans] = useState<Plan[]>([]);
   const [open, setOpen] = useState(false);
   useEffect(() => { fetchPlans().then(setPlans).catch(() => undefined); }, []);
@@ -137,7 +145,7 @@ export default function LandingPage() {
               <span className="inline-block bg-gradient-to-r from-brand-600 to-violet-600 bg-clip-text pb-2 text-transparent">হোক সহজ ও বাংলায়</span>
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-surface-600">
-              ইমেইল, SMS ও WhatsApp — সব এক জায়গায়। কাস্টমারদের কাছে পৌঁছান, বিক্রি বাড়ান।
+              {t("ইমেইল, SMS ও WhatsApp — সব এক জায়গায়। কাস্টমারদের কাছে পৌঁছান, বিক্রি বাড়ান।")}
               বিকাশ ও নগদে পেমেন্ট, দাম টাকায়।
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
@@ -162,7 +170,7 @@ export default function LandingPage() {
           {FACTS.map((f) => (
             <div key={f.title} className="flex gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-600"><f.icon size={20} /></span>
-              <div><div className="text-sm font-semibold text-surface-900">{f.title}</div><div className="mt-0.5 text-sm text-surface-500">{f.desc}</div></div>
+              <div><div className="text-sm font-semibold text-surface-900">{t(f.title)}</div><div className="mt-0.5 text-sm text-surface-500">{t(f.desc)}</div></div>
             </div>
           ))}
         </div>
@@ -192,8 +200,8 @@ export default function LandingPage() {
           {FEATURES.map((f) => (
             <div key={f.title} className="group rounded-xl border border-surface-200 bg-white p-6 transition hover:-translate-y-1 hover:shadow-card-hover">
               <div className={`mb-4 flex h-12 w-12 items-center justify-center rounded-lg ${f.color}`}><f.icon size={24} /></div>
-              <h3 className="text-lg font-semibold text-surface-900">{f.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-surface-500">{f.desc}</p>
+              <h3 className="text-lg font-semibold text-surface-900">{t(f.title)}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-surface-500">{t(f.desc)}</p>
             </div>
           ))}
         </div>
@@ -260,7 +268,7 @@ export default function LandingPage() {
             <div key={s.n} className="relative rounded-xl bg-surface-50 p-6">
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-violet-600 text-lg font-bold text-white">{s.n}</div>
               <h3 className="mt-4 font-semibold text-surface-900">{s.title}</h3>
-              <p className="mt-1 text-sm text-surface-500">{s.desc}</p>
+              <p className="mt-1 text-sm text-surface-500">{t(s.desc)}</p>
             </div>
           ))}
         </div>
@@ -274,7 +282,7 @@ export default function LandingPage() {
         <DotArt name="nouka" className="left-[38%] bottom-1 hidden w-56 opacity-[0.07] xl:block" />
         <div className="relative mx-auto max-w-5xl">
           <h2 className="text-center text-3xl font-bold text-surface-900 sm:text-4xl">আপনার ব্যবসার জন্য সঠিক প্ল্যান</h2>
-          <p className="mt-3 text-center text-surface-500">সহজ দাম, টাকায়। SMS ও WhatsApp ব্যবহার অনুযায়ী ওয়ালেট ক্রেডিট থেকে কাটে।</p>
+          <p className="mt-3 text-center text-surface-500">{t("সহজ দাম, টাকায়। SMS ও WhatsApp ব্যবহার অনুযায়ী ওয়ালেট ক্রেডিট থেকে কাটে।")}</p>
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {plans.map((plan) => {
               const featured = plan.code === "growth";

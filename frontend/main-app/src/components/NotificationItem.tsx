@@ -1,10 +1,11 @@
-import { CheckSquare, Users, UsersRound, Mail, Wallet, ShieldCheck, Bell, type LucideIcon } from "lucide-react";
+import { CheckSquare, Users, UsersRound, Mail, Inbox, Wallet, ShieldCheck, Bell, type LucideIcon } from "lucide-react";
 import { timeAgo, type AppNotification } from "../lib/inbox";
 
 const META: Record<string, { icon: LucideIcon; tile: string }> = {
   tasks: { icon: CheckSquare, tile: "bg-brand-50 text-brand-600" },
   leads: { icon: Users, tile: "bg-success-light text-success-dark" },
   team: { icon: UsersRound, tile: "bg-info-light text-info-dark" },
+  mail: { icon: Inbox, tile: "bg-info-light text-info-dark" },
   campaigns: { icon: Mail, tile: "bg-warning-light text-warning-dark" },
   billing: { icon: Wallet, tile: "bg-danger-light text-danger-dark" },
   account: { icon: ShieldCheck, tile: "bg-surface-100 text-surface-600" },

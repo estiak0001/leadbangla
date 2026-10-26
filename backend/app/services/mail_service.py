@@ -338,6 +338,22 @@ def _merge_participants(existing: list, new: list[dict]) -> list:
     return existing + [p for p in new if p["email"] and p["email"] not in seen][:50 - len(existing)]
 
 
+async def _notify_new_mail(db: AsyncSession, items: list[tuple[uuid.UUID, uuid.UUID, dict]]) -> None:
+    """Put a bell entry in front of everyone who can read the inbox. Never raises."""
+    if not items:
+        return
+    from app.services.inbox import notify, recipients_with_permission  # noqa: PLC0415
+
+    for org_id, thread_id, p in items:
+        try:
+            who = await recipients_with_permission(db, org_id, "email")
+            sender = p["from_name"] or p["from_email"] or "someone"
+            await notify(db, org_id, who, category="mail", kind="mail_received", title=f"New email from {sender}",
+                         body=(p["subject"] or "(no subject)"), link=f"/mail?t={thread_id}")
+        except Exception:  # noqa: BLE001
+            log.exception("new-mail notification failed")
+
+
 async def ingest_raw_email(db: AsyncSession, raw: bytes, *, verdicts: dict | None = None, recipients: list[str] | None = None,
                            raw_key: str | None = None) -> list[MailMessage]:
     """File one received email for every customer it was addressed to. Safe to call twice with the same email."""
@@ -348,6 +364,7 @@ async def ingest_raw_email(db: AsyncSession, raw: bytes, *, verdicts: dict | Non
         return []
     v = {k: ((verdicts or {}).get(k) or None) for k in ("spam", "virus", "spf", "dkim", "dmarc")}
     created: list[MailMessage] = []
+    to_notify: list[tuple[uuid.UUID, uuid.UUID, dict]] = []
     for org_id, address in targets.items():
         if p["message_id"] and await db.scalar(select(MailMessage.id).where(MailMessage.organization_id == org_id, MailMessage.message_id_header == p["message_id"])):
             continue
@@ -386,7 +403,10 @@ async def ingest_raw_email(db: AsyncSession, raw: bytes, *, verdicts: dict | Non
         if thread.contact_id is None and p["from_email"]:
             thread.contact_id = await db.scalar(select(Contact.id).where(Contact.organization_id == org_id, func.lower(Contact.email) == p["from_email"], Contact.deleted_at.is_(None)).limit(1))
         created.append(msg)
+        if not bad and not p["auto_generated"]:
+            to_notify.append((org_id, thread.id, p))
     await db.commit()
+    await _notify_new_mail(db, to_notify)
     return created
 
 

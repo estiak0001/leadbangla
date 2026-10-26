@@ -9,9 +9,10 @@ import {
   LayoutDashboard, Users, Filter, Mail, Share2, MessageSquare, MessageCircle,
   Globe, Workflow, BookUser, BarChart3, Search, Link2, Star,
   LogOut, Menu, X, Bell, CalendarDays, BadgeDollarSign, HelpCircle, Settings, ChevronDown,
-  CreditCard, User, Wallet, UsersRound, Inbox, Settings2, MailX,
+  CreditCard, User, Wallet, UsersRound, Inbox, Settings2, MailX, Pin, PinOff,
 } from "lucide-react";
 import { fetchMailCounts } from "../lib/mail";
+import { PATH_FEATURE, useFeatures } from "../lib/features";
 
 interface NavItem { to: string; label: string; icon: ReactNode; step?: number; notActiveOn?: string[]; }
 
@@ -114,48 +115,50 @@ function loadCollapsed(): Record<string, boolean> {
 
 const permFor = (to: string) => [...ROUTE_PERMISSION].sort((x, y) => y[0].length - x[0].length).find(([p]) => to === p || to.startsWith(p + "/"))?.[1];
 
-function NavGroup({ group, onLinkClick, collapsed, onToggle, badges }: { group: typeof NAV_GROUPS[0]; onLinkClick?: () => void; collapsed: boolean; onToggle: () => void; badges?: Record<string, number> }) {
+function NavGroup({ group, onLinkClick, collapsed, onToggle, badges, expanded }: { group: typeof NAV_GROUPS[0]; onLinkClick?: () => void; collapsed: boolean; onToggle: () => void; badges?: Record<string, number>; expanded: boolean }) {
   const { pathname } = useLocation();
   const hasActive = group.items.some((i) => isItemActive(i, pathname));
-  const open = !collapsed || hasActive;
+  const open = !expanded || !collapsed || hasActive; // the icon rail always shows every icon
   return (
     <div className="mb-1.5">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-surface-500 hover:text-surface-800 select-none"
-      >
-        {group.label}
-        <ChevronDown size={14} className={`transition-transform ${open ? "" : "-rotate-90"}`} />
-      </button>
+      {expanded ? (
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex w-full items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-surface-500 hover:text-surface-800 select-none"
+        >
+          {group.label}
+          <ChevronDown size={14} className={`transition-transform ${open ? "" : "-rotate-90"}`} />
+        </button>
+      ) : (
+        <div className="mx-3 my-2 border-t border-surface-200" aria-hidden />
+      )}
       {open && (
         <div className="space-y-0.5">
-          {group.items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              onClick={onLinkClick}
-              className={() =>
-                `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
-                  isItemActive(item, pathname)
+          {group.items.map((item) => {
+            const isActive = isItemActive(item, pathname);
+            const count = badges?.[item.to] ?? 0;
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={onLinkClick}
+                title={expanded ? undefined : item.label}
+                className={`relative flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center px-0 py-2.5"} ${
+                  isActive
                     ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70"
                     : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
-                }`
-              }
-            >
-              {() => {
-                const isActive = isItemActive(item, pathname);
-                return (
-                <>
-                  <span className={`flex-shrink-0 ${isActive ? "text-brand-600" : "text-surface-500"}`}>{item.icon}</span>
-                  <span className="truncate flex-1">{item.label}</span>
-                  {item.step && <span className="flex h-4 w-4 items-center justify-center rounded-full border border-surface-300 text-[10px] font-semibold text-surface-500" title={`Step ${item.step}`}>{item.step}</span>}
-                  {!!badges?.[item.to] && <span className="rounded-full bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 leading-none">{badges[item.to] > 99 ? "99+" : badges[item.to]}</span>}
-                </>
-                );
-              }}
-            </NavLink>
-          ))}
+                }`}
+              >
+                <span className={`flex-shrink-0 ${isActive ? "text-brand-600" : "text-surface-500"}`}>{item.icon}</span>
+                {expanded && <span className="truncate flex-1">{item.label}</span>}
+                {expanded && item.step && <span className="flex h-4 w-4 items-center justify-center rounded-full border border-surface-300 text-[10px] font-semibold text-surface-500" title={`Step ${item.step}`}>{item.step}</span>}
+                {count > 0 && (expanded
+                  ? <span className="rounded-full bg-brand-500 text-white text-[10px] font-bold px-1.5 py-0.5 leading-none">{count > 99 ? "99+" : count}</span>
+                  : <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-surface-100" aria-label={`${count} unread`} />)}
+              </NavLink>
+            );
+          })}
         </div>
       )}
     </div>
@@ -163,11 +166,12 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges }: { group: 
 }
 
 // ── Sidebar content ──────────────────────────────────────────────────────────
-function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
+function SidebarContent({ onLinkClick, expanded = true, pinned = false, onTogglePin }: { onLinkClick?: () => void; expanded?: boolean; pinned?: boolean; onTogglePin?: () => void }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(loadCollapsed);
   const { can, me } = useMe();
+  const { on } = useFeatures();
   const [mailUnread, setMailUnread] = useState(0);
   const canMail = can("email");
   useEffect(() => {
@@ -177,7 +181,10 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
     const t = setInterval(load, 60000);
     return () => clearInterval(t);
   }, [canMail]);
-  const groups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => can(permFor(i.to)) && !(me?.my_role === "sales" && i.to === "/segments")) })).filter((g) => g.items.length > 0);
+  const groups = NAV_GROUPS.map((g) => ({
+    ...g,
+    items: g.items.filter((i) => can(permFor(i.to)) && on(PATH_FEATURE[i.to] ?? "") && !(me?.my_role === "sales" && i.to === "/segments")),
+  })).filter((g) => g.items.length > 0);
 
   function toggle(label: string) {
     setCollapsed((prev) => {
@@ -189,13 +196,22 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      {onTogglePin && (
+        <div className={`flex flex-shrink-0 items-center px-3 pt-3 ${expanded ? "justify-between" : "justify-center"}`}>
+          {expanded && <span className="px-0 text-[11px] font-semibold uppercase tracking-wider text-surface-400">Menu</span>}
+          <button type="button" onClick={onTogglePin} title={pinned ? "Auto-hide the menu" : "Keep the menu open"} aria-label={pinned ? "Auto-hide the menu" : "Keep the menu open"}
+            className={`rounded-md p-1.5 transition ${pinned ? "bg-brand-50 text-brand-600" : "text-surface-400 hover:bg-white hover:text-surface-700"}`}>
+            {pinned ? <PinOff size={15} /> : <Pin size={15} />}
+          </button>
+        </div>
+      )}
+      <nav className={`flex-1 overflow-y-auto py-3 ${expanded ? "px-3" : "px-2"}`}>
         {groups.map((group) => (
-          <NavGroup key={group.label} group={group} onLinkClick={onLinkClick} collapsed={collapsed[group.label] ?? DEFAULT_COLLAPSED[group.label] ?? false} onToggle={() => toggle(group.label)} badges={{ "/mail": mailUnread }} />
+          <NavGroup key={group.label} group={group} expanded={expanded} onLinkClick={onLinkClick} collapsed={collapsed[group.label] ?? DEFAULT_COLLAPSED[group.label] ?? false} onToggle={() => toggle(group.label)} badges={{ "/mail": mailUnread }} />
         ))}
       </nav>
 
-      <div className="flex-shrink-0 px-3 py-3 border-t border-surface-200/80 space-y-0.5">
+      <div className={`flex-shrink-0 py-3 border-t border-brand-100/70 bg-brand-50/60 space-y-0.5 ${expanded ? "px-3" : "px-2"}`}>
         {ACCOUNT_ITEMS.filter((i) => can(permFor(i.to))).map((item) => {
           const active = isItemActive(item, pathname);
           return (
@@ -203,21 +219,23 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
               key={item.to}
               to={item.to}
               onClick={onLinkClick}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150 ${
+              title={expanded ? undefined : item.label}
+              className={`flex items-center rounded-lg text-sm transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center py-2.5"} ${
                 active ? "bg-white font-semibold text-surface-900 shadow-sm ring-1 ring-surface-200/70" : "font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900"
               }`}
             >
               <span className={`flex-shrink-0 ${active ? "text-brand-600" : "text-surface-500"}`}>{item.icon}</span>
-              <span>{item.label}</span>
+              {expanded && <span>{item.label}</span>}
             </NavLink>
           );
         })}
         <button
           onClick={() => { clearTokens(); navigate("/login"); }}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900 transition-all duration-150"
+          title={expanded ? undefined : "Log out"}
+          className={`flex w-full items-center rounded-lg text-sm font-medium text-surface-600 hover:bg-white/70 hover:text-surface-900 transition-all duration-150 ${expanded ? "gap-3 px-3 py-2" : "justify-center py-2.5"}`}
         >
           <LogOut size={16} className="flex-shrink-0 text-surface-500" />
-          <span>Log out</span>
+          {expanded && <span>Log out</span>}
         </button>
       </div>
     </div>
@@ -374,6 +392,10 @@ function BottomNav({ onMore }: { onMore: () => void }) {
 // ── Root layout ──────────────────────────────────────────────────────────────
 export default function AppLayout({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [hover, setHover] = useState(false);
+  const [pinned, setPinned] = useState<boolean>(() => { try { return localStorage.getItem("nav-pinned") === "1"; } catch { return false; } });
+  const sidebarOpen = pinned || hover;
+  const togglePin = () => setPinned((p) => { const n = !p; try { localStorage.setItem("nav-pinned", n ? "1" : "0"); } catch { /* storage unavailable */ } return n; });
   const [userEmail, setUserEmail]   = useState<string | null>(null);
   const [balance, setBalance]       = useState<number | null>(null);
   useMobileTables();
@@ -425,9 +447,17 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       {/* ── Rounded panel: sidebar + content ─────────────────────── */}
       <div className="flex min-h-0 flex-1 gap-0 mx-0 sm:mx-2 mb-0 sm:mb-2 overflow-hidden rounded-none sm:rounded-2xl bg-white">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex lg:flex-col w-64 flex-shrink-0 bg-surface-100/80 border-r border-surface-200/70">
-          <SidebarContent />
-        </aside>
+        <div className={`relative hidden flex-shrink-0 transition-[width] duration-200 lg:block ${pinned ? "w-64" : "w-16"}`}>
+          <aside
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            onFocus={() => setHover(true)}
+            onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setHover(false); }}
+            className={`absolute inset-y-0 left-0 z-30 flex flex-col overflow-hidden border-r border-surface-200/70 bg-surface-100 transition-[width,box-shadow] duration-200 ${sidebarOpen ? "w-64" : "w-16"} ${hover && !pinned ? "shadow-xl" : ""}`}
+          >
+            <SidebarContent expanded={sidebarOpen} pinned={pinned} onTogglePin={togglePin} />
+          </aside>
+        </div>
 
         <BottomNav onMore={() => setDrawerOpen(true)} />
 

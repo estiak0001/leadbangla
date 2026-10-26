@@ -6,14 +6,14 @@ const n = (v: number) => v.toLocaleString("en-US");
 const count = (v: number | undefined, unit: string) => (v === undefined ? null : v < 0 ? `Unlimited ${unit}` : `${n(v)} ${unit}`);
 
 /** The full feature list for a plan, in the order customers compare them (same data as the marketing site). */
-export function planFeatures(p: Plan): PlanFeature[] {
+export function planFeatures(p: Plan, on: { whatsapp?: boolean; sms?: boolean } = {}): PlanFeature[] {
   const f: (PlanFeature | null)[] = [
     p.contacts_limit === undefined ? null : { text: count(p.contacts_limit, "contacts")!, included: true },
     p.emails_monthly_limit === undefined ? null : { text: `${p.emails_monthly_limit < 0 ? "Unlimited" : n(p.emails_monthly_limit)} emails per month`, included: true },
-    p.sms_enabled === false || !p.sms_monthly_limit ? { text: "SMS campaigns", included: false }
+    on.sms === false ? null : p.sms_enabled === false || !p.sms_monthly_limit ? { text: "SMS campaigns", included: false }
       : { text: p.sms_monthly_limit < 0 ? "Unlimited SMS (paid from wallet credit)" : `Up to ${n(p.sms_monthly_limit)} SMS per month (paid from wallet credit)`, included: true },
-    { text: "SMS from your own brand name (masking sender ID)", included: !!p.masking_allowed },
-    !p.whatsapp_enabled ? { text: "WhatsApp campaigns", included: false }
+    on.sms === false ? null : { text: "SMS from your own brand name (masking sender ID)", included: !!p.masking_allowed },
+    on.whatsapp === false ? null : !p.whatsapp_enabled ? { text: "WhatsApp campaigns", included: false }
       : { text: p.whatsapp_monthly_limit && p.whatsapp_monthly_limit > 0 ? `WhatsApp campaigns · up to ${n(p.whatsapp_monthly_limit)} per month` : "WhatsApp campaigns", included: true },
     p.workflows_limit === undefined ? null : { text: count(p.workflows_limit, "automations")!, included: true },
     p.landing_pages_limit === undefined ? null : { text: count(p.landing_pages_limit, "landing pages")!, included: true },

@@ -11,6 +11,7 @@ from app.models.segment import Segment
 from app.models.sms import SmsCampaign, SmsEvent
 from app.schemas.audience import SegmentRule
 from app.services.audience_service import build_segment_query
+from app.services.feature_flags import is_on
 from app.services.plan_service import get_org_plan
 
 
@@ -41,8 +42,8 @@ async def entitlement(db: AsyncSession, org_id: uuid.UUID) -> dict:
     wa_used = await used_this_month(db, org_id, SmsChannel.WHATSAPP)
     return {
         "plan_name": plan.name if plan else None,
-        "sms_enabled": bool(plan and plan.sms_enabled),
-        "whatsapp_enabled": bool(plan and plan.whatsapp_enabled),
+        "sms_enabled": bool(plan and plan.sms_enabled) and await is_on(db, "sms"),
+        "whatsapp_enabled": bool(plan and plan.whatsapp_enabled) and await is_on(db, "whatsapp"),
         "masking_allowed": bool(plan and plan.masking_allowed),
         "monthly_limit": limit,
         "used": used,

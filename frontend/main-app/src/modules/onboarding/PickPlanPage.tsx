@@ -7,8 +7,10 @@ import Spinner from "../../components/Spinner";
 import { clearTokens, fetchCurrentUser } from "../../lib/auth";
 import { fetchMyManualPayments, fetchMySubscription, fetchPlans, type ManualPayment, type Plan, type Subscription } from "../../lib/billing";
 import { planFeatures } from "../../lib/planFeatures";
+import { useFeatures } from "../../lib/features";
 
 function PlanCard({ plan, featured, current, onSubscribe, busy }: { plan: Plan; featured: boolean; current: boolean; onSubscribe: () => void; busy: boolean }) {
+  const { on } = useFeatures();
   return (
     <div className={`relative flex flex-col rounded-2xl bg-white p-7 ${featured ? "border-2 border-brand-500 shadow-xl lg:-translate-y-3" : "border border-surface-200 shadow-sm"}`}>
       {featured && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-600 px-3 py-1 text-xs font-semibold text-white">Most popular</span>}
@@ -24,7 +26,7 @@ function PlanCard({ plan, featured, current, onSubscribe, busy }: { plan: Plan; 
         )}
       </div>
       <ul className="my-6 flex-1 space-y-2.5 text-sm">
-        {planFeatures(plan).map((f) => (
+        {planFeatures(plan, { whatsapp: on("whatsapp"), sms: on("sms") }).map((f) => (
           <li key={f.text} className={`flex gap-2 ${f.included ? "text-surface-700" : "text-surface-400"}`}>
             {f.included ? <Check size={16} className="mt-0.5 shrink-0 text-emerald-600" /> : <Minus size={16} className="mt-0.5 shrink-0" />}
             <span className={f.included ? "" : "line-through decoration-surface-300"}>{f.text}</span>

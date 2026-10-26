@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useFeatures } from "../lib/features";
 
 export default function SplitAuthLayout({
   title,
@@ -10,6 +11,7 @@ export default function SplitAuthLayout({
   subtitle?: string;
   children: ReactNode;
 }) {
+  const { on } = useFeatures();
   return (
     <div className="flex min-h-screen">
       {/* Left panel — brand gradient */}
@@ -33,7 +35,7 @@ export default function SplitAuthLayout({
             Marketing, built<br />for Bangladesh.
           </h2>
           <p className="mt-4 max-w-sm text-base text-violet-200 leading-relaxed">
-            Email, SMS, WhatsApp, and audience tools in one platform — priced in BDT and built around local payment methods from day one.
+            {on("whatsapp") ? "Email, SMS, WhatsApp, and audience tools" : "Email, SMS, and audience tools"} in one platform — priced in BDT and built around local payment methods from day one.
           </p>
         </div>
 

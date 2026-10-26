@@ -24,6 +24,7 @@ CATEGORIES: dict[str, tuple[str, str, bool, bool]] = {
     "tasks": ("Tasks & follow-ups", "A task is assigned to you, someone comments or finishes it, or it is due", True, True),
     "leads": ("Leads", "A lead is assigned to you, or one of your deals is won or lost", True, False),
     "team": ("Team & access", "Someone joins your company, or your role or access changes", True, True),
+    "mail": ("New email in your inbox", "Mail arrives at one of your inbox addresses", True, False),
     "campaigns": ("Campaigns", "An email or SMS campaign finishes or fails", True, False),
     "billing": ("Wallet & plan", "Low balance, top-up received, plan limits", True, True),
     "account": ("Sender ID & verification", "A request is approved, rejected or needs more information", True, True),

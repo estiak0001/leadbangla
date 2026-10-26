@@ -4,7 +4,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { clearAccessToken } from "../lib/auth";
 import { pendingVerificationCount } from "../lib/verifications";
 import {
-  Building2, CreditCard, Wallet, Receipt, BarChart3, Plug,
+  Building2, CreditCard, Wallet, Receipt, ToggleRight, BarChart3, Plug,
   LogOut, Menu, X,
 } from "lucide-react";
 
@@ -13,6 +13,7 @@ interface NavItem { to: string; label: string; icon: ReactNode; }
 const NAV_ITEMS: NavItem[] = [
   { to: "/tenants",      label: "Tenants",      icon: <Building2 size={16} /> },
   { to: "/plans",        label: "Plans & Rates", icon: <CreditCard size={16} /> },
+  { to: "/services",     label: "Services",     icon: <ToggleRight size={16} /> },
   { to: "/manual-payments", label: "Payments", icon: <Receipt size={16} /> },
   { to: "/wallets",      label: "Wallets",      icon: <Wallet size={16} /> },
   { to: "/revenue",      label: "Revenue",      icon: <BarChart3 size={16} /> },

@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.core.db import get_db
 from app.core.deps import get_current_membership, get_current_user
 from app.integrations.sslcommerz import sslcommerz_client
+from app.services.feature_flags import is_on
 from app.services.payment_options import online_available
 from app.models.contact import Contact
 from app.models.landing_page import LandingPage
@@ -61,7 +62,18 @@ TOPUP_MIN_PAISA = 10_000
 
 @router.get("/plans", response_model=list[PlanPublic])
 async def get_plans(db: AsyncSession = Depends(get_db)) -> list[PlanPublic]:
-    return await list_active_plans(db)
+    from app.services.feature_flags import feature_map  # noqa: PLC0415
+
+    flags = await feature_map(db)
+    out = []
+    for p in await list_active_plans(db):
+        item = PlanPublic.model_validate(p)
+        if flags.get("whatsapp") is False:
+            item.whatsapp_enabled, item.whatsapp_monthly_limit = False, 0
+        if flags.get("sms") is False:
+            item.sms_enabled, item.sms_monthly_limit, item.masking_allowed = False, 0, False
+        out.append(item)
+    return out
 
 
 @router.post("/subscribe", response_model=SubscribeResponse)
@@ -273,9 +285,9 @@ async def plan_usage(
         custom_domain=plan.custom_domain if plan else False,
         priority_support=plan.priority_support if plan else False,
         sms=ResourceUsage(used=sms_used, limit=plan.sms_monthly_limit if plan else 0),
-        sms_enabled=plan.sms_enabled if plan else False,
-        masking_allowed=plan.masking_allowed if plan else False,
-        whatsapp_enabled=plan.whatsapp_enabled if plan else False,
+        sms_enabled=bool(plan and plan.sms_enabled) and await is_on(db, "sms"),
+        masking_allowed=bool(plan and plan.masking_allowed) and await is_on(db, "sms"),
+        whatsapp_enabled=bool(plan and plan.whatsapp_enabled) and await is_on(db, "whatsapp"),
         wallet_balance_bdt=round(wallet_balance_paisa / 100, 2),
         wallet_balance_paisa=wallet_balance_paisa,
     )

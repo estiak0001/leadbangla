@@ -7,6 +7,8 @@ import AcceptInvitePage from "./modules/auth/AcceptInvitePage";
 import PickPlanPage from "./modules/onboarding/PickPlanPage";
 import ManualPaymentPage from "./modules/billing/ManualPaymentPage";
 import CheckoutPage from "./modules/billing/CheckoutPage";
+import FeatureOnly from "./components/FeatureOnly";
+import { PATH_FEATURE } from "./lib/features";
 import OnboardingPage from "./modules/onboarding/OnboardingPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import BillingPage from "./modules/billing/BillingPage";
@@ -58,7 +60,9 @@ const PERM = (path: string) => [...ROUTE_PERMISSION].sort((a, b) => b[0].length 
 
 function Gate({ path, children }: { path: string; children: ReactElement }) {
   const perm = PERM(path);
-  return perm ? <Access perm={perm} redirect={path === "/dashboard"}>{children}</Access> : children;
+  const base = Object.keys(PATH_FEATURE).find((k) => path === k || path.startsWith(k + "/"));
+  const page = base ? <FeatureOnly feature={PATH_FEATURE[base]}>{children}</FeatureOnly> : children;
+  return perm ? <Access perm={perm} redirect={path === "/dashboard"}>{page}</Access> : page;
 }
 
 export default function App() {

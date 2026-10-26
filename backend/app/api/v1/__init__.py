@@ -17,6 +17,7 @@ from app.api.v1.social import router as social_router
 from app.api.v1.audience import contacts_router, segments_router, tag_presets_router
 from app.api.v1.auth import router as auth_router
 from app.api.v1.billing import router as billing_router
+from app.api.v1.features_admin import public_router as features_public_router, router as features_admin_router
 from app.api.v1.manual_payments import admin_router as manual_payments_admin_router, router as manual_payments_router
 from app.api.v1.campaigns import router as campaigns_router
 from app.api.v1.merge_tags import router as merge_tags_router
@@ -42,11 +43,14 @@ from app.api.v1.notifications import router as notifications_router
 from app.api.v1.locations import router as locations_router
 from app.api.v1.audience import deny_sales
 from app.core.permissions import require_permission
+from app.services.feature_flags import require_feature
 from fastapi import Depends
 
 api_router = APIRouter()
 api_router.include_router(auth_router)
 api_router.include_router(billing_router, dependencies=[Depends(require_permission("billing", writes_only=True))])
+api_router.include_router(features_public_router)
+api_router.include_router(features_admin_router)
 api_router.include_router(manual_payments_router)
 api_router.include_router(manual_payments_admin_router)
 api_router.include_router(email_domains_router, dependencies=[Depends(require_permission("email"))])
@@ -73,22 +77,22 @@ api_router.include_router(verifications_router, dependencies=[Depends(require_pe
 api_router.include_router(verifications_admin_router)
 api_router.include_router(message_templates_router, dependencies=[Depends(require_permission("email"))])
 api_router.include_router(analytics_router, dependencies=[Depends(require_permission("analytics"))])
-api_router.include_router(sms_router, dependencies=[Depends(require_permission("sms"))])
-api_router.include_router(sms_extra_router, dependencies=[Depends(require_permission("sms"))])
+api_router.include_router(sms_router, dependencies=[Depends(require_permission("sms")), Depends(require_feature("sms"))])
+api_router.include_router(sms_extra_router, dependencies=[Depends(require_permission("sms")), Depends(require_feature("sms"))])
 api_router.include_router(sms_settings_router, dependencies=[Depends(require_permission("sms"))])
-api_router.include_router(whatsapp_router, dependencies=[Depends(require_permission("whatsapp"))])
+api_router.include_router(whatsapp_router, dependencies=[Depends(require_permission("whatsapp")), Depends(require_feature("whatsapp"))])
 api_router.include_router(contacts_optin_router)
-api_router.include_router(social_router, dependencies=[Depends(require_permission("growth"))])
+api_router.include_router(social_router, dependencies=[Depends(require_permission("growth")), Depends(require_feature("social"))])
 api_router.include_router(landing_pages_router, dependencies=[Depends(require_permission("landing_pages"))])
 api_router.include_router(public_router)
 api_router.include_router(workflows_router, dependencies=[Depends(require_permission("workflows"))])
 api_router.include_router(crm_router, dependencies=[Depends(require_permission("crm"))])
-api_router.include_router(seo_router, dependencies=[Depends(require_permission("growth"))])
+api_router.include_router(seo_router, dependencies=[Depends(require_permission("growth")), Depends(require_feature("seo"))])
 api_router.include_router(affiliate_router, dependencies=[Depends(require_permission("growth"))])
 api_router.include_router(events_router, dependencies=[Depends(require_permission("growth"))])
-api_router.include_router(paid_ads_router, dependencies=[Depends(require_permission("growth"))])
+api_router.include_router(paid_ads_router, dependencies=[Depends(require_permission("growth")), Depends(require_feature("paid_ads"))])
 api_router.include_router(influencer_router, dependencies=[Depends(require_permission("growth"))])
-api_router.include_router(push_router, dependencies=[Depends(require_permission("growth"))])
+api_router.include_router(push_router, dependencies=[Depends(require_permission("growth")), Depends(require_feature("push"))])
 api_router.include_router(platform_router)
 api_router.include_router(team_router)
 api_router.include_router(notifications_router)

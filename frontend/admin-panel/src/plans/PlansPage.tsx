@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppLayout from "../components/AppLayout";
 import Alert from "../components/Alert";
 import Badge from "../components/Badge";
@@ -7,6 +7,7 @@ import Button from "../components/Button";
 import Card from "../components/Card";
 import Input from "../components/Input";
 import PageHeader from "../components/PageHeader";
+import { listFeatures } from "../lib/features";
 import {
   createPlan,
   deletePlan,
@@ -329,6 +330,8 @@ function CreditRateCard({ rate, onSaved }: { rate: CreditRate; onSaved: (updated
 }
 
 export default function PlansPage() {
+  const [offServices, setOffServices] = useState<string[]>([]);
+  useEffect(() => { listFeatures().then((f) => setOffServices(f.filter((x) => !x.is_enabled).map((x) => x.name))).catch(() => undefined); }, []);
   const [plans, setPlans] = useState<PlanFull[]>([]);
   const [rates, setRates] = useState<CreditRate[]>([]);
   const [editingPlan, setEditingPlan] = useState<PlanFull | null>(null);
@@ -369,6 +372,11 @@ export default function PlansPage() {
   return (
     <AppLayout>
       <PageHeader title="Plans & Rates" description="Manage subscription plan limits and credit pricing." />
+      {offServices.length > 0 && (
+        <Alert variant="warning" className="mb-4">
+          {offServices.join(", ")} {offServices.length === 1 ? "is" : "are"} switched off in <Link to="/services" className="font-medium underline">Services</Link>. Those limits stay saved, but customers don't see or use them until you switch the service back on.
+        </Alert>
+      )}
 
       {error && <Alert className="mb-4">{error}</Alert>}
 
