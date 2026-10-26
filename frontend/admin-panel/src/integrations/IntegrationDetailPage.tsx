@@ -17,6 +17,8 @@ import {
 } from "../lib/integrations";
 import { CATEGORY_META, pageFor, statusOf } from "./IntegrationHubPage";
 
+const randomSecret = () => Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
+
 const when = (ts: string | null) => (ts ? new Date(ts).toLocaleString("en-BD", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "never");
 
 /** The page for /integrations/:code. */
@@ -228,7 +230,8 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
             <form onSubmit={save} className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
               {fields.map((f) => {
                 const sv = saved[f.key];
-                const isSecret = f.type === "password";
+                const isSecret = f.type === "password" && f.key !== "webhook_secret";
+                const isWebhook = f.key === "webhook_secret";
                 const req = required.includes(f.key);
                 return (
                   <div key={f.key}>
@@ -243,6 +246,13 @@ export function IntegrationPanel({ code, embedded = false }: { code: string; emb
                     ) : (
                       <Input inputSize="sm" label={f.label + (req ? " *" : "")} type={isSecret ? "password" : "text"} autoComplete="off"
                         placeholder={isSecret ? "Paste the value" : ""} value={values[f.key] ?? (isSecret ? "" : sv?.preview ?? "")} onChange={(e) => setValues({ ...values, [f.key]: e.target.value })} />
+                    )}
+                    {isWebhook && (
+                      <div className="mt-1 flex items-center gap-2">
+                        <Button type="button" size="sm" variant="secondary" onClick={() => setValues({ ...values, [f.key]: randomSecret() })}>Generate</Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => { const v = values[f.key] ?? saved[f.key]?.preview ?? ""; if (v) void navigator.clipboard?.writeText(v); }}>Copy</Button>
+                        <span className="text-[11px] text-surface-500">Press Save credentials after generating. A new secret changes the webhook URLs, so update the SNS subscriptions in AWS too (shown in the AWS setup guide below).</span>
+                      </div>
                     )}
                     {f.hint && <p className="mt-1 text-[11px] text-surface-500">{f.hint}</p>}
                   </div>

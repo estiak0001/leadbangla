@@ -13,10 +13,11 @@ from app.models.user import User
 
 router = APIRouter(prefix="/admin/integrations", tags=["admin"])
 
-# Keys whose values must never be sent back in full.
+# Keys whose values must never be sent back in full. (webhook_secret is deliberately not here:
+# staff paste it into SNS subscription URLs, so they must be able to read it.)
 SECRET_KEYS = {
     "secret_access_key", "store_password", "api_token", "api_key", "api_secret", "access_token",
-    "bearer_token", "vapid_private_key", "password", "webhook_secret", "app_secret", "verify_token",
+    "bearer_token", "vapid_private_key", "password", "app_secret", "verify_token",
 }
 
 
