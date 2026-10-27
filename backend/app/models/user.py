@@ -17,6 +17,11 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    # True for anyone who doesn't need OTP verification (invited members, admin-created
+    # tenant owners, and every row that existed before this column was added). Self-signup
+    # explicitly sets this False and flips it once the signup OTP is verified.
+    is_verified: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True, server_default="true")
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     internal_role: Mapped[InternalRole | None] = mapped_column(
         SAEnum(
             InternalRole,

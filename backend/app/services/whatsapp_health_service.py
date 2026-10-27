@@ -69,7 +69,7 @@ async def _alert(db: AsyncSession, row: WhatsAppHealth, *, who: str, org: Organi
             targets.append(owner.email)
     for to in dict.fromkeys(targets):
         try:
-            await email_client.send_email(db, org_id=None, to_email=to, subject=subject, html_body=body)
+            await email_client.send_system_email(db, to_email=to, subject=subject, html_body=body)
             sent_to.append(to)
         except Exception as e:  # noqa: BLE001
             log.warning("WhatsApp health alert to %s not sent: %s", to, e)

@@ -207,6 +207,15 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json();
 }
 
+export const sendContactEmail = (contactId: string, senderId: string, subject: string, bodyHtml: string) =>
+  apiFetch<void>(`/contacts/${contactId}/send-email`, {
+    method: "POST",
+    body: JSON.stringify({ sender_id: senderId, subject, body_html: bodyHtml }),
+  });
+
+export const sendContactSms = (contactId: string, body: string) =>
+  apiFetch<void>(`/contacts/${contactId}/send-sms`, { method: "POST", body: JSON.stringify({ body }) });
+
 export const fetchStages = () => apiFetch<PipelineStage[]>("/stages");
 
 export type StageExtras = Partial<{ probability: number | null; stale_days: number | null; auto_task_days: number | null; auto_task_title: string | null }>;

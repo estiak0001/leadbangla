@@ -60,11 +60,11 @@ async def _owner_count(db: AsyncSession, org_id: uuid.UUID) -> int:
 async def _send_invite(db: AsyncSession, org: Organization, user: User, inviter: User | None) -> bool:
     token = create_invite_token(str(user.id))
     try:
-        await email_client.send_email(
-            db, org_id=org.id, to_email=user.email,
-            subject=f"{inviter.email if inviter else 'Your company'} invited you to {org.name} on LeadBangla",
-            html_body=f'<p>You have been added to <strong>{org.name}</strong> on LeadBangla.</p>'
-                      f'<p><a href="{settings.app_base_url}/accept-invite?token={token}">Set your password and sign in &rarr;</a></p>',
+        await email_client.send_template_email(
+            db, key="team_invite", to_email=user.email,
+            inviter=inviter.email if inviter else "Your team",
+            org_name=org.name,
+            link=f"{settings.app_base_url}/accept-invite?token={token}",
         )
         return True
     except Exception:  # noqa: BLE001 — email trouble must not block the action

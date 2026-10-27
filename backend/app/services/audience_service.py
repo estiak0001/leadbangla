@@ -209,9 +209,11 @@ async def create_contact(
     if contact.owner_user_id and contact.owner_user_id != changed_by_user_id:
         from app.services import inbox  # noqa: PLC0415
 
+        lead_name = contact.first_name or contact.company or contact.email or contact.phone
         await inbox.notify(db, org_id, [contact.owner_user_id], category="leads", kind="lead_assigned",
-                           title=f"New lead for you: {contact.first_name or contact.company or contact.email or contact.phone}",
-                           link=f"/contacts/{contact.id}", actor_id=changed_by_user_id)
+                           title=f"New lead for you: {lead_name}",
+                           link=f"/contacts/{contact.id}", actor_id=changed_by_user_id,
+                           email_html=f"<p>A new lead was assigned to you:</p><p><strong>{lead_name}</strong></p>")
     # Lazy import avoids circular dependency at module-load time.
     from app.workers.workflow_runner import fire_workflow_trigger_task  # noqa: PLC0415
     fire_workflow_trigger_task.delay(str(org_id), "contact_created", str(contact.id), {})

@@ -22,6 +22,195 @@ export interface Tenant {
   is_suspended?: boolean;
 }
 
+export interface Registration {
+  user_id: string;
+  email: string;
+  created_at: string;
+  is_verified: boolean;
+  org_name: string | null;
+  organization_id: string | null;
+  plan_name: string | null;
+  subscription_status: string | null;
+  stage: "unverified" | "no_payment" | "payment_pending" | "payment_failed" | "cancelled" | "active";
+}
+
+export async function fetchRegistrations(): Promise<Registration[]> {
+  const res = await fetch("/api/v1/admin/registrations", { headers: authHeaders() });
+  return handle<Registration[]>(res);
+}
+
+export interface EmailBranding {
+  accent_color: string;
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export async function fetchEmailBranding(): Promise<EmailBranding> {
+  const res = await fetch("/api/v1/admin/email-branding", { headers: authHeaders() });
+  return handle<EmailBranding>(res);
+}
+
+export async function updateEmailBranding(accentColor: string): Promise<EmailBranding> {
+  const res = await fetch("/api/v1/admin/email-branding", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify({ accent_color: accentColor }),
+  });
+  return handle<EmailBranding>(res);
+}
+
+export interface CompanySettings {
+  company_name: string;
+  legal_name: string | null;
+  address: string | null;
+  city: string | null;
+  country: string | null;
+  phone: string | null;
+  support_email: string | null;
+  website: string | null;
+  logo_url: string | null;
+  logo_white_url: string | null;
+  favicon_url: string | null;
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export interface CompanySettingsInput {
+  company_name?: string;
+  legal_name?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  support_email?: string;
+  website?: string;
+}
+
+export async function fetchCompanySettings(): Promise<CompanySettings> {
+  const res = await fetch("/api/v1/admin/company-settings", { headers: authHeaders() });
+  return handle<CompanySettings>(res);
+}
+
+export async function updateCompanySettings(payload: CompanySettingsInput): Promise<CompanySettings> {
+  const res = await fetch("/api/v1/admin/company-settings", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function uploadCompanyLogo(file: File): Promise<CompanySettings> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/v1/admin/company-settings/logo", {
+    method: "POST",
+    headers: authHeaders(),
+    body: form,
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function deleteCompanyLogo(): Promise<CompanySettings> {
+  const res = await fetch("/api/v1/admin/company-settings/logo", {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function uploadCompanyLogoWhite(file: File): Promise<CompanySettings> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/v1/admin/company-settings/logo-white", {
+    method: "POST",
+    headers: authHeaders(),
+    body: form,
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function deleteCompanyLogoWhite(): Promise<CompanySettings> {
+  const res = await fetch("/api/v1/admin/company-settings/logo-white", {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function uploadCompanyFavicon(file: File): Promise<CompanySettings> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/v1/admin/company-settings/favicon", {
+    method: "POST",
+    headers: authHeaders(),
+    body: form,
+  });
+  return handle<CompanySettings>(res);
+}
+
+export async function deleteCompanyFavicon(): Promise<CompanySettings> {
+  const res = await fetch("/api/v1/admin/company-settings/favicon", {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  return handle<CompanySettings>(res);
+}
+
+// Downloads an authenticated asset by triggering a browser save, since the
+// endpoint needs the Authorization header a plain <a href> can't send.
+export async function downloadAsset(path: string, fallbackName: string): Promise<void> {
+  const res = await fetch(path, { headers: authHeaders() });
+  if (!res.ok) throw new Error(res.status === 404 ? "Nothing to download yet" : "Download failed");
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  const match = /filename="([^"]+)"/.exec(disposition);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = match?.[1] ?? fallbackName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+export const downloadCompanyLogo = () => downloadAsset("/api/v1/admin/company-settings/logo/download", "logo");
+export const downloadCompanyLogoWhite = () => downloadAsset("/api/v1/admin/company-settings/logo-white/download", "logo-white");
+export const downloadCompanyFavicon = () => downloadAsset("/api/v1/admin/company-settings/favicon/download", "favicon");
+
+export interface EmailTemplate {
+  key: string;
+  name: string;
+  subject: string;
+  body_html: string;
+  placeholders: string[];
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export async function fetchEmailTemplates(): Promise<EmailTemplate[]> {
+  const res = await fetch("/api/v1/admin/email-templates", { headers: authHeaders() });
+  return handle<EmailTemplate[]>(res);
+}
+
+export async function updateEmailTemplate(key: string, payload: { subject: string; body_html: string }): Promise<EmailTemplate> {
+  const res = await fetch(`/api/v1/admin/email-templates/${key}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handle<EmailTemplate>(res);
+}
+
+export async function resetEmailTemplate(key: string): Promise<EmailTemplate> {
+  const res = await fetch(`/api/v1/admin/email-templates/${key}/reset`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  return handle<EmailTemplate>(res);
+}
+
 export interface CreateTenantInput {
   org_name: string;
   language: "en" | "bn";

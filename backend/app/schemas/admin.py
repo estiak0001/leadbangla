@@ -73,6 +73,78 @@ class AdminTenantCreateRequest(BaseModel):
     send_invite: bool = True
 
 
+class EmailBrandingRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    accent_color: str
+    updated_by: str | None
+    updated_at: datetime
+
+
+class EmailBrandingUpdate(BaseModel):
+    accent_color: str = Field(min_length=4, max_length=20)
+
+
+class CompanySettingsRead(BaseModel):
+    company_name: str
+    legal_name: str | None
+    address: str | None
+    city: str | None
+    country: str | None
+    phone: str | None
+    support_email: str | None
+    website: str | None
+    logo_url: str | None = None
+    logo_white_url: str | None = None
+    favicon_url: str | None = None
+    updated_by: str | None
+    updated_at: datetime
+
+
+class CompanySettingsUpdate(BaseModel):
+    company_name: str | None = Field(default=None, min_length=1, max_length=150)
+    legal_name: str | None = Field(default=None, max_length=200)
+    address: str | None = Field(default=None, max_length=300)
+    city: str | None = Field(default=None, max_length=100)
+    country: str | None = Field(default=None, max_length=100)
+    phone: str | None = Field(default=None, max_length=30)
+    support_email: str | None = Field(default=None, max_length=255)
+    website: str | None = Field(default=None, max_length=255)
+
+
+class EmailTemplateRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    key: str
+    name: str
+    subject: str
+    body_html: str
+    placeholders: list[str] = []
+    updated_by: str | None
+    updated_at: datetime
+
+
+class EmailTemplateUpdate(BaseModel):
+    subject: str = Field(min_length=1, max_length=300)
+    body_html: str = Field(min_length=1, max_length=20000)
+
+
+class RegistrationListItem(BaseModel):
+    """A signed-up user at whatever stage they've reached — unverified, verified but
+    never paid, payment pending/failed, or fully onboarded. Independent of whether an
+    Organization exists yet (it only does once onboarding finishes)."""
+
+    user_id: uuid.UUID
+    email: str
+    created_at: datetime
+    is_verified: bool
+    org_name: str | None
+    organization_id: uuid.UUID | None
+    plan_name: str | None
+    subscription_status: str | None
+    stage: str
+
+
 class ImpersonateRequest(BaseModel):
     user_id: uuid.UUID
 

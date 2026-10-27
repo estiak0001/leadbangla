@@ -12,6 +12,8 @@ import TenantCreatePage from "./tenants/TenantCreatePage";
 import TenantDetailPage from "./tenants/TenantDetailPage";
 import TenantListPage from "./tenants/TenantListPage";
 import WalletsPage from "./wallets/WalletsPage";
+import EmailBrandingPage from "./settings/EmailBrandingPage";
+import CompanySettingsPage from "./settings/CompanySettingsPage";
 
 export default function App() {
   return (
@@ -32,6 +34,8 @@ export default function App() {
       <Route path="/sms-gateway" element={<Navigate to="/integrations/sms" replace />} />
       <Route path="/integrations" element={<IntegrationHubPage />} />
       <Route path="/integrations/:code" element={<IntegrationDetailPage />} />
+      <Route path="/company-settings" element={<CompanySettingsPage />} />
+      <Route path="/email-branding" element={<EmailBrandingPage />} />
     </Routes>
   );
 }

@@ -58,7 +58,14 @@ export interface SignupInput {
   website?: string;
 }
 
-export async function signup(input: SignupInput): Promise<TokenPair> {
+export interface SignupResponse {
+  verification_required: boolean;
+  email: string;
+  access_token?: string | null;
+  refresh_token?: string | null;
+}
+
+export async function signup(input: SignupInput): Promise<SignupResponse> {
   const res = await fetch("/api/v1/auth/signup", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -75,6 +82,54 @@ export async function signup(input: SignupInput): Promise<TokenPair> {
   });
   if (!res.ok) {
     throw new Error(await extractError(res, "Signup failed"));
+  }
+  return res.json();
+}
+
+export async function verifyOtp(email: string, code: string): Promise<TokenPair> {
+  const res = await fetch("/api/v1/auth/verify-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) {
+    throw new Error(await extractError(res, "Verification failed"));
+  }
+  return res.json();
+}
+
+export async function resendOtp(email: string): Promise<void> {
+  const res = await fetch("/api/v1/auth/resend-otp", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    throw new Error(await extractError(res, "Could not resend the code"));
+  }
+}
+
+export const EMAIL_NOT_VERIFIED = "EMAIL_NOT_VERIFIED";
+
+export async function forgotPassword(email: string): Promise<void> {
+  const res = await fetch("/api/v1/auth/forgot-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    throw new Error(await extractError(res, "Could not send the reset code"));
+  }
+}
+
+export async function resetPassword(email: string, code: string, newPassword: string): Promise<TokenPair> {
+  const res = await fetch("/api/v1/auth/reset-password", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code, new_password: newPassword }),
+  });
+  if (!res.ok) {
+    throw new Error(await extractError(res, "Could not reset the password"));
   }
   return res.json();
 }

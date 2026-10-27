@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { COMPANY_LOGO_URL, COMPANY_LOGO_WHITE_URL } from "../lib/branding";
 import { useFeatures } from "../lib/features";
 
 export default function SplitAuthLayout({
@@ -25,7 +26,7 @@ export default function SplitAuthLayout({
         {/* Logo */}
         <div className="relative px-12 pt-10">
           <Link to="/" aria-label="LeadBangla">
-            <img src="/logo-white.png" alt="LeadBangla" className="h-9 w-auto" />
+            <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="h-9 w-auto" />
           </Link>
         </div>
 
@@ -47,7 +48,7 @@ export default function SplitAuthLayout({
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <Link to="/" aria-label="LeadBangla" className="mb-8 block lg:hidden">
-            <img src="/logo.png" alt="LeadBangla" className="mx-auto h-8 w-auto" />
+            <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-8 w-auto" />
           </Link>
           <h1 className="text-2xl font-bold text-surface-900 tracking-tight">{title}</h1>
           {subtitle && <p className="mt-1.5 text-sm text-surface-500">{subtitle}</p>}

@@ -34,9 +34,13 @@ export default function SignupPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const tokens = await signup({ email, password, orgName, language, phone, industry, companySize, website });
-      storeTokens(tokens);
-      navigate(preselectedPlanId ? `/checkout?plan=${preselectedPlanId}` : "/pick-plan");
+      const r = await signup({ email, password, orgName, language, phone, industry, companySize, website });
+      if (!r.verification_required && r.access_token && r.refresh_token) {
+        storeTokens({ access_token: r.access_token, refresh_token: r.refresh_token, token_type: "bearer" });
+        navigate(preselectedPlanId ? `/checkout?plan=${preselectedPlanId}` : "/pick-plan");
+        return;
+      }
+      navigate(`/verify-email?email=${encodeURIComponent(email)}${preselectedPlanId ? `&plan=${preselectedPlanId}` : ""}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
       setSubmitting(false);

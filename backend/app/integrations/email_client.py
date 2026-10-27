@@ -48,5 +48,46 @@ class EmailClient:
         except Exception as e:
             raise EmailSendError(f"SMTP server {settings.smtp_host}:{settings.smtp_port} failed: {e}") from e
 
+    async def send_system_email(
+        self,
+        db: AsyncSession,
+        *,
+        to_email: str,
+        subject: str,
+        html_body: str,
+        reply_to: str | None = None,
+    ) -> str:
+        """For LeadBangla's own internal/transactional email to a user — OTPs,
+        invites, alerts, notifications — never for a customer's own campaigns.
+        Wraps `html_body` in the admin-editable branding (logo, colors, footer)
+        from services/email_branding_service.py before sending."""
+        from app.services.company_settings_service import get_settings as get_company_settings  # noqa: PLC0415
+        from app.services.email_branding_service import get_branding, render_branded_email  # noqa: PLC0415
+
+        branding = await get_branding(db)
+        company = await get_company_settings(db)
+        wrapped = render_branded_email(branding, company, subject=subject, inner_html=html_body)
+        return await self.send_email(
+            db, org_id=None, to_email=to_email, subject=subject, html_body=wrapped,
+            from_name=company.company_name, reply_to=reply_to,
+        )
+
+    async def send_template_email(
+        self,
+        db: AsyncSession,
+        *,
+        key: str,
+        to_email: str,
+        reply_to: str | None = None,
+        **ctx: str,
+    ) -> str:
+        """Like send_system_email, but the subject/body come from the named,
+        admin-editable template (services/email_template_service.py) instead of
+        being hardcoded at the call site. `ctx` fills that template's {{tokens}}."""
+        from app.services.email_template_service import render_template  # noqa: PLC0415
+
+        subject, html_body = await render_template(db, key, **ctx)
+        return await self.send_system_email(db, to_email=to_email, subject=subject, html_body=html_body, reply_to=reply_to)
+
 
 email_client = EmailClient()

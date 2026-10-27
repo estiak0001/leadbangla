@@ -50,6 +50,58 @@ async def get_organization(db: AsyncSession, org_id: uuid.UUID) -> Organization:
     return org
 
 
+def _registration_stage(user: User, subscription: Subscription | None, org: Organization | None) -> str:
+    if not user.is_verified:
+        return "unverified"
+    if org is not None:
+        return "active"
+    if subscription is None:
+        return "no_payment"
+    if subscription.status == SubscriptionStatus.ACTIVE:
+        return "active"
+    if subscription.status == SubscriptionStatus.FAILED:
+        return "payment_failed"
+    if subscription.status == SubscriptionStatus.CANCELLED:
+        return "cancelled"
+    return "payment_pending"
+
+
+async def list_registrations(db: AsyncSession) -> list["RegistrationListItem"]:
+    from app.schemas.admin import RegistrationListItem  # noqa: PLC0415 — avoid a schema->service import cycle
+
+    users = await db.scalars(
+        select(User).where(User.internal_role.is_(None)).order_by(User.created_at.desc())
+    )
+    items: list[RegistrationListItem] = []
+    for user in users:
+        subscription = await db.scalar(
+            select(Subscription)
+            .options(selectinload(Subscription.plan))
+            .where(Subscription.user_id == user.id)
+            .order_by(Subscription.created_at.desc())
+        )
+        member = await db.scalar(
+            select(OrganizationMember).where(
+                OrganizationMember.user_id == user.id, OrganizationMember.role == TenantRole.OWNER
+            )
+        )
+        org = await db.get(Organization, member.organization_id) if member else None
+        items.append(
+            RegistrationListItem(
+                user_id=user.id,
+                email=user.email,
+                created_at=user.created_at,
+                is_verified=user.is_verified,
+                org_name=org.name if org else user.pending_org_name,
+                organization_id=org.id if org else None,
+                plan_name=subscription.plan.name if subscription else None,
+                subscription_status=subscription.status.value if subscription else None,
+                stage=_registration_stage(user, subscription, org),
+            )
+        )
+    return items
+
+
 async def get_latest_subscription_for_org(db: AsyncSession, org_id: uuid.UUID) -> Subscription | None:
     return await db.scalar(
         select(Subscription)
@@ -211,28 +263,20 @@ async def admin_create_tenant(db: AsyncSession, payload: AdminTenantCreateReques
 
     if is_new_user:
         invite_token = create_invite_token(str(owner.id))
-        await email_client.send_email(
+        await email_client.send_template_email(
             db,
-            org_id=organization.id,
+            key="tenant_owner_invite",
             to_email=owner.email,
-            subject=f"You've been added to LeadBangla — set up {payload.org_name}",
-            html_body=f"""
-            <p>An account has been created for you as the owner of
-            <strong>{payload.org_name}</strong> on LeadBangla.</p>
-            <p><a href="{settings.app_base_url}/accept-invite?token={invite_token}">
-            Set your password &rarr;</a></p>
-            """,
+            org_name=payload.org_name,
+            link=f"{settings.app_base_url}/accept-invite?token={invite_token}",
         )
     else:
-        await email_client.send_email(
+        await email_client.send_template_email(
             db,
-            org_id=organization.id,
+            key="tenant_ready",
             to_email=owner.email,
-            subject=f"{payload.org_name} is ready on LeadBangla",
-            html_body=f"""
-            <p>Your organization <strong>{payload.org_name}</strong> has been set up.</p>
-            <p><a href="{settings.app_base_url}/login">Log in &rarr;</a></p>
-            """,
+            org_name=payload.org_name,
+            link=f"{settings.app_base_url}/login",
         )
 
     return await get_organization(db, organization.id)

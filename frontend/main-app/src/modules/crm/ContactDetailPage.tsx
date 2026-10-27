@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
-import { MapPin, Pencil, History, Mail, Phone, ChevronRight, ChevronDown, MessageSquare, MessageCircle, Trash2, Check, Smartphone, FileText, Zap, StickyNote, Activity, ShieldCheck, type LucideIcon } from "lucide-react";
+import { MapPin, Pencil, History, Mail, Phone, ChevronRight, ChevronDown, MessageSquare, MessageCircle, Trash2, Check, Smartphone, FileText, Zap, StickyNote, Activity, ShieldCheck, Send, type LucideIcon } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Button from "../../components/Button";
 import Alert from "../../components/Alert";
@@ -20,6 +20,7 @@ import BakiCard from "./BakiCard";
 import LostReasonDialog from "./LostReasonDialog";
 import { fetchContactSegments, type Segment } from "../../lib/audience";
 import ContactHistoryModal from "../audience/ContactHistoryModal";
+import ComposeMessageModal from "./ComposeMessageModal";
 
 const CHANNEL_LABEL: Record<string, string> = {
   email: "Email", sms: "SMS", form: "Form", workflow: "Workflow", note: "Note", activity: "Sales activity",
@@ -147,6 +148,7 @@ export default function ContactDetailPage() {
   const [error, setError]       = useState("");
   const [actionError, setActionError] = useState("");
   const [showHistory, setShowHistory] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
   const [tab, setTab]           = useState<"followups" | "timeline" | "notes" | "baki">("followups");
   const [openTasks, setOpenTasks] = useState(0);
   const [balance, setBalance]   = useState(0);
@@ -267,6 +269,9 @@ export default function ContactDetailPage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
+            {(!!contact.email || contact.sms_opt_in) && (
+              <Button size="xs" variant="secondary" icon={<Send size={13} />} onClick={() => setShowCompose(true)}>Message</Button>
+            )}
             {contact.email && <a href={`mailto:${contact.email}`}><Button size="xs" variant="secondary" icon={<Mail size={13} />}>Email</Button></a>}
             {contact.phone && <a href={`tel:${contact.phone}`}><Button size="xs" variant="secondary" icon={<Phone size={13} />}>Call</Button></a>}
             {waHref && <a href={waHref} target="_blank" rel="noreferrer"><Button size="xs" variant="secondary" icon={<MessageCircle size={13} />}>WhatsApp</Button></a>}
@@ -431,6 +436,17 @@ export default function ContactDetailPage() {
       {lostAsk && (
         <LostReasonDialog name={fullName} reasons={lostReasons} onCancel={() => setLostAsk(null)}
           onConfirm={(reason) => { const sid = lostAsk; setLostAsk(null); handleStageChange(sid, reason); }} />
+      )}
+
+      {showCompose && id && (
+        <ComposeMessageModal
+          contactId={id}
+          contactLabel={fullName}
+          hasEmail={!!contact.email}
+          hasSms={!!contact.sms_opt_in}
+          onClose={() => setShowCompose(false)}
+          onSent={refreshTimeline}
+        />
       )}
 
       {showHistory && id && (

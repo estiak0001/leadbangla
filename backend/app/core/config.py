@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_name: str = "LeadBangla API"
+    # New signups must confirm their email with a code. Turn off (EMAIL_VERIFICATION_REQUIRED=false) while the
+    # email provider cannot yet send to arbitrary addresses, otherwise nobody new can finish signing up.
+    email_verification_required: bool = True
     environment: str = "local"
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@postgres:5432/marketing_manager"

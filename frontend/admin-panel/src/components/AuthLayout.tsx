@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import { COMPANY_LOGO_WHITE_URL } from "../lib/branding";
 
 // Deliberately dark/technical, distinct from the main app's bright,
 // consumer-facing split-screen login — this is the internal tool's "front
@@ -8,7 +9,7 @@ export default function AuthLayout({ title, children }: { title: string; childre
     <div className="flex min-h-screen items-center justify-center bg-slate-900 px-4">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <img src={`${import.meta.env.BASE_URL}logo-white.png`} alt="LeadBangla" className="mx-auto h-9 w-auto" />
+          <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
           <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-emerald-400">
             Internal Admin
           </p>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Check, Minus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { COMPANY_LOGO_URL } from "../../lib/branding";
 import Button from "../../components/Button";
 import Alert from "../../components/Alert";
 import Spinner from "../../components/Spinner";
@@ -69,7 +70,7 @@ export default function PickPlanPage() {
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-6xl">
         <div className="text-center mb-10">
-          <img src="/logo.png" alt="LeadBangla" className="mx-auto h-9 w-auto" />
+          <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
           <h1 className="mt-3 text-3xl font-bold text-surface-900">{mySub?.status === "active" ? "Change your plan" : "Choose your plan"}</h1>
           <p className="mt-2 text-surface-500">Simple pricing in BDT. No hidden charges. Cancel anytime.</p>
         </div>

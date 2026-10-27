@@ -22,7 +22,11 @@ from app.models.crm import (
 from app.models.seo import SeoAudit, SeoPage
 from app.models.contact import Contact
 from app.models.email_domain import EmailSuppression, SenderAddress, SendingDomain
+from app.models.company_settings import PlatformCompanySettings
 from app.models.contact_history import ContactHistory
+from app.models.email_branding import PlatformEmailBranding
+from app.models.email_otp import EmailOtp
+from app.models.email_template import PlatformEmailTemplate
 from app.models.event import Event
 from app.models.mail import InboxAddress, InboxDomain, MailAttachment, MailMessage, MailThread, MailUpload
 from app.models.organization import Organization, OrganizationMember
@@ -66,7 +70,11 @@ __all__ = [
     "Contact",
     "ContactHistory",
     "ContactNote",
+    "EmailOtp",
     "Event",
+    "PlatformCompanySettings",
+    "PlatformEmailBranding",
+    "PlatformEmailTemplate",
     "FormSubmission",
     "LandingPage",
     "Organization",

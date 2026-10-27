@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, timezone
 
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,8 +17,15 @@ from app.models.user import User
 from app.schemas.admin import (
     AdminSmsSenderUpdate,
     AdminTenantCreateRequest,
+    CompanySettingsRead,
+    CompanySettingsUpdate,
+    EmailBrandingRead,
+    EmailBrandingUpdate,
+    EmailTemplateRead,
+    EmailTemplateUpdate,
     ImpersonateRequest,
     ImpersonateResponse,
+    RegistrationListItem,
     RevenueSummary,
     TenantDetail,
     TenantListItem,
@@ -43,7 +50,33 @@ from app.services.admin_service import (
     list_org_wallets,
     list_organizations,
     list_recent_wallet_transactions,
+    list_registrations,
 )
+from app.services.company_settings_service import (
+    FaviconTooLargeError,
+    LogoTooLargeError,
+    UnsupportedFaviconTypeError,
+    UnsupportedLogoTypeError,
+    clear_favicon as clear_company_favicon,
+    clear_logo as clear_company_logo,
+    clear_logo_white as clear_company_logo_white,
+    get_settings as get_company_settings,
+    get_settings_with_favicon,
+    get_settings_with_logo,
+    get_settings_with_logo_white,
+    set_favicon as set_company_favicon,
+    set_logo as set_company_logo,
+    set_logo_white as set_company_logo_white,
+    update_settings as update_company_settings,
+)
+from app.services.email_branding_service import (
+    company_favicon_url,
+    company_logo_url,
+    company_logo_white_url,
+    get_branding,
+    update_branding,
+)
+from app.services.email_template_service import DEFAULTS as EMAIL_TEMPLATE_DEFAULTS, get_template, list_templates, update_template
 from app.services.billing_service import PlanNotFoundError as SubscriptionPlanNotFoundError
 from app.services.integration_test_service import test_service
 from app.services.sms_service import admin_set_org_sms_sender, get_org_sms_settings
@@ -94,6 +127,221 @@ async def list_tenants(
         subscription = await get_latest_subscription_for_org(db, org.id)
         items.append(_to_list_item(org, subscription))
     return items
+
+
+@router.get("/email-branding", response_model=EmailBrandingRead)
+async def get_email_branding(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> EmailBrandingRead:
+    return EmailBrandingRead.model_validate(await get_branding(db))
+
+
+@router.patch("/email-branding", response_model=EmailBrandingRead)
+async def update_email_branding(
+    payload: EmailBrandingUpdate,
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> EmailBrandingRead:
+    branding = await update_branding(db, accent_color=payload.accent_color, updated_by=staff.email)
+    return EmailBrandingRead.model_validate(branding)
+
+
+def _company_read(row) -> CompanySettingsRead:
+    return CompanySettingsRead(
+        company_name=row.company_name, legal_name=row.legal_name, address=row.address, city=row.city,
+        country=row.country, phone=row.phone, support_email=row.support_email, website=row.website,
+        logo_url=company_logo_url(row), logo_white_url=company_logo_white_url(row), favicon_url=company_favicon_url(row),
+        updated_by=row.updated_by, updated_at=row.updated_at,
+    )
+
+
+@router.get("/company-settings", response_model=CompanySettingsRead)
+async def get_company_settings_route(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    return _company_read(await get_company_settings(db))
+
+
+@router.patch("/company-settings", response_model=CompanySettingsRead)
+async def update_company_settings_route(
+    payload: CompanySettingsUpdate,
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    fields = payload.model_dump(exclude_unset=True)
+    for f in ("legal_name", "address", "city", "country", "phone", "support_email", "website"):
+        if f in fields:
+            fields[f] = fields[f] or None
+        else:
+            fields[f] = ...
+    row = await update_company_settings(db, updated_by=staff.email, **fields)
+    return _company_read(row)
+
+
+@router.post("/company-settings/logo", response_model=CompanySettingsRead)
+async def upload_company_logo(
+    file: UploadFile = File(...),
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    data = await file.read()
+    try:
+        row = await set_company_logo(db, data, file.content_type or "", staff.email)
+    except UnsupportedLogoTypeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Use a PNG, JPEG, WebP or SVG image")
+    except LogoTooLargeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be under 2MB")
+    return _company_read(row)
+
+
+@router.delete("/company-settings/logo", response_model=CompanySettingsRead)
+async def delete_company_logo(
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    row = await clear_company_logo(db, staff.email)
+    return _company_read(row)
+
+
+@router.get("/company-settings/logo/download")
+async def download_company_logo(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+):
+    row = await get_settings_with_logo(db)
+    if not row.logo_data or not row.logo_content_type:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No logo set")
+    ext = row.logo_content_type.split("/")[-1].replace("svg+xml", "svg")
+    return Response(content=row.logo_data, media_type=row.logo_content_type,
+                    headers={"Content-Disposition": f'attachment; filename="logo.{ext}"'})
+
+
+@router.post("/company-settings/logo-white", response_model=CompanySettingsRead)
+async def upload_company_logo_white(
+    file: UploadFile = File(...),
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    data = await file.read()
+    try:
+        row = await set_company_logo_white(db, data, file.content_type or "", staff.email)
+    except UnsupportedLogoTypeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Use a PNG, JPEG, WebP or SVG image")
+    except LogoTooLargeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Logo must be under 2MB")
+    return _company_read(row)
+
+
+@router.delete("/company-settings/logo-white", response_model=CompanySettingsRead)
+async def delete_company_logo_white(
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    row = await clear_company_logo_white(db, staff.email)
+    return _company_read(row)
+
+
+@router.get("/company-settings/logo-white/download")
+async def download_company_logo_white(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+):
+    row = await get_settings_with_logo_white(db)
+    if not row.logo_white_data or not row.logo_white_content_type:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No white logo set")
+    ext = row.logo_white_content_type.split("/")[-1].replace("svg+xml", "svg")
+    return Response(content=row.logo_white_data, media_type=row.logo_white_content_type,
+                    headers={"Content-Disposition": f'attachment; filename="logo-white.{ext}"'})
+
+
+@router.post("/company-settings/favicon", response_model=CompanySettingsRead)
+async def upload_company_favicon(
+    file: UploadFile = File(...),
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    data = await file.read()
+    try:
+        row = await set_company_favicon(db, data, file.content_type or "", staff.email)
+    except UnsupportedFaviconTypeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Use a PNG, SVG or ICO image")
+    except FaviconTooLargeError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Favicon must be under 512KB")
+    return _company_read(row)
+
+
+@router.delete("/company-settings/favicon", response_model=CompanySettingsRead)
+async def delete_company_favicon(
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> CompanySettingsRead:
+    row = await clear_company_favicon(db, staff.email)
+    return _company_read(row)
+
+
+@router.get("/company-settings/favicon/download")
+async def download_company_favicon(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+):
+    row = await get_settings_with_favicon(db)
+    if not row.favicon_data or not row.favicon_content_type:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No favicon set")
+    ext = row.favicon_content_type.split("/")[-1].replace("vnd.microsoft.icon", "ico").replace("x-icon", "ico").replace("svg+xml", "svg")
+    return Response(content=row.favicon_data, media_type=row.favicon_content_type,
+                    headers={"Content-Disposition": f'attachment; filename="favicon.{ext}"'})
+
+
+def _tpl_read(row) -> EmailTemplateRead:
+    placeholders = EMAIL_TEMPLATE_DEFAULTS.get(row.key, {}).get("placeholders", [])
+    return EmailTemplateRead(
+        key=row.key, name=row.name, subject=row.subject, body_html=row.body_html,
+        placeholders=list(placeholders), updated_by=row.updated_by, updated_at=row.updated_at,
+    )
+
+
+@router.get("/email-templates", response_model=list[EmailTemplateRead])
+async def list_email_templates(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[EmailTemplateRead]:
+    return [_tpl_read(row) for row in await list_templates(db)]
+
+
+@router.patch("/email-templates/{key}", response_model=EmailTemplateRead)
+async def update_email_template(
+    key: str,
+    payload: EmailTemplateUpdate,
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> EmailTemplateRead:
+    if key not in EMAIL_TEMPLATE_DEFAULTS:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown email template")
+    row = await update_template(db, key, subject=payload.subject, body_html=payload.body_html, updated_by=staff.email)
+    return _tpl_read(row)
+
+
+@router.post("/email-templates/{key}/reset", response_model=EmailTemplateRead)
+async def reset_email_template(
+    key: str,
+    staff: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> EmailTemplateRead:
+    if key not in EMAIL_TEMPLATE_DEFAULTS:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unknown email template")
+    d = EMAIL_TEMPLATE_DEFAULTS[key]
+    row = await update_template(db, key, subject=str(d["subject"]), body_html=str(d["body_html"]), updated_by=staff.email)
+    return _tpl_read(row)
+
+
+@router.get("/registrations", response_model=list[RegistrationListItem])
+async def list_registrations_route(
+    _: User = Depends(get_current_internal_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[RegistrationListItem]:
+    return await list_registrations(db)
 
 
 async def _to_detail(db: AsyncSession, org: Organization) -> TenantDetail:

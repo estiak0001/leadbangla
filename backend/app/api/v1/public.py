@@ -8,7 +8,7 @@ Currently hosts:
 
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,6 +20,38 @@ from app.services import landing_page_service as svc
 from app.services import sms_service
 
 router = APIRouter(prefix="/public", tags=["public"])
+
+
+@router.get("/company-logo")
+async def company_logo(db: AsyncSession = Depends(get_db)):
+    """Embedded as <img src> in every internal email — must be publicly reachable, no auth."""
+    from app.services.company_settings_service import get_settings_with_logo  # noqa: PLC0415
+
+    company = await get_settings_with_logo(db)
+    if not company.logo_data or not company.logo_content_type:
+        raise HTTPException(status_code=404, detail="No logo set")
+    return Response(content=company.logo_data, media_type=company.logo_content_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/company-logo-white")
+async def company_logo_white(db: AsyncSession = Depends(get_db)):
+    """Light/white logo variant for dark or colored backgrounds (email header bar, dark sidebars)."""
+    from app.services.company_settings_service import get_settings_with_logo_white  # noqa: PLC0415
+
+    company = await get_settings_with_logo_white(db)
+    if not company.logo_white_data or not company.logo_white_content_type:
+        raise HTTPException(status_code=404, detail="No white logo set")
+    return Response(content=company.logo_white_data, media_type=company.logo_white_content_type, headers={"Cache-Control": "public, max-age=86400"})
+
+
+@router.get("/company-favicon")
+async def company_favicon(db: AsyncSession = Depends(get_db)):
+    from app.services.company_settings_service import get_settings_with_favicon  # noqa: PLC0415
+
+    company = await get_settings_with_favicon(db)
+    if not company.favicon_data or not company.favicon_content_type:
+        raise HTTPException(status_code=404, detail="No favicon set")
+    return Response(content=company.favicon_data, media_type=company.favicon_content_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
 @router.get("/landing-pages/{slug}")

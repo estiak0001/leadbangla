@@ -5,7 +5,7 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Alert from "../../components/Alert";
 import SplitAuthLayout from "../../components/SplitAuthLayout";
-import { login, storeTokens } from "../../lib/auth";
+import { EMAIL_NOT_VERIFIED, login, storeTokens } from "../../lib/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("demo1@leadbangla.com");
@@ -23,6 +23,10 @@ export default function LoginPage() {
       storeTokens(tokens);
       navigate("/dashboard");
     } catch (err) {
+      if (err instanceof Error && err.message === EMAIL_NOT_VERIFIED) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
       setError(err instanceof Error ? err.message : "Login failed");
       setSubmitting(false);
     }
@@ -51,6 +55,11 @@ export default function LoginPage() {
           prefixIcon={<Lock size={15} />}
           required
         />
+        <div className="text-right -mt-1">
+          <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-700">
+            Forgot password?
+          </Link>
+        </div>
 
         <Button type="submit" loading={submitting} className="w-full" size="lg">
           Log in

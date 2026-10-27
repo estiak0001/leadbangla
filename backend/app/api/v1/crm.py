@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -16,6 +16,7 @@ from app.schemas.crm import (
     PipelineStageCreate, PipelineStageRead, PipelineStageUpdate, ProfileUpdate, StageReorderRequest,
     StageUpdateRequest, TaskCreate, TaskRead, TaskUpdate, TimelineEntry,
 )
+from app.services import contact_message_service as messaging
 from app.services import crm_sales_service as sales
 from app.services import crm_service
 
@@ -231,6 +232,34 @@ async def log_activity(contact_id: UUID, body: ActivityCreate, membership=Depend
     except sales.CrmError as e:
         _bad(e)
     return {"id": a.id, "kind": a.kind, "summary": a.summary, "created_at": a.created_at}
+
+
+class DirectEmailRequest(BaseModel):
+    sender_id: UUID
+    subject: str = Field(min_length=1, max_length=200)
+    body_html: str = Field(min_length=1, max_length=50000)
+
+
+class DirectSmsRequest(BaseModel):
+    body: str = Field(min_length=1, max_length=640)
+
+
+@router.post("/contacts/{contact_id}/send-email", status_code=status.HTTP_204_NO_CONTENT)
+async def send_contact_email(contact_id: UUID, body: DirectEmailRequest, membership=Depends(get_current_membership), db: AsyncSession = Depends(get_db)):
+    await _get_contact(db, membership, contact_id)
+    try:
+        await messaging.send_direct_email(db, membership.organization_id, contact_id, body.sender_id, body.subject, body.body_html, membership.user_id)
+    except messaging.ContactMessageError as e:
+        _bad(e)
+
+
+@router.post("/contacts/{contact_id}/send-sms", status_code=status.HTTP_204_NO_CONTENT)
+async def send_contact_sms(contact_id: UUID, body: DirectSmsRequest, membership=Depends(get_current_membership), db: AsyncSession = Depends(get_db)):
+    await _get_contact(db, membership, contact_id)
+    try:
+        await messaging.send_direct_sms(db, membership.organization_id, contact_id, body.body, membership.user_id)
+    except messaging.ContactMessageError as e:
+        _bad(e)
 
 
 @router.get("/contacts/{contact_id}/timeline", response_model=list[TimelineEntry])

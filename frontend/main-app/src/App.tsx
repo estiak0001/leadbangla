@@ -3,6 +3,9 @@ import LandingPage from "./modules/marketing/LandingPage";
 import { AcceptableUsePage, PrivacyPage, TermsPage } from "./modules/marketing/LegalPages";
 import SignupPage from "./modules/auth/SignupPage";
 import LoginPage from "./modules/auth/LoginPage";
+import VerifyEmailPage from "./modules/auth/VerifyEmailPage";
+import ForgotPasswordPage from "./modules/auth/ForgotPasswordPage";
+import ResetPasswordPage from "./modules/auth/ResetPasswordPage";
 import AcceptInvitePage from "./modules/auth/AcceptInvitePage";
 import PickPlanPage from "./modules/onboarding/PickPlanPage";
 import ManualPaymentPage from "./modules/billing/ManualPaymentPage";
@@ -73,6 +76,9 @@ export default function App() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/acceptable-use" element={<AcceptableUsePage />} />
       <Route path="/signup" element={<SignupPage />} />
+      <Route path="/verify-email" element={<VerifyEmailPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/subscribe/:key" element={<SubscribePage />} />
       <Route path="/settings/push" element={<Navigate to="/push" replace />} />

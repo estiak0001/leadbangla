@@ -30,6 +30,7 @@ async def create_user(
     industry: str,
     company_size: str,
     website: str | None = None,
+    verified: bool = False,
 ) -> User:
     existing = await db.scalar(select(User).where(User.email == email))
     if existing is not None:
@@ -38,6 +39,7 @@ async def create_user(
     user = User(
         email=email,
         hashed_password=hash_password(password),
+        is_verified=verified,
         pending_org_name=org_name,
         pending_language=language,
         pending_phone=phone,
@@ -51,11 +53,21 @@ async def create_user(
     return user
 
 
+class EmailNotVerifiedError(Exception):
+    pass
+
+
 async def authenticate_user(db: AsyncSession, email: str, password: str) -> User:
     user = await db.scalar(select(User).where(User.email == email))
     if user is None or not user.is_active or not verify_password(password, user.hashed_password):
         raise InvalidCredentialsError()
+    if not user.is_verified:
+        raise EmailNotVerifiedError()
     return user
+
+
+async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
+    return await db.scalar(select(User).where(User.email == email))
 
 
 async def change_password(db: AsyncSession, user: User, current: str, new: str) -> None:
@@ -68,6 +80,14 @@ async def change_password(db: AsyncSession, user: User, current: str, new: str) 
 
 async def get_user_by_id(db: AsyncSession, user_id: uuid.UUID) -> User | None:
     return await db.get(User, user_id)
+
+
+async def set_password(db: AsyncSession, user: User, new_password: str) -> None:
+    """Sets a new password without checking the old one — used after OTP
+    verification in the forgot-password flow, where the OTP is the proof."""
+    user.hashed_password = hash_password(new_password)
+    user.must_change_password = False
+    await db.commit()
 
 
 async def set_password_from_invite(db: AsyncSession, token: str, password: str) -> User:

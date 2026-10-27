@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { COMPANY_LOGO_URL } from "../../lib/branding";
 
 /** Change these to your real details — they appear on the public pages. */
 const COMPANY = "LeadBangla";
@@ -13,7 +14,7 @@ function Shell({ title, intro, children }: { title: string; intro: string; child
     <div className="min-h-screen bg-surface-50 text-surface-800">
       <header className="border-b border-surface-200 bg-white">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-          <Link to="/" aria-label={COMPANY}><img src="/logo.png" alt={COMPANY} className="h-7 w-auto" /></Link>
+          <Link to="/" aria-label={COMPANY}><img src={COMPANY_LOGO_URL} alt={COMPANY} className="h-7 w-auto" /></Link>
           <nav className="flex gap-4 text-sm text-surface-600">
             <Link to="/privacy" className="hover:text-brand-600">Privacy</Link>
             <Link to="/terms" className="hover:text-brand-600">Terms</Link>

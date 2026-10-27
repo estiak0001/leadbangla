@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import Button from "../../components/Button";
 import { fetchPlans, type Plan } from "../../lib/billing";
+import { COMPANY_LOGO_URL, COMPANY_LOGO_WHITE_URL } from "../../lib/branding";
 import { useFeatures } from "../../lib/features";
 
 const toBn = (n: number | string) => String(n).replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[Number(d)]);
@@ -106,7 +107,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-30 border-b border-surface-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <Link to="/" aria-label="LeadBangla">
-            <img src="/logo.png" alt="LeadBangla" className="h-7 w-auto sm:h-8" />
+            <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="h-7 w-auto sm:h-8" />
           </Link>
           <nav className="hidden items-center gap-7 text-sm font-medium text-surface-600 md:flex">
             {NAV.map((n) => <a key={n.href} href={n.href} className="hover:text-brand-600">{n.label}</a>)}
@@ -350,7 +351,7 @@ export default function LandingPage() {
       <footer className="bg-surface-900 text-sm text-surface-400">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 md:grid-cols-3">
           <div>
-            <img src="/logo-white.png" alt="LeadBangla" className="h-8 w-auto" />
+            <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="h-8 w-auto" />
             <p className="mt-3 max-w-xs">আপনার ব্যবসার পাশে, আপনার ভাষায়</p>
           </div>
           <div>

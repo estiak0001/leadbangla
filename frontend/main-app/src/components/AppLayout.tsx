@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { clearTokens, fetchCurrentUser } from "../lib/auth";
+import { COMPANY_LOGO_WHITE_URL } from "../lib/branding";
 import { fetchWalletBalance } from "../lib/billing";
 import { useMobileTables } from "../lib/mobileTables";
 import { ROUTE_PERMISSION, useMe } from "../lib/permissions";
@@ -418,7 +419,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
           <Menu size={20} />
         </button>
         <Link to="/dashboard" aria-label="LeadBangla" className="flex-shrink-0">
-          <img src="/logo-white.png" alt="LeadBangla" className="h-6 w-auto" />
+          <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="h-6 w-auto" />
         </Link>
 
         {balance !== null && (
@@ -467,7 +468,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
             <div className="absolute inset-y-0 left-0 w-72 bg-surface-100 shadow-2xl animate-slide-in-left">
               <div className="flex h-14 items-center justify-between px-4 bg-shell">
-                <img src="/logo-white.png" alt="LeadBangla" className="h-6 w-auto" />
+                <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="h-6 w-auto" />
                 <button onClick={() => setDrawerOpen(false)} className="p-1.5 rounded-md text-white/70 hover:text-white hover:bg-white/10" aria-label="Close menu"><X size={18} /></button>
               </div>
               <div className="h-[calc(100%-3.5rem)]"><SidebarContent onLinkClick={() => setDrawerOpen(false)} /></div>

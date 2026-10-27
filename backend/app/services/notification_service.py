@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings as app_settings
 from app.integrations.email_delivery import EmailSendError
 from app.integrations.email_client import email_client
 from app.services.email_provider_service import EmailNotConfiguredError
@@ -68,10 +69,10 @@ async def _get_owner_user(db: AsyncSession, org_id: uuid.UUID) -> User | None:
 logger = logging.getLogger(__name__)
 
 
-async def _try_send(db: AsyncSession, **kwargs) -> bool:
+async def _try_send(db: AsyncSession, *, org_id: uuid.UUID | None = None, **kwargs) -> bool:
     """Alert emails are best-effort: log why one couldn't go out instead of failing the whole daily job."""
     try:
-        await email_client.send_email(db, **kwargs)
+        await email_client.send_system_email(db, **kwargs)
         return True
     except (EmailNotConfiguredError, EmailSendError) as e:
         logger.warning("Alert email not sent: %s", e)
@@ -110,7 +111,7 @@ async def check_org_alerts(db: AsyncSession, org_id: uuid.UUID) -> dict:
                 <p>Your credit wallet balance is <strong>{balance_bdt:.2f} BDT</strong>,
                 which is below your alert threshold of {threshold_bdt:.2f} BDT.</p>
                 <p>Top up now to keep SMS and email campaigns running uninterrupted.</p>
-                <p><a href="https://app.leadbangla.com/billing?tab=wallet">Top Up Now &rarr;</a></p>
+                <p><a href="{app_settings.app_base_url}/billing?tab=wallet">Top Up Now &rarr;</a></p>
                 """,
             )
 
@@ -135,7 +136,7 @@ async def check_org_alerts(db: AsyncSession, org_id: uuid.UUID) -> dict:
                         subject=f"You're close to your {resource} limit on LeadBangla",
                         html_body=f"""
                         <p>You've used {count:,} of {limit:,} {resource} on your current plan ({plan.name}).</p>
-                        <p><a href="https://app.leadbangla.com/billing?tab=plan">Upgrade your plan &rarr;</a></p>
+                        <p><a href="{app_settings.app_base_url}/billing?tab=plan">Upgrade your plan &rarr;</a></p>
                         """,
                     )
                     if sent:

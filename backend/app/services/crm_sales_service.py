@@ -137,7 +137,8 @@ async def set_owner(db: AsyncSession, org_id: UUID, contact_id: UUID, owner_user
     if owner_user_id is not None:
         by = await db.get(User, by_user_id) if by_user_id else None
         await inbox.notify(db, org_id, [owner_user_id], category="leads", kind="lead_assigned",
-                           title=f"{_person(by)} assigned you a lead: {_lead_name(contact)}", link=f"/contacts/{contact.id}", actor_id=by_user_id)
+                           title=f"{_person(by)} assigned you a lead: {_lead_name(contact)}", link=f"/contacts/{contact.id}", actor_id=by_user_id,
+                           email_html=f"<p>{_person(by)} assigned you a lead:</p><p><strong>{_lead_name(contact)}</strong></p>")
     return contact
 
 
@@ -355,10 +356,19 @@ async def send_due_task_reminders(db: AsyncSession) -> dict:
             skipped += 1
             continue
         who = (" ".join(x for x in [contact.first_name, contact.last_name] if x) or contact.company or contact.email or contact.phone or "a lead") if contact else None
+        from app.services.email_template_service import render_template  # noqa: PLC0415
+
+        subject, email_html = await render_template(
+            db, "task_due",
+            task_title=task.title,
+            who_suffix=f" — {who}" if who else "",
+            who_clause=f" with <strong>{who}</strong>" if who else "",
+            due_date=_dhaka(task.due_at),
+        )
         res = await inbox.notify(
             db, task.organization_id, [user.id], category="tasks", kind="task_due",
-            title=f"Task due: {task.title}" + (f" — {who}" if who else ""), body=f"Was due {_dhaka(task.due_at)}", link=_task_link(task),
-            email_html=f"<p>Your task{' with <strong>' + who + '</strong>' if who else ''} is due.</p><p>{task.title}</p>")
+            title=subject, body=f"Was due {_dhaka(task.due_at)}", link=_task_link(task),
+            email_html=email_html)
         sent += res["email"]
         skipped += 0 if (res["email"] or res["in_app"]) else 1
         task.reminded_at = now      # never retry forever; the task still shows as overdue in the app

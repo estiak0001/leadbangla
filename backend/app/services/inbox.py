@@ -11,6 +11,7 @@ from datetime import datetime, timezone
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.permissions import effective_permissions
 from app.models.enums import TenantRole
 from app.models.inbox import Notification, UserNotificationPref
@@ -100,8 +101,8 @@ async def notify(
 
             for u in wanted_email:
                 try:
-                    await email_client.send_email(db, org_id=org_id, to_email=u.email, subject=title,
-                                                  html_body=email_html + (f'<p><a href="https://app.leadbangla.com{link}">Open it &rarr;</a></p>' if link else ""))
+                    await email_client.send_system_email(db, to_email=u.email, subject=title,
+                                                  html_body=email_html + (f'<p><a href="{settings.app_base_url}{link}">Open it &rarr;</a></p>' if link else ""))
                     result["email"] += 1
                 except Exception as e:  # noqa: BLE001 — email trouble never blocks the action
                     log.warning("Notification email to %s not sent: %s", u.email, e)

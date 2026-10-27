@@ -338,8 +338,10 @@ async def import_contacts_csv(db: AsyncSession, org_id: uuid.UUID, raw: bytes, c
         from app.services import inbox  # noqa: PLC0415
 
         for uid, n in per_owner.items():
+            title = f"{n} new lead{'s' if n != 1 else ''} imported and assigned to you"
             await inbox.notify(db, org_id, [uid], category="leads", kind="lead_assigned",
-                               title=f"{n} new lead{'s' if n != 1 else ''} imported and assigned to you", link="/crm?owner=me", actor_id=changed_by_user_id)
+                               title=title, link="/crm?owner=me", actor_id=changed_by_user_id,
+                               email_html=f"<p>{title}.</p>")
     return {
         "created": created, "updated": updated, "restored": restored, "skipped": skipped, "total_rows": total, "blocked": blocked,
         "limit": None if limit == -1 else limit, "errors": errors, "ignored_columns": ignored,

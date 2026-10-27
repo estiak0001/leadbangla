@@ -2,10 +2,11 @@ import { ReactNode, useEffect, useState } from "react";
 import { useMobileTables } from "../lib/mobileTables";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { clearAccessToken } from "../lib/auth";
+import { COMPANY_LOGO_URL, COMPANY_LOGO_WHITE_URL } from "../lib/branding";
 import { pendingVerificationCount } from "../lib/verifications";
 import {
   Building2, CreditCard, Wallet, Receipt, ToggleRight, BarChart3, Plug,
-  LogOut, Menu, X,
+  LogOut, Menu, X, Mail, Settings2,
 } from "lucide-react";
 
 interface NavItem { to: string; label: string; icon: ReactNode; }
@@ -18,6 +19,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: "/wallets",      label: "Wallets",      icon: <Wallet size={16} /> },
   { to: "/revenue",      label: "Revenue",      icon: <BarChart3 size={16} /> },
   { to: "/integrations", label: "Integrations", icon: <Plug size={16} /> },
+  { to: "/company-settings", label: "Company Settings", icon: <Settings2 size={16} /> },
+  { to: "/email-branding", label: "Email Branding", icon: <Mail size={16} /> },
 ];
 
 const SIDEBAR_W  = "w-64";
@@ -46,7 +49,7 @@ function SidebarContent({ onLinkClick }: { onLinkClick?: () => void }) {
       <div className="flex-shrink-0 px-4 py-3.5 border-b border-slate-800">
         <Link to="/tenants" onClick={onLinkClick} className="flex items-center gap-2.5">
           <div className="min-w-0">
-            <img src={`${import.meta.env.BASE_URL}logo-white.png`} alt="LeadBangla" className="block h-5 w-auto" />
+            <img src={COMPANY_LOGO_WHITE_URL} alt="LeadBangla" className="block h-5 w-auto" />
             <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-widest text-emerald-400 leading-none">
               Internal Admin
             </p>
@@ -149,7 +152,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             </h1>
             {/* Mobile: brand + admin badge */}
             <Link to="/tenants" className="flex items-center gap-2 lg:hidden">
-              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="LeadBangla" className="h-4 w-auto" />
+              <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="h-4 w-auto" />
               <span className="text-[10px] font-semibold bg-surface-100 text-surface-500 px-1.5 py-0.5 rounded-full">Admin</span>
             </Link>
           </div>

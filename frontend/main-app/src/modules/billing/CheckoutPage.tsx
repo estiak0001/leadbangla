@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { CreditCard, Landmark } from "lucide-react";
+import { COMPANY_LOGO_URL } from "../../lib/branding";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import Spinner from "../../components/Spinner";
@@ -51,7 +52,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-xl">
         <div className="mb-8 text-center">
-          <img src="/logo.png" alt="LeadBangla" className="mx-auto h-9 w-auto" />
+          <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
           <h1 className="mt-4 text-2xl font-bold text-surface-900">Choose how to pay</h1>
         </div>
 
