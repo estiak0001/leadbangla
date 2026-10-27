@@ -5,6 +5,8 @@ carries our own Authorization header. A short-lived signed `state` token (made a
 /start, while the user is authenticated) carries the org id across that round trip and
 doubles as CSRF protection.
 """
+import logging
+import re
 import uuid
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -14,6 +16,16 @@ from jose import JWTError
 
 from app.core.config import settings
 from app.core.security import _create_token, decode_token
+
+log = logging.getLogger("social")
+
+_SECRET_PARAMS = re.compile(r"(client_secret|access_token|fb_exchange_token|code)=[^&\s'\"]+")
+
+
+def _redact(text: str) -> str:
+    """httpx puts the whole request URL in its error text; never let secrets or codes into logs or user messages."""
+    return _SECRET_PARAMS.sub(r"\1=***", text)
+
 
 STATE_MINUTES = 10
 _STATE_TYPE = "social_oauth_state"
@@ -79,7 +91,8 @@ async def meta_exchange(*, client_id: str, client_secret: str, code: str) -> lis
             })
             pages.raise_for_status()
         except httpx.HTTPError as e:
-            raise OAuthError(f"Meta rejected the connection: {e}") from e
+            log.warning("meta oauth exchange failed: %s", _redact(str(e)))
+            raise OAuthError("Facebook didn't accept the connection. Please try again, or contact support if it keeps failing.") from e
 
         accounts: list[dict] = []
         for page in pages.json().get("data", []):
@@ -139,7 +152,8 @@ async def linkedin_exchange(*, client_id: str, client_secret: str, code: str) ->
             )
             me.raise_for_status()
         except httpx.HTTPError as e:
-            raise OAuthError(f"LinkedIn rejected the connection: {e}") from e
+            log.warning("linkedin oauth exchange failed: %s", _redact(str(e)))
+            raise OAuthError("LinkedIn didn't accept the connection. Please try again, or contact support if it keeps failing.") from e
 
     profile = me.json()
     return {
