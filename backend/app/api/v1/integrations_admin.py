@@ -17,7 +17,7 @@ router = APIRouter(prefix="/admin/integrations", tags=["admin"])
 # staff paste it into SNS subscription URLs, so they must be able to read it.)
 SECRET_KEYS = {
     "secret_access_key", "store_password", "api_token", "api_key", "api_secret", "access_token",
-    "bearer_token", "vapid_private_key", "password", "app_secret", "verify_token",
+    "bearer_token", "vapid_private_key", "password", "app_secret", "verify_token", "client_secret",
 }
 
 

@@ -34,12 +34,12 @@ export const SERVICE_FIELDS: Record<string, PlatformServiceField[]> = {
     { key: "api_token", label: "API Token", type: "password", hint: "Connection credential only — per-org Sender IDs are managed on each tenant's detail page" },
   ],
   meta_social: [
-    { key: "access_token", label: "Page Access Token", type: "password" },
-    { key: "page_id", label: "Facebook Page ID", type: "text" },
+    { key: "client_id", label: "App ID", type: "text", hint: "Meta app's App Settings → Basic" },
+    { key: "client_secret", label: "App Secret", type: "password", hint: "Meta app's App Settings → Basic" },
   ],
   linkedin: [
-    { key: "access_token", label: "Access Token", type: "password" },
-    { key: "org_urn", label: "Org URN", type: "text", hint: "urn:li:organization:XXXXXXXX" },
+    { key: "client_id", label: "Client ID", type: "text", hint: "LinkedIn app's Auth tab" },
+    { key: "client_secret", label: "Client Secret", type: "password", hint: "LinkedIn app's Auth tab" },
   ],
   firebase_vapid: [
     { key: "vapid_public_key", label: "VAPID Public Key", type: "text" },
