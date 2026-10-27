@@ -75,20 +75,29 @@ async def test_service(code: str, creds: dict) -> tuple[bool, str]:
             return True, "Credentials are saved. Your BSP has no read-only check, so use 'Send a test WhatsApp message' to prove the connection."
 
         if code == "meta_social":
+            # These are the platform's own OAuth app credentials (customers connect their own
+            # Pages), not a page token — check them with a client_credentials grant.
+            for k, label in (("client_id", "App ID"), ("client_secret", "App Secret")):
+                if not creds.get(k):
+                    return False, f"Enter the {label}."
             async with httpx.AsyncClient(timeout=10) as client:
                 r = await client.get(
-                    "https://graph.facebook.com/v19.0/me",
-                    params={"fields": "id", "access_token": creds["access_token"]},
+                    "https://graph.facebook.com/oauth/access_token",
+                    params={"client_id": creds["client_id"], "client_secret": creds["client_secret"], "grant_type": "client_credentials"},
                 )
-            return r.status_code == 200, r.json().get("id", f"HTTP {r.status_code}")
+            if r.status_code == 200 and "access_token" in r.json():
+                return True, "App ID and App Secret are valid."
+            try:
+                msg = r.json().get("error", {}).get("message", f"HTTP {r.status_code}")
+            except ValueError:
+                msg = f"HTTP {r.status_code}"
+            return False, f"Meta rejected these credentials: {msg}"
 
         if code == "linkedin":
-            async with httpx.AsyncClient(timeout=10) as client:
-                r = await client.get(
-                    "https://api.linkedin.com/v2/me",
-                    headers={"Authorization": f"Bearer {creds['access_token']}"},
-                )
-            return r.status_code == 200, f"HTTP {r.status_code}"
+            for k, label in (("client_id", "Client ID"), ("client_secret", "Client Secret")):
+                if not creds.get(k):
+                    return False, f"Enter the {label}."
+            return True, "Credentials are saved. LinkedIn has no read-only check for a Client ID/Secret alone — the first customer Connect will confirm they work."
 
         if code == "dataseo":
             token = base64.b64encode(f"{creds['login']}:{creds['password']}".encode()).decode()
