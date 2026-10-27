@@ -48,7 +48,10 @@ def open_token(stored: str) -> str:
 # ── Social accounts ──────────────────────────────────────────────────────────
 
 async def _verify(account: SocialAccount) -> tuple[bool, str]:
-    token = open_token(account.access_token)
+    try:
+        token = open_token(account.access_token)
+    except Exception:
+        return False, "Saved token could not be read. Reconnect this account with a new token."
     if not token:
         return False, "No access token saved. Reconnect this account with a token."
     try:
@@ -59,6 +62,8 @@ async def _verify(account: SocialAccount) -> tuple[bool, str]:
         return await li.check(account.page_id, token)
     except SocialPublishError as e:
         return False, str(e)
+    except Exception:
+        return False, "Could not verify this account right now. Try again later."
 
 
 async def check_account(db: AsyncSession, org_id: uuid.UUID, account_id: uuid.UUID) -> SocialAccount:
@@ -102,6 +107,25 @@ async def create_social_account(
     await db.commit()
     await db.refresh(account)
     return account
+
+
+async def connect_oauth_account(
+    db: AsyncSession, org_id: uuid.UUID, *, platform: SocialPlatform, account_name: str, page_id: str, access_token: str,
+) -> SocialAccount:
+    """Used by the OAuth callback. Reconnecting the same page/profile refreshes its token
+    instead of hitting the plan limit a second time for an account that already counts."""
+    existing = await db.scalar(select(SocialAccount).where(
+        SocialAccount.organization_id == org_id, SocialAccount.platform == platform,
+        SocialAccount.page_id == page_id, SocialAccount.is_active.is_(True),
+    ))
+    if existing is None:
+        return await create_social_account(db, org_id, platform=platform, account_name=account_name, page_id=page_id, access_token=access_token)
+    existing.access_token, existing.account_name = seal_token(access_token), account_name.strip() or existing.account_name
+    ok, msg = await _verify(existing)
+    existing.last_checked_at, existing.last_check_ok, existing.last_check_message = datetime.now(timezone.utc), ok, msg
+    await db.commit()
+    await db.refresh(existing)
+    return existing
 
 
 async def list_social_accounts(db: AsyncSession, org_id: uuid.UUID) -> list[SocialAccount]:

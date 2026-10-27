@@ -40,8 +40,12 @@ async def _req(method: str, path: str, *, token: str, **kw) -> httpx.Response:
 
 async def check(org: str, token: str) -> tuple[bool, str]:
     """(verified, message). LinkedIn has no read-only check for posting-only tokens, so this may be 'unverified'."""
+    urn = org_urn(org)
+    if urn.startswith("urn:li:person:"):
+        # No read-only endpoint for a member's own profile with a posting-only token.
+        return True, "Connected to LinkedIn (personal profile). The first post will confirm it works."
     try:
-        r = await _req("GET", f"organizations/{org.strip().split(':')[-1]}", token=token)
+        r = await _req("GET", f"organizations/{urn.split(':')[-1]}", token=token)
         return True, f"Connected to LinkedIn page “{r.json().get('localizedName', org)}”."
     except SocialPublishError as e:
         if "permission" in str(e):

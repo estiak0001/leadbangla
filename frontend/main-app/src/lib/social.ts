@@ -50,11 +50,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
 export const fetchSocialAccounts = () => apiFetch<SocialAccount[]>("/accounts");
 
-export const connectAccount = (platform: string, account_name: string, page_id: string, access_token: string) =>
-  apiFetch<SocialAccount>("/accounts", {
-    method: "POST",
-    body: JSON.stringify({ platform, account_name, page_id, access_token }),
-  });
+/** "meta" covers both Facebook and Instagram — one consent screen picks Pages for both. */
+export type OAuthProvider = "meta" | "linkedin";
+
+export const startOAuthConnect = (provider: OAuthProvider) =>
+  apiFetch<{ authorize_url: string }>(`/connect/${provider}/start`);
 
 export const checkAccount = (id: string) => apiFetch<SocialAccount>(`/accounts/${id}/check`, { method: "POST" });
 

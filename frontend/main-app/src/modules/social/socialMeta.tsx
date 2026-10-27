@@ -2,38 +2,10 @@ import type { SocialPlatform, SocialPostStatus } from "../../lib/social";
 
 export const PLATFORMS: Record<SocialPlatform, {
   label: string; short: string; tile: string; soft: string; limit: number; needsImage: boolean; textOnly: boolean;
-  idLabel: string; idHint: string; tokenHint: string; steps: string[];
 }> = {
-  facebook: {
-    label: "Facebook Page", short: "f", tile: "bg-[#1877F2] text-white", soft: "bg-[#1877F2]/10 text-[#1459b8]", limit: 2000, needsImage: false, textOnly: false,
-    idLabel: "Page ID", idHint: "Numeric ID of your Facebook Page", tokenHint: "A long-lived Page access token",
-    steps: [
-      "Open developers.facebook.com → your app → Graph API Explorer.",
-      "Choose your Page and generate a token with pages_manage_posts and pages_read_engagement.",
-      "Exchange it for a long-lived Page token (Access Token Tool) so it doesn't expire in an hour.",
-      "Your Page ID is on the Page → About → Page transparency, or in the Explorer as the Page's id.",
-    ],
-  },
-  instagram: {
-    label: "Instagram Business", short: "IG", tile: "bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white", soft: "bg-[#dd2a7b]/10 text-[#b01e62]", limit: 2200, needsImage: true, textOnly: false,
-    idLabel: "Instagram account ID", idHint: "The Instagram Business account ID (not the @username)", tokenHint: "The linked Facebook Page's long-lived token (with instagram_content_publish)",
-    steps: [
-      "Your Instagram must be a Business or Creator account linked to a Facebook Page.",
-      "In Graph API Explorer request instagram_basic and instagram_content_publish on the Page token.",
-      "Get the account ID with: GET /{page-id}?fields=instagram_business_account.",
-      "Every Instagram post needs a picture (a public image link).",
-    ],
-  },
-  linkedin: {
-    label: "LinkedIn Page", short: "in", tile: "bg-[#0A66C2] text-white", soft: "bg-[#0A66C2]/10 text-[#084e96]", limit: 3000, needsImage: false, textOnly: true,
-    idLabel: "Organisation ID", idHint: "The number in your LinkedIn Page admin URL", tokenHint: "An access token with w_organization_social",
-    steps: [
-      "Apply for LinkedIn's Marketing Developer Platform and add your Page to the app.",
-      "Authorise with the w_organization_social permission as an admin of the Page.",
-      "Your organisation ID is the number in linkedin.com/company/<id>/admin.",
-      "LinkedIn posts are text only for now.",
-    ],
-  },
+  facebook: { label: "Facebook Page", short: "f", tile: "bg-[#1877F2] text-white", soft: "bg-[#1877F2]/10 text-[#1459b8]", limit: 2000, needsImage: false, textOnly: false },
+  instagram: { label: "Instagram Business", short: "IG", tile: "bg-gradient-to-br from-[#f58529] via-[#dd2a7b] to-[#8134af] text-white", soft: "bg-[#dd2a7b]/10 text-[#b01e62]", limit: 2200, needsImage: true, textOnly: false },
+  linkedin: { label: "LinkedIn", short: "in", tile: "bg-[#0A66C2] text-white", soft: "bg-[#0A66C2]/10 text-[#084e96]", limit: 3000, needsImage: false, textOnly: true },
 };
 
 export const STATUS_META: Record<SocialPostStatus, { label: string; cls: string; dot: string }> = {

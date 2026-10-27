@@ -155,6 +155,18 @@ export default function SocialPage() {
     .catch(() => setError("Failed to load. Check your connection and refresh.")).finally(() => setLoading(false)), []);
   useEffect(() => { reload(); }, [reload]);
 
+  // Landing back here after the OAuth "Connect" redirect (see backend/app/api/v1/social.py's /connect/{provider}/callback).
+  useEffect(() => {
+    const connected = params.get("connected");
+    if (!connected) return;
+    const message = params.get("message") ?? "";
+    if (params.get("ok") === "1") setNotice(message || "Connected.");
+    else setError(message || "That connection didn't work.");
+    const next = new URLSearchParams(params);
+    next.delete("connected"); next.delete("ok"); next.delete("message");
+    setParams(next, { replace: true });
+  }, [params, setParams]);
+
   // While something is going out (or due within the next minute) keep the list fresh.
   const live = posts.some((p) => p.status === "publishing" || (p.status === "scheduled" && (!p.scheduled_at || +new Date(p.scheduled_at) < Date.now() + 90_000)));
   useEffect(() => { if (!live) return; const t = setInterval(() => { fetchSocialPosts().then(setPosts).catch(() => undefined); }, 4000); return () => clearInterval(t); }, [live]);
