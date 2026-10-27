@@ -11,9 +11,20 @@ const ORDER: SocialPlatform[] = ["facebook", "instagram", "linkedin"];
 const PROVIDER_OF: Record<SocialPlatform, OAuthProvider> = { facebook: "meta", instagram: "meta", linkedin: "linkedin" };
 
 const REQUIREMENTS: Record<SocialPlatform, string[]> = {
-  facebook: ["You must be an admin of the Facebook Page you want to connect.", "You'll pick the Page(s) on Facebook's own screen — LeadBangla never sees your password."],
-  instagram: ["The Instagram account must be a Business or Creator account.", "It must already be linked to a Facebook Page you admin."],
-  linkedin: ["This connects your own LinkedIn profile, not a Company Page, for now.", "Posting as a Company Page is coming once LinkedIn approves that access."],
+  facebook: [
+    "You need a Facebook Page — a personal profile on its own can't be connected.",
+    "You must be an Admin of that Page (Page Settings → Page roles). Editor/Moderator may not be enough.",
+    "You'll pick the Page on Facebook's own screen — LeadBangla never sees your password.",
+  ],
+  instagram: [
+    "The Instagram account must be a Business or Creator account, not a personal account.",
+    "It must already be linked to a Facebook Page you admin (Instagram app → Settings → Account type and tools, or the Page's Settings → Linked accounts).",
+    "Connects together with Facebook in the same step — no separate Instagram login needed.",
+  ],
+  linkedin: [
+    "This connects your own LinkedIn profile, not a Company Page, for now.",
+    "Posting as a Company Page is coming once LinkedIn approves that access.",
+  ],
 };
 
 const STEPS = [
