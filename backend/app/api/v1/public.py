@@ -7,6 +7,7 @@ Currently hosts:
 """
 
 import json
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import RedirectResponse
@@ -21,6 +22,16 @@ from app.services import sms_service
 
 router = APIRouter(prefix="/public", tags=["public"])
 
+_BRAND_DIR = Path(__file__).resolve().parents[2] / "assets" / "branding"
+
+
+def _default_brand(filename: str) -> Response:
+    """Built-in logo/favicon, used until one is uploaded in Company Settings (so a fresh install never shows a broken logo)."""
+    path = _BRAND_DIR / filename
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="No image set")
+    return Response(content=path.read_bytes(), media_type="image/png", headers={"Cache-Control": "public, max-age=3600"})
+
 
 @router.get("/company-logo")
 async def company_logo(db: AsyncSession = Depends(get_db)):
@@ -29,7 +40,7 @@ async def company_logo(db: AsyncSession = Depends(get_db)):
 
     company = await get_settings_with_logo(db)
     if not company.logo_data or not company.logo_content_type:
-        raise HTTPException(status_code=404, detail="No logo set")
+        return _default_brand("logo.png")
     return Response(content=company.logo_data, media_type=company.logo_content_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
@@ -40,7 +51,7 @@ async def company_logo_white(db: AsyncSession = Depends(get_db)):
 
     company = await get_settings_with_logo_white(db)
     if not company.logo_white_data or not company.logo_white_content_type:
-        raise HTTPException(status_code=404, detail="No white logo set")
+        return _default_brand("logo-white.png")
     return Response(content=company.logo_white_data, media_type=company.logo_white_content_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
@@ -50,7 +61,7 @@ async def company_favicon(db: AsyncSession = Depends(get_db)):
 
     company = await get_settings_with_favicon(db)
     if not company.favicon_data or not company.favicon_content_type:
-        raise HTTPException(status_code=404, detail="No favicon set")
+        return _default_brand("favicon.png")
     return Response(content=company.favicon_data, media_type=company.favicon_content_type, headers={"Cache-Control": "public, max-age=86400"})
 
 
