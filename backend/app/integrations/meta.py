@@ -47,7 +47,7 @@ async def _req(method: str, path: str, *, token: str, **kw) -> dict:
             else:
                 r = await client.post(f"{GRAPH_URL}/{path}", data={**kw.get("data", {}), "access_token": token})
     except httpx.HTTPError as e:
-        raise SocialPublishError(f"Could not reach Meta: {e}") from e
+        raise SocialPublishError("Could not reach Facebook right now. Please try again in a moment.") from e
     if r.status_code >= 400:
         raise _fail(r)
     return r.json()
@@ -97,7 +97,7 @@ async def _paginate(path: str, token: str, fields: str) -> list[dict]:
             try:
                 r = await client.get(url, params=params)
             except httpx.HTTPError as e:
-                raise SocialPublishError(f"Could not reach Meta: {e}") from e
+                raise SocialPublishError("Could not reach Facebook right now. Please try again in a moment.") from e
             if r.status_code >= 400:
                 raise _fail(r)
             d = r.json()
