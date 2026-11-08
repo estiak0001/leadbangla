@@ -51,11 +51,17 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
     ],
   },
   {
+    label: "Social",
+    items: [
+      { to: "/social?tab=posts",    label: "Posts",    icon: <Share2 size={16} /> },
+      { to: "/social?tab=accounts", label: "Accounts", icon: <Link2 size={16} /> },
+      { to: "/paid-ads",            label: "Paid Ads", icon: <BadgeDollarSign size={16} /> },
+    ],
+  },
+  {
     label: "More channels",
     items: [
-      { to: "/push",     label: "Push",     icon: <Bell size={16} /> },
-      { to: "/social",   label: "Social",   icon: <Share2 size={16} /> },
-      { to: "/paid-ads", label: "Paid Ads", icon: <BadgeDollarSign size={16} /> },
+      { to: "/push", label: "Push", icon: <Bell size={16} /> },
     ],
   },
   {
@@ -90,8 +96,19 @@ const ACCOUNT_ITEMS: NavItem[] = [
 ];
 const DEFAULT_COLLAPSED: Record<string, boolean> = { "Grow": true, "More channels": true };
 
-const isItemActive = (item: NavItem, pathname: string) =>
-  (pathname === item.to || pathname.startsWith(item.to + "/")) && !item.notActiveOn?.some((x) => pathname === x || pathname.startsWith(x + "/"));
+// A nav item's `to` may carry a query string (e.g. a sub-tab like "/social?tab=accounts") —
+// permission/feature lookups and the page title only care about the path part.
+const basePath = (to: string) => to.split("?")[0];
+
+/** Tab-aware: two items sharing a base path (different `?tab=`) are only active for their own tab. */
+const isItemActive = (item: NavItem, pathname: string, search = "") => {
+  const base = basePath(item.to);
+  if (pathname !== base && !pathname.startsWith(base + "/")) return false;
+  if (item.notActiveOn?.some((x) => pathname === x || pathname.startsWith(x + "/"))) return false;
+  const query = item.to.includes("?") ? item.to.split("?")[1] : "";
+  if (!query) return true;
+  return new URLSearchParams(search).get("tab") === new URLSearchParams(query).get("tab");
+};
 
 const ALL_ITEMS = NAV_GROUPS.flatMap((g) => g.items);
 
@@ -100,7 +117,8 @@ function getPageTitle(pathname: string): string {
   if (pathname.startsWith("/profile")) return "My Profile";
   if (pathname.startsWith("/settings")) return "Settings";
   if (pathname.startsWith("/billing")) return "Billing & Plan";
-  const match = [...ALL_ITEMS].sort((x, y) => y.to.length - x.to.length).find((item) => isItemActive(item, pathname));
+  const match = [...ALL_ITEMS].sort((x, y) => basePath(y.to).length - basePath(x.to).length)
+    .find((item) => { const b = basePath(item.to); return pathname === b || pathname.startsWith(b + "/"); });
   return match?.label ?? "Dashboard";
 }
 
@@ -114,11 +132,11 @@ function loadCollapsed(): Record<string, boolean> {
   try { return JSON.parse(localStorage.getItem("nav-collapsed") ?? "{}"); } catch { return {}; }
 }
 
-const permFor = (to: string) => [...ROUTE_PERMISSION].sort((x, y) => y[0].length - x[0].length).find(([p]) => to === p || to.startsWith(p + "/"))?.[1];
+const permFor = (to: string) => { const b = basePath(to); return [...ROUTE_PERMISSION].sort((x, y) => y[0].length - x[0].length).find(([p]) => b === p || b.startsWith(p + "/"))?.[1]; };
 
 function NavGroup({ group, onLinkClick, collapsed, onToggle, badges, expanded }: { group: typeof NAV_GROUPS[0]; onLinkClick?: () => void; collapsed: boolean; onToggle: () => void; badges?: Record<string, number>; expanded: boolean }) {
-  const { pathname } = useLocation();
-  const hasActive = group.items.some((i) => isItemActive(i, pathname));
+  const { pathname, search } = useLocation();
+  const hasActive = group.items.some((i) => isItemActive(i, pathname, search));
   const open = !expanded || !collapsed || hasActive; // the icon rail always shows every icon
   return (
     <div className="mb-1">
@@ -137,7 +155,7 @@ function NavGroup({ group, onLinkClick, collapsed, onToggle, badges, expanded }:
       {open && (
         <div className="space-y-0.5">
           {group.items.map((item) => {
-            const isActive = isItemActive(item, pathname);
+            const isActive = isItemActive(item, pathname, search);
             const count = badges?.[item.to] ?? 0;
             return (
               <NavLink
@@ -184,7 +202,7 @@ function SidebarContent({ onLinkClick, expanded = true, pinned = false, onToggle
   }, [canMail]);
   const groups = NAV_GROUPS.map((g) => ({
     ...g,
-    items: g.items.filter((i) => can(permFor(i.to)) && on(PATH_FEATURE[i.to] ?? "") && !(me?.my_role === "sales" && i.to === "/segments")),
+    items: g.items.filter((i) => can(permFor(i.to)) && on(PATH_FEATURE[basePath(i.to)] ?? "") && !(me?.my_role === "sales" && i.to === "/segments")),
   })).filter((g) => g.items.length > 0);
 
   function toggle(label: string) {
