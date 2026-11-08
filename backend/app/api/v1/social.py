@@ -27,6 +27,7 @@ from app.services.social_service import (
     delete_social_account,
     delete_social_post,
     get_social_post,
+    import_existing_posts,
     list_social_accounts,
     list_social_posts,
     queue_post,
@@ -111,6 +112,26 @@ async def check_connection(
         return _account_read(await check_account(db, membership.organization_id, account_id))
     except SocialAccountNotFoundError:
         raise HTTPException(status_code=404, detail="Account not found")
+
+
+@router.post("/accounts/{account_id}/import-posts", response_model=list[SocialPostRead])
+async def import_posts(
+    account_id: uuid.UUID,
+    membership: OrganizationMember = Depends(get_current_membership),
+    db: AsyncSession = Depends(get_db),
+) -> list[SocialPostRead]:
+    """Pulls the account's full post history from the network (paginated) and adds
+    whatever LeadBangla doesn't already have. Safe to press again later — already
+    imported posts are skipped."""
+    try:
+        posts = await import_existing_posts(db, membership.organization_id, account_id)
+    except SocialAccountNotFoundError:
+        raise HTTPException(status_code=404, detail="Account not found")
+    except SocialInputError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except SocialPublishError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return [_post_to_read(p) for p in posts]
 
 
 @router.delete("/accounts/{account_id}", status_code=status.HTTP_204_NO_CONTENT)

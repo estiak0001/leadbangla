@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { CheckCircle2, AlertTriangle, ChevronDown, Clock, Info, Lock, LogIn, MousePointerClick, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
+import { CheckCircle2, AlertTriangle, ChevronDown, Clock, DownloadCloud, Info, Lock, LogIn, MousePointerClick, RefreshCw, ShieldCheck, Trash2 } from "lucide-react";
 import Alert from "../../components/Alert";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
-import { checkAccount, disconnectAccount, startOAuthConnect, type OAuthProvider, type SocialAccount, type SocialPlatform } from "../../lib/social";
+import { checkAccount, disconnectAccount, importExistingPosts, startOAuthConnect, type OAuthProvider, type SocialAccount, type SocialPlatform, type SocialPost } from "../../lib/social";
 import { PLATFORMS, PlatformTile, ago } from "./socialMeta";
 
 const ORDER: SocialPlatform[] = ["facebook", "instagram", "linkedin"];
@@ -62,10 +62,14 @@ function HowItWorks() {
   );
 }
 
-function AccountRow({ a, onChange, onError }: { a: SocialAccount; onChange: (u: SocialAccount | null) => void; onError: (m: string) => void }) {
-  const [busy, setBusy] = useState<"check" | "del" | null>(null);
+function AccountRow({ a, onChange, onError, onImported }: {
+  a: SocialAccount; onChange: (u: SocialAccount | null) => void; onError: (m: string) => void; onImported: (posts: SocialPost[]) => void;
+}) {
+  const [busy, setBusy] = useState<"check" | "del" | "import" | null>(null);
   const [confirm, setConfirm] = useState(false);
+  const [imported, setImported] = useState<number | null>(null);
   const bad = !a.has_token || a.last_check_ok === false;
+  const canImport = a.platform !== "linkedin" && a.has_token && a.last_check_ok !== false;
   async function check() {
     setBusy("check");
     try { onChange(await checkAccount(a.id)); } catch (e) { onError(e instanceof Error ? e.message : "Check failed"); } finally { setBusy(null); }
@@ -73,6 +77,12 @@ function AccountRow({ a, onChange, onError }: { a: SocialAccount; onChange: (u: 
   async function remove() {
     setBusy("del");
     try { await disconnectAccount(a.id); onChange(null); } catch (e) { onError(e instanceof Error ? e.message : "Failed to disconnect"); setBusy(null); }
+  }
+  async function doImport() {
+    setBusy("import"); setImported(null);
+    try { const posts = await importExistingPosts(a.id); onImported(posts); setImported(posts.length); }
+    catch (e) { onError(e instanceof Error ? e.message : "Could not import posts"); }
+    finally { setBusy(null); }
   }
   return (
     <div className={`rounded-lg border px-2.5 py-2 ${bad ? "border-danger-base/30 bg-danger-light/40" : "border-surface-200 bg-surface-50/60"}`}>
@@ -83,6 +93,11 @@ function AccountRow({ a, onChange, onError }: { a: SocialAccount; onChange: (u: 
           <p className="text-[10.5px] text-surface-500 truncate">{a.has_token ? `checked ${ago(a.last_checked_at)}` : "no token saved"}</p>
         </div>
         <div className="flex items-center gap-0.5 flex-shrink-0">
+          {canImport && (
+            <button onClick={doImport} disabled={busy !== null} title="Import this account's existing posts" aria-label="Import existing posts" className="p-1.5 rounded-md text-surface-500 hover:text-brand-600 hover:bg-brand-50 disabled:opacity-40">
+              <DownloadCloud size={13} className={busy === "import" ? "animate-pulse" : ""} />
+            </button>
+          )}
           <button onClick={check} disabled={busy !== null} title="Check connection" aria-label="Check connection" className="p-1.5 rounded-md text-surface-500 hover:text-brand-600 hover:bg-brand-50 disabled:opacity-40">
             <RefreshCw size={13} className={busy === "check" ? "animate-spin" : ""} />
           </button>
@@ -91,6 +106,9 @@ function AccountRow({ a, onChange, onError }: { a: SocialAccount; onChange: (u: 
       </div>
       {(a.last_check_message || !a.has_token) && (
         <p className={`mt-1.5 text-[11px] leading-snug ${bad ? "text-danger-dark" : "text-surface-600"}`}>{a.has_token ? a.last_check_message : "This account's token is gone. Disconnect it and connect again."}</p>
+      )}
+      {imported !== null && (
+        <p className="mt-1.5 text-[11px] text-success-dark leading-snug">{imported === 0 ? "Already up to date — no new posts found." : `Imported ${imported} post${imported === 1 ? "" : "s"}. Check the Posts tab.`}</p>
       )}
       {confirm && (
         <div className="mt-2 flex flex-wrap items-center gap-2 rounded-md bg-white px-2.5 py-2 text-xs border border-surface-200">
@@ -103,9 +121,9 @@ function AccountRow({ a, onChange, onError }: { a: SocialAccount; onChange: (u: 
   );
 }
 
-function PlatformCard({ p, list, connecting, onConnect, onError, onAccountsChange, accounts }: {
+function PlatformCard({ p, list, connecting, onConnect, onError, onAccountsChange, onImported, accounts }: {
   p: SocialPlatform; list: SocialAccount[]; connecting: boolean; onConnect: () => void; onError: (m: string) => void;
-  onAccountsChange: (a: SocialAccount[]) => void; accounts: SocialAccount[];
+  onAccountsChange: (a: SocialAccount[]) => void; onImported: (posts: SocialPost[]) => void; accounts: SocialAccount[];
 }) {
   const m = PLATFORMS[p];
   const [showReq, setShowReq] = useState(false);
@@ -138,7 +156,7 @@ function PlatformCard({ p, list, connecting, onConnect, onError, onAccountsChang
 
       <div className="mt-2.5 space-y-1.5">
         {list.map((a) => (
-          <AccountRow key={a.id} a={a} onError={onError}
+          <AccountRow key={a.id} a={a} onError={onError} onImported={onImported}
             onChange={(u) => onAccountsChange(u ? accounts.map((x) => (x.id === u.id ? u : x)) : accounts.filter((x) => x.id !== a.id))} />
         ))}
         {list.length === 0 && <p className="text-[11px] text-surface-400">{m.needsImage ? "Posts need a picture." : m.textOnly ? "Text posts only for now." : "Text and picture posts."}</p>}
@@ -147,7 +165,9 @@ function PlatformCard({ p, list, connecting, onConnect, onError, onAccountsChang
   );
 }
 
-export default function SocialAccountsTab({ accounts, onAccountsChange }: { accounts: SocialAccount[]; onAccountsChange: (a: SocialAccount[]) => void }) {
+export default function SocialAccountsTab({ accounts, onAccountsChange, onPostsImported }: {
+  accounts: SocialAccount[]; onAccountsChange: (a: SocialAccount[]) => void; onPostsImported: (posts: SocialPost[]) => void;
+}) {
   const [error, setError] = useState<string | null>(null);
   const [connecting, setConnecting] = useState<SocialPlatform | null>(null);
 
@@ -170,7 +190,7 @@ export default function SocialAccountsTab({ accounts, onAccountsChange }: { acco
       <div className="grid gap-3.5 lg:grid-cols-3 items-start">
         {ORDER.map((p) => (
           <PlatformCard key={p} p={p} list={accounts.filter((a) => a.platform === p)} connecting={connecting === p}
-            onConnect={() => connect(p)} onError={setError} onAccountsChange={onAccountsChange} accounts={accounts} />
+            onConnect={() => connect(p)} onError={setError} onAccountsChange={onAccountsChange} onImported={onPostsImported} accounts={accounts} />
         ))}
       </div>
 

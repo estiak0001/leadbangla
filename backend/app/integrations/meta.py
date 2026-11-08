@@ -85,6 +85,40 @@ async def publish_instagram(*, ig_id: str, token: str, content: str, media_url: 
     return (await _req("POST", f"{ig_id}/media_publish", token=token, data={"creation_id": container}))["id"]
 
 
+MAX_IMPORT_PAGES = 40   # ~100/page -> up to ~4000 posts; stops a huge/ancient Page from looping forever
+
+
+async def _paginate(path: str, token: str, fields: str) -> list[dict]:
+    """Walks every page of results via the Graph API's own cursor, not just the first batch."""
+    out: list[dict] = []
+    async with httpx.AsyncClient(timeout=25) as client:
+        url, params = f"{GRAPH_URL}/{path}", {"fields": fields, "limit": 100, "access_token": token}
+        for _ in range(MAX_IMPORT_PAGES):
+            try:
+                r = await client.get(url, params=params)
+            except httpx.HTTPError as e:
+                raise SocialPublishError(f"Could not reach Meta: {e}") from e
+            if r.status_code >= 400:
+                raise _fail(r)
+            d = r.json()
+            out.extend(d.get("data", []))
+            next_url = d.get("paging", {}).get("next")
+            if not next_url:
+                break
+            url, params = next_url, {}   # the "next" link already carries every query param
+    return out
+
+
+async def list_facebook_posts(page_id: str, token: str) -> list[dict]:
+    """Every post already published on the Page, newest first — used to import a Page's
+    full history into LeadBangla instead of only tracking posts made from here."""
+    return await _paginate(f"{page_id}/posts", token, "message,created_time,full_picture,likes.summary(true),comments.summary(true),shares")
+
+
+async def list_instagram_posts(ig_id: str, token: str) -> list[dict]:
+    return await _paginate(f"{ig_id}/media", token, "caption,timestamp,media_url,like_count,comments_count")
+
+
 async def stats_facebook(post_id: str, token: str) -> dict[str, int]:
     d = await _req("GET", post_id, token=token, params={"fields": "likes.summary(true),shares,comments.summary(true)"})
     return {"likes": d.get("likes", {}).get("summary", {}).get("total_count", 0), "shares": d.get("shares", {}).get("count", 0),

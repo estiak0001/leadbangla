@@ -58,6 +58,9 @@ export const startOAuthConnect = (provider: OAuthProvider) =>
 
 export const checkAccount = (id: string) => apiFetch<SocialAccount>(`/accounts/${id}/check`, { method: "POST" });
 
+/** Pulls the account's full post history from the network and adds whatever isn't already here. */
+export const importExistingPosts = (id: string) => apiFetch<SocialPost[]>(`/accounts/${id}/import-posts`, { method: "POST" });
+
 export const disconnectAccount = (id: string) =>
   apiFetch<void>(`/accounts/${id}`, { method: "DELETE" });
 

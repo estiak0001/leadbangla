@@ -223,7 +223,8 @@ export default function SocialPage() {
       {notice && <Alert variant="success" onDismiss={() => setNotice(null)} className="mb-3">{notice}</Alert>}
 
       {loading ? <div className="flex justify-center py-16"><Spinner size="lg" /></div> : tab === "accounts" ? (
-        <SocialAccountsTab accounts={accounts} onAccountsChange={setAccounts} />
+        <SocialAccountsTab accounts={accounts} onAccountsChange={setAccounts}
+          onPostsImported={(imported) => { if (imported.length) setPosts((prev) => [...imported, ...prev.filter((p) => !imported.some((n) => n.id === p.id))]); }} />
       ) : accounts.length === 0 ? (
         <div className="rounded-2xl border-2 border-dashed border-surface-200 bg-white py-14 px-4 text-center">
           <div className="w-14 h-14 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4"><Share2 size={26} /></div>

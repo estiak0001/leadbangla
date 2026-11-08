@@ -291,6 +291,68 @@ async def recover_stuck(db: AsyncSession) -> int:
     return len(stuck)
 
 
+def _parse_meta_time(s: str | None) -> datetime | None:
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace("+0000", "+00:00"))
+    except ValueError:
+        return None
+
+
+async def import_existing_posts(db: AsyncSession, org_id: uuid.UUID, account_id: uuid.UUID) -> list[SocialPost]:
+    """Pulls every post already published on the connected Page/Instagram account straight
+    from the network (full history, paginated) and adds whichever ones LeadBangla doesn't
+    already have, so the timeline isn't limited to posts made from here."""
+    account = await _get_account(db, org_id, account_id)
+    if not account.is_active:
+        raise SocialInputError("This account was disconnected. Reconnect it first.")
+    if account.platform not in (SocialPlatform.FACEBOOK, SocialPlatform.INSTAGRAM):
+        raise SocialInputError("Importing existing posts is only available for Facebook and Instagram right now.")
+    token = open_token(account.access_token)
+    if not token:
+        raise SocialInputError("This account has no saved token. Reconnect it first.")
+
+    raw = await (meta.list_facebook_posts(account.page_id, token) if account.platform == SocialPlatform.FACEBOOK
+                 else meta.list_instagram_posts(account.page_id, token))
+
+    existing_ids = set((await db.scalars(
+        select(SocialPost.external_post_id).where(SocialPost.social_account_id == account.id, SocialPost.external_post_id.isnot(None))
+    )).all())
+
+    imported: list[SocialPost] = []
+    for item in raw:
+        ext_id = item.get("id")
+        if not ext_id or ext_id in existing_ids:
+            continue
+        if account.platform == SocialPlatform.FACEBOOK:
+            content, media_url = item.get("message") or "", item.get("full_picture")
+            published_at = _parse_meta_time(item.get("created_time"))
+            likes = item.get("likes", {}).get("summary", {}).get("total_count", 0)
+            comments = item.get("comments", {}).get("summary", {}).get("total_count", 0)
+            shares = item.get("shares", {}).get("count", 0)
+        else:
+            content, media_url = item.get("caption") or "", item.get("media_url")
+            published_at = _parse_meta_time(item.get("timestamp"))
+            likes, comments, shares = item.get("like_count", 0), item.get("comments_count", 0), 0
+        if published_at is None:
+            continue
+        post = SocialPost(
+            organization_id=org_id, social_account_id=account.id, platform=account.platform, content=content,
+            media_url=media_url, status=SocialPostStatus.PUBLISHED, published_at=published_at, external_post_id=ext_id,
+            likes_count=likes, shares_count=shares, comments_count=comments,
+        )
+        db.add(post)
+        imported.append(post)
+        existing_ids.add(ext_id)
+
+    if imported:
+        await db.commit()
+        for p in imported:
+            await db.refresh(p)
+    return sorted(imported, key=lambda p: p.published_at or datetime.min.replace(tzinfo=timezone.utc), reverse=True)
+
+
 async def refresh_post_stats(db: AsyncSession, org_id: uuid.UUID, post_id: uuid.UUID) -> SocialPost:
     post = await get_social_post(db, org_id, post_id)
     if post.status != SocialPostStatus.PUBLISHED:
