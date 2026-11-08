@@ -27,6 +27,7 @@ dependencies = [
     "dnspython>=2.6",
     "dkimpy>=1.1.5",
     "nh3>=0.2.18",
+    "packaging>=23.0",
 ]
 
 [project.optional-dependencies]
