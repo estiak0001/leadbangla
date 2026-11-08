@@ -1,6 +1,6 @@
 import { Navigate, Routes, Route } from "react-router-dom";
 import LandingPage from "./modules/marketing/LandingPage";
-import { AcceptableUsePage, PrivacyPage, TermsPage } from "./modules/marketing/LegalPages";
+import { AcceptableUsePage, DataDeletionPage, PrivacyPage, TermsPage } from "./modules/marketing/LegalPages";
 import SignupPage from "./modules/auth/SignupPage";
 import LoginPage from "./modules/auth/LoginPage";
 import VerifyEmailPage from "./modules/auth/VerifyEmailPage";
@@ -75,6 +75,7 @@ export default function App() {
       <Route path="/privacy" element={<PrivacyPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/acceptable-use" element={<AcceptableUsePage />} />
+      <Route path="/data-deletion" element={<DataDeletionPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/verify-email" element={<VerifyEmailPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />

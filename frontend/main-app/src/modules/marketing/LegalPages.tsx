@@ -19,6 +19,7 @@ function Shell({ title, intro, children }: { title: string; intro: string; child
             <Link to="/privacy" className="hover:text-brand-600">Privacy</Link>
             <Link to="/terms" className="hover:text-brand-600">Terms</Link>
             <Link to="/acceptable-use" className="hover:text-brand-600">Acceptable use</Link>
+            <Link to="/data-deletion" className="hover:text-brand-600">Data deletion</Link>
           </nav>
         </div>
       </header>
@@ -151,6 +152,23 @@ export function AcceptableUsePage() {
       </Section>
       <Section h="7. Report abuse">
         <p>If you received unwanted email sent through {COMPANY}, forward it to <a href={`mailto:${ABUSE_EMAIL}`}>{ABUSE_EMAIL}</a> with the full message headers. We investigate every report.</p>
+      </Section>
+    </Shell>
+  );
+}
+
+export function DataDeletionPage() {
+  return (
+    <Shell title="Data Deletion" intro={`How to request deletion of personal data ${COMPANY} holds about you, including data linked through a connected Facebook or Instagram account.`}>
+      <Section h="If you are a LeadBangla customer">
+        <p>Email us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> from the address on your account and ask for your account to be deleted. We will delete your account data, including any saved social-media connection tokens, within 30 days.</p>
+      </Section>
+      <Section h="If you connected a Facebook or Instagram account">
+        <p>Disconnecting a social account from the Accounts tab immediately removes its saved access token from {COMPANY}. To also remove {COMPANY}'s access from the Facebook/Instagram side, go to Facebook Settings → Business Integrations (or Instagram → Apps and Websites) and remove “{COMPANY}”.</p>
+        <p>To request deletion of any other data {COMPANY} received through that connection (such as imported post history), email <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> with the name of the Page or account. We will delete it within 30 days.</p>
+      </Section>
+      <Section h="If you are not a LeadBangla customer">
+        <p>If a LeadBangla customer added your contact details (for example your email or phone number) to their account, contact that business directly — they control that data. If you don't know which business it was, write to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> and we will help identify and forward your request.</p>
       </Section>
     </Shell>
   );
