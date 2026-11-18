@@ -14,6 +14,13 @@ class Settings(BaseSettings):
     email_verification_required: bool = True
     environment: str = "local"
 
+    # Safety switch for automatically expiring an unpaid subscription after its grace
+    # period. Defaults OFF on purpose: this is the only code in the billing system that
+    # can revoke a paying customer's access with no human in the loop. Turn on
+    # (AUTO_EXPIRE_SUBSCRIPTIONS=true) only after watching real renewal/payment data
+    # for at least one full billing cycle with it off.
+    auto_expire_subscriptions: bool = False
+
     database_url: str = "postgresql+asyncpg://postgres:postgres@postgres:5432/marketing_manager"
     redis_url: str = "redis://redis:6379/0"
 
