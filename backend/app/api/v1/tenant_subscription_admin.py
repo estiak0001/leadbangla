@@ -18,7 +18,7 @@ from app.models.organization import Organization, OrganizationMember
 from app.models.social import SocialAccount
 from app.models.user import User
 from app.models.workflow import Workflow
-from app.services import sms_plan
+from app.services import billing_service, sms_plan
 from app.services.campaign_service import count_emails_this_month
 from app.services.plan_service import get_org_plan
 
@@ -90,11 +90,6 @@ async def _owner_id(db: AsyncSession, org_id: uuid.UUID) -> uuid.UUID:
     return uid
 
 
-async def _end_active(db: AsyncSession, org_id: uuid.UUID) -> None:
-    for sub in await db.scalars(select(Subscription).where(Subscription.organization_id == org_id, Subscription.status == SubscriptionStatus.ACTIVE)):
-        sub.status = SubscriptionStatus.CANCELLED
-
-
 @router.post("/{org_id}/plan")
 async def change_plan(org_id: uuid.UUID, body: PlanChange, admin: User = Depends(get_current_internal_user), db: AsyncSession = Depends(get_db)) -> dict:
     """Moves the tenant onto a plan immediately; no payment is taken. The previous plan stays in the history."""
@@ -106,10 +101,13 @@ async def change_plan(org_id: uuid.UUID, body: PlanChange, admin: User = Depends
     if current and current.id == plan.id:
         raise HTTPException(status_code=409, detail=f"This tenant is already on {plan.name}.")
     owner = await _owner_id(db, org_id)
-    await _end_active(db, org_id)
-    db.add(Subscription(user_id=owner, organization_id=org_id, plan_id=plan.id, status=SubscriptionStatus.ACTIVE, tran_id=f"admin-{uuid.uuid4().hex}",
-                        source="admin", admin_note=(body.note or None), changed_by=admin.email))
-    await db.commit()
+    subscription = Subscription(
+        user_id=owner, organization_id=org_id, plan_id=plan.id, status=SubscriptionStatus.PENDING,
+        tran_id=f"admin-{uuid.uuid4().hex}", source="admin", admin_note=(body.note or None), changed_by=admin.email,
+    )
+    db.add(subscription)
+    await db.flush()
+    await billing_service.activate_subscription(db, subscription, payment_method="admin")
     return await _snapshot(db, org)
 
 
@@ -119,9 +117,10 @@ async def cancel_subscription(org_id: uuid.UUID, body: CancelBody, admin: User =
     org = await _org(db, org_id)
     if await get_org_plan(db, org_id) is None:
         raise HTTPException(status_code=409, detail="This tenant has no active plan.")
-    owner = await _owner_id(db, org_id)
     last = await db.scalar(select(Subscription).where(Subscription.organization_id == org_id, Subscription.status == SubscriptionStatus.ACTIVE).order_by(Subscription.created_at.desc()))
-    await _end_active(db, org_id)
+    for sub in await db.scalars(select(Subscription).where(Subscription.organization_id == org_id, Subscription.status == SubscriptionStatus.ACTIVE)):
+        sub.status = SubscriptionStatus.CANCELLED
+        await billing_service.void_future_invoices(db, sub.id)
     if last:  # record who cancelled and why on the subscription that ended
         last.admin_note, last.changed_by = (body.note or "Cancelled by staff"), admin.email
     await db.commit()
