@@ -237,18 +237,25 @@ async def admin_create_tenant(db: AsyncSession, payload: AdminTenantCreateReques
     db.add(OrganizationMember(organization_id=organization.id, user_id=owner.id, role=TenantRole.OWNER))
 
     if payload.plan_id is not None:
+        from app.services import invoice_service  # noqa: PLC0415
+
         plan = await get_plan(db, payload.plan_id)  # raises PlanNotFoundError, propagated to the route
-        db.add(
-            Subscription(
-                user_id=owner.id,
-                organization_id=organization.id,
-                plan_id=plan.id,
-                status=SubscriptionStatus.ACTIVE,
-                tran_id=f"admin-{uuid.uuid4().hex}",
-                source="admin",
-                admin_note="Set at onboarding",
-            )
+        now = datetime.now(timezone.utc)
+        subscription = Subscription(
+            user_id=owner.id,
+            organization_id=organization.id,
+            plan_id=plan.id,
+            status=SubscriptionStatus.ACTIVE,
+            tran_id=f"admin-{uuid.uuid4().hex}",
+            source="admin",
+            admin_note="Set at onboarding",
+            current_period_start=now,
+            current_period_end=invoice_service.period_end_for(plan, now),
         )
+        db.add(subscription)
+        await db.flush()
+        subscription.plan = plan
+        await invoice_service.issue_invoice_for_activation(db, subscription, payment_method="admin", payment_reference=None)
 
     await db.commit()
 
