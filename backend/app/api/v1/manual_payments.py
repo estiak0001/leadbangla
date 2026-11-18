@@ -9,7 +9,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.db import get_db
-from app.core.deps import get_current_internal_user, get_current_user
+from app.core.deps import get_current_internal_user, get_current_membership, get_current_user
+from app.models.organization import OrganizationMember
 from app.models.billing import Plan, Subscription
 from app.models.enums import SubscriptionStatus
 from app.models.manual_payment import ManualPayment, ManualPaymentDocument
@@ -77,6 +78,7 @@ async def submit_manual_payment(
     note: str | None = Form(default=None, max_length=1000),
     files: list[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
+    membership: OrganizationMember = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentRead:
     opts = await po.get_options(db)
@@ -111,7 +113,7 @@ async def submit_manual_payment(
     if duplicate:
         raise HTTPException(status_code=400, detail="This transaction ID was already submitted")
 
-    subscription = await create_pending_subscription(db, current_user.id, plan)
+    subscription = await create_pending_subscription(db, current_user.id, plan, membership.organization_id)
     payment = ManualPayment(
         user_id=current_user.id, subscription_id=subscription.id, method=method, amount_bdt=plan.price_bdt,
         sender_account=sender_account.strip(), trx_id=trx_id.strip(), customer_note=note,

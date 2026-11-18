@@ -28,10 +28,13 @@ async def get_plan(db: AsyncSession, plan_id: uuid.UUID) -> Plan:
     return plan
 
 
-async def create_pending_subscription(db: AsyncSession, user_id: uuid.UUID, plan: Plan) -> Subscription:
+async def create_pending_subscription(
+    db: AsyncSession, user_id: uuid.UUID, plan: Plan, organization_id: uuid.UUID
+) -> Subscription:
     subscription = Subscription(
         user_id=user_id,
         plan_id=plan.id,
+        organization_id=organization_id,
         status=SubscriptionStatus.PENDING,
         tran_id=uuid.uuid4().hex,
     )

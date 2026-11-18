@@ -80,6 +80,7 @@ async def get_plans(db: AsyncSession = Depends(get_db)) -> list[PlanPublic]:
 async def subscribe(
     payload: SubscribeRequest,
     current_user: User = Depends(get_current_user),
+    membership: OrganizationMember = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> SubscribeResponse:
     try:
@@ -90,7 +91,7 @@ async def subscribe(
     if plan.price_bdt > 0 and not await online_available(db):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Online payment isn't available right now. Please pay manually instead.")
 
-    subscription = await create_pending_subscription(db, current_user.id, plan)
+    subscription = await create_pending_subscription(db, current_user.id, plan, membership.organization_id)
 
     if plan.price_bdt == 0:
         # Free tier: nothing to pay, so skip the gateway and activate straight away.
