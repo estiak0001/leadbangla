@@ -12,12 +12,12 @@ from app.core.db import get_db
 from app.core.deps import get_current_internal_user, get_current_membership, get_current_user
 from app.models.organization import OrganizationMember
 from app.models.billing import Plan, Subscription
-from app.models.enums import SubscriptionStatus
+from app.models.enums import InvoiceStatus, SubscriptionStatus
 from app.models.manual_payment import ManualPayment, ManualPaymentDocument
 from app.models.user import User
 from app.models.platform_service import PlatformService
 from app.core.cred_crypto import decrypt_creds, encrypt_creds
-from app.services import billing_service, payment_options as po
+from app.services import billing_service, invoice_service, payment_options as po
 from app.services.billing_service import PlanNotFoundError, create_pending_subscription, get_plan, org_id_for_user
 
 router = APIRouter(prefix="/billing/manual", tags=["billing"])
@@ -76,6 +76,7 @@ async def submit_manual_payment(
     sender_account: str = Form(..., min_length=3, max_length=100),
     trx_id: str = Form(..., min_length=3, max_length=100),
     note: str | None = Form(default=None, max_length=1000),
+    invoice_id: uuid.UUID | None = Form(default=None),
     files: list[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -89,6 +90,13 @@ async def submit_manual_payment(
         raise HTTPException(status_code=404, detail="Plan not found")
     if plan.price_bdt == 0:
         raise HTTPException(status_code=400, detail="The free plan needs no payment")
+    org_id = await org_id_for_user(db, current_user.id)
+    if invoice_id is not None:
+        invoice = await invoice_service.get_invoice_for_org(db, org_id, invoice_id)
+        if invoice is None:
+            raise HTTPException(status_code=404, detail="That invoice could not be found")
+        if invoice.status != InvoiceStatus.DUE:
+            raise HTTPException(status_code=409, detail="That invoice is no longer due for payment")
     if not files:
         raise HTTPException(status_code=400, detail="Attach at least one proof (payment screenshot or receipt)")
     if len(files) > MAX_FILES:
@@ -112,7 +120,7 @@ async def submit_manual_payment(
     if duplicate:
         raise HTTPException(status_code=400, detail="This transaction ID was already submitted")
 
-    subscription = await create_pending_subscription(db, current_user.id, plan, await org_id_for_user(db, current_user.id))
+    subscription = await create_pending_subscription(db, current_user.id, plan, org_id, renewal_invoice_id=invoice_id)
     payment = ManualPayment(
         user_id=current_user.id, subscription_id=subscription.id, method=method, amount_bdt=plan.price_bdt,
         sender_account=sender_account.strip(), trx_id=trx_id.strip(), customer_note=note,
@@ -198,7 +206,8 @@ async def _decide(db: AsyncSession, payment_id: uuid.UUID, staff: User, approve:
             sub.source = "manual"
             sub.changed_by = staff.email
             await billing_service.activate_subscription(
-                db, sub, payment_method=payment.method, payment_reference=f"{payment.method}:{payment.trx_id}"
+                db, sub, payment_method=payment.method, payment_reference=f"{payment.method}:{payment.trx_id}",
+                invoice_id=sub.renewal_invoice_id,
             )
         else:
             sub.status = SubscriptionStatus.FAILED

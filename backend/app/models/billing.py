@@ -66,6 +66,10 @@ class Subscription(Base):
     # Null until the subscription is actually activated (a PENDING row has no period yet).
     current_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # Set only for a renewal payment -- carries which due invoice this pending
+    # subscription is settling through the SSLCommerz redirect/webhook round trip,
+    # where tran_id is the only thing that survives across it.
+    renewal_invoice_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("invoices.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

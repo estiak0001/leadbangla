@@ -1,6 +1,7 @@
+import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,6 +19,7 @@ from app.models.workflow import Workflow
 from app.services.seo_service import count_audits_this_month
 from app.schemas.billing import (
     CreditRateRead,
+    InvoiceRead,
     NotificationPrefsRead,
     NotificationPrefsUpdate,
     PlanPublic,
@@ -32,7 +34,10 @@ from app.schemas.billing import (
     WalletRead,
     WalletTransactionRead,
 )
+from app.models.enums import InvoiceStatus
+from app.services import invoice_service
 from app.services.billing_service import (
+    InvoiceNotFoundError,
     PlanNotFoundError,
     SubscriptionNotFoundError,
     cancel_subscription,
@@ -91,7 +96,15 @@ async def subscribe(
     if plan.price_bdt > 0 and not await online_available(db):
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Online payment isn't available right now. Please pay manually instead.")
 
-    subscription = await create_pending_subscription(db, current_user.id, plan, await org_id_for_user(db, current_user.id))
+    org_id = await org_id_for_user(db, current_user.id)
+    if payload.invoice_id is not None:
+        invoice = await invoice_service.get_invoice_for_org(db, org_id, payload.invoice_id)
+        if invoice is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="That invoice could not be found")
+        if invoice.status != InvoiceStatus.DUE:
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="That invoice is no longer due for payment")
+
+    subscription = await create_pending_subscription(db, current_user.id, plan, org_id, renewal_invoice_id=payload.invoice_id)
 
     if plan.price_bdt == 0:
         # Free tier: nothing to pay, so skip the gateway and activate straight away.
@@ -127,7 +140,12 @@ async def ipn(request: Request, db: AsyncSession = Depends(get_db)) -> dict[str,
     if not is_valid:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid transaction")
 
-    await mark_subscription_active(db, str(tran_id), str(val_id))
+    try:
+        await mark_subscription_active(db, str(tran_id), str(val_id))
+    except InvoiceNotFoundError:
+        # The renewal invoice this payment was for got voided/settled in the gap between
+        # checkout and this webhook (e.g. the customer cancelled in the meantime).
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="This payment's invoice is no longer payable")
     return {"status": "ok"}
 
 
@@ -148,6 +166,61 @@ async def cancel_my_subscription(
         return await cancel_subscription(db, current_user.id)
     except SubscriptionNotFoundError:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No active subscription")
+
+
+@router.get("/invoices", response_model=list[InvoiceRead])
+async def my_invoices(
+    membership: OrganizationMember = Depends(get_current_membership),
+    db: AsyncSession = Depends(get_db),
+) -> list[InvoiceRead]:
+    return await invoice_service.list_invoices_for_org(db, membership.organization_id)
+
+
+@router.get("/invoices/{invoice_id}")
+async def invoice_page(
+    invoice_id: uuid.UUID,
+    membership: OrganizationMember = Depends(get_current_membership),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    """A styled, printable HTML invoice -- browsers' own print-to-PDF covers the
+    'I want a PDF of this' need without this project taking on a PDF-rendering
+    dependency for one simple, static-looking document."""
+    invoice = await invoice_service.get_invoice_for_org(db, membership.organization_id, invoice_id)
+    if invoice is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+
+    def fmt(dt: datetime | None) -> str:
+        return dt.strftime("%d %B %Y") if dt else "—"
+
+    status_label = {"due": "Due", "paid": "Paid", "void": "Void"}.get(invoice.status.value, invoice.status.value)
+    html = f"""<!doctype html><html><head><meta charset="utf-8">
+    <title>{invoice.invoice_number}</title>
+    <style>
+      body {{ font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 640px; margin: 40px auto; color: #1a1a2e; }}
+      h1 {{ font-size: 22px; margin-bottom: 0; }}
+      .muted {{ color: #6b7280; font-size: 13px; }}
+      table {{ width: 100%; border-collapse: collapse; margin-top: 24px; }}
+      td {{ padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }}
+      td.label {{ color: #6b7280; width: 40%; }}
+      .status {{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;
+                 background: {"#d1fae5" if invoice.status.value == "paid" else "#fef3c7" if invoice.status.value == "due" else "#e5e7eb"};
+                 color: {"#065f46" if invoice.status.value == "paid" else "#92400e" if invoice.status.value == "due" else "#374151"}; }}
+      .total {{ font-size: 20px; font-weight: 700; }}
+      @media print {{ body {{ margin: 0; }} }}
+    </style></head><body>
+      <h1>LeadBangla</h1>
+      <p class="muted">Invoice {invoice.invoice_number} &middot; <span class="status">{status_label}</span></p>
+      <table>
+        <tr><td class="label">Plan</td><td>{invoice.plan.name}</td></tr>
+        <tr><td class="label">Billing period</td><td>{fmt(invoice.period_start)} – {fmt(invoice.period_end)}</td></tr>
+        <tr><td class="label">Issued</td><td>{fmt(invoice.issued_at)}</td></tr>
+        <tr><td class="label">{"Paid on" if invoice.status.value == "paid" else "Due on"}</td><td>{fmt(invoice.paid_at) if invoice.status.value == "paid" else fmt(invoice.due_at)}</td></tr>
+        <tr><td class="label">Payment method</td><td>{(invoice.payment_method or "—").replace("_", " ").title()}</td></tr>
+        <tr><td class="label">Amount</td><td class="total">{invoice.amount_bdt:,} BDT</td></tr>
+      </table>
+      <p class="muted" style="margin-top:32px;">Questions about this invoice? Contact support.</p>
+    </body></html>"""
+    return Response(content=html, media_type="text/html")
 
 
 @router.get("/credit-rates", response_model=list[CreditRateRead])

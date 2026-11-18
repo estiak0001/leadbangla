@@ -153,6 +153,20 @@ async def issue_renewal_invoice_if_due(db: AsyncSession, subscription: Subscript
     return invoice
 
 
+async def list_invoices_for_org(db: AsyncSession, org_id: uuid.UUID) -> list[Invoice]:
+    return list(await db.scalars(
+        select(Invoice).options(selectinload(Invoice.plan)).where(Invoice.organization_id == org_id).order_by(Invoice.created_at.desc())
+    ))
+
+
+async def get_invoice_for_org(db: AsyncSession, org_id: uuid.UUID, invoice_id: uuid.UUID) -> Invoice | None:
+    """Ownership-checked lookup -- invoice ids are UUIDs but still guessable by
+    enumeration, so every read goes through this rather than a bare db.get()."""
+    return await db.scalar(
+        select(Invoice).options(selectinload(Invoice.plan)).where(Invoice.id == invoice_id, Invoice.organization_id == org_id)
+    )
+
+
 async def expire_overdue_subscriptions(db: AsyncSession) -> int:
     """Flips ACTIVE subscriptions to EXPIRED once they're GRACE_DAYS past their
     period end with no paid invoice for that period. Only ever called by the daily

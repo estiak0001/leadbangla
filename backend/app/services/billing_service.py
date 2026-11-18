@@ -18,6 +18,12 @@ class SubscriptionNotFoundError(Exception):
     pass
 
 
+class InvoiceNotFoundError(Exception):
+    """Raised when a caller-supplied invoice_id doesn't resolve to a due invoice
+    owned by the subscription's own org -- never silently ignored, since that could
+    mask a customer paying against the wrong invoice or a guessed/enumerated id."""
+
+
 async def list_active_plans(db: AsyncSession) -> list[Plan]:
     result = await db.scalars(select(Plan).where(Plan.is_active.is_(True)).order_by(Plan.price_bdt))
     return list(result)
@@ -38,7 +44,8 @@ async def org_id_for_user(db: AsyncSession, user_id: uuid.UUID) -> uuid.UUID | N
 
 
 async def create_pending_subscription(
-    db: AsyncSession, user_id: uuid.UUID, plan: Plan, organization_id: uuid.UUID | None = None
+    db: AsyncSession, user_id: uuid.UUID, plan: Plan, organization_id: uuid.UUID | None = None,
+    renewal_invoice_id: uuid.UUID | None = None,
 ) -> Subscription:
     subscription = Subscription(
         user_id=user_id,
@@ -46,6 +53,7 @@ async def create_pending_subscription(
         organization_id=organization_id,
         status=SubscriptionStatus.PENDING,
         tran_id=uuid.uuid4().hex,
+        renewal_invoice_id=renewal_invoice_id,
     )
     db.add(subscription)
     await db.commit()
@@ -71,22 +79,48 @@ async def _end_other_active(db: AsyncSession, org_id: uuid.UUID | None, *, keep:
 
 
 async def activate_subscription(
-    db: AsyncSession, subscription: Subscription, *, payment_method: str, payment_reference: str | None = None
+    db: AsyncSession, subscription: Subscription, *, payment_method: str,
+    payment_reference: str | None = None, invoice_id: uuid.UUID | None = None,
 ) -> Subscription:
     """The one place a Subscription becomes ACTIVE: ends any other active
-    subscription for the org, starts a fresh billing period, and issues the
-    invoice for it. Every activation path (free / online / manual / admin) should
-    call this instead of setting `status` directly."""
+    subscription for the org, starts a billing period, and settles the invoice for
+    it. Every activation path (free / online / manual / admin) should call this
+    instead of setting `status` directly.
+
+    If `invoice_id` is given (a renewal payment), the existing 'due' invoice is
+    marked paid and its period is used as-is -- so the new period starts exactly
+    when the old one ended, regardless of the exact day the customer paid -- instead
+    of issuing a redundant new invoice."""
     if subscription.plan is None:
         await db.refresh(subscription, ["plan"])
-    now = datetime.now(timezone.utc)
+
+    invoice: Invoice | None = None
+    if invoice_id is not None:
+        invoice = await db.get(Invoice, invoice_id)
+        if invoice is None or invoice.organization_id != subscription.organization_id or invoice.status != InvoiceStatus.DUE:
+            raise InvoiceNotFoundError(invoice_id)
+
     await _end_other_active(db, subscription.organization_id, keep=subscription.id)
-    subscription.current_period_start = now
-    subscription.current_period_end = invoice_service.period_end_for(subscription.plan, now)
+
+    if invoice is not None:
+        subscription.current_period_start = invoice.period_start
+        subscription.current_period_end = invoice.period_end
+    else:
+        now = datetime.now(timezone.utc)
+        subscription.current_period_start = now
+        subscription.current_period_end = invoice_service.period_end_for(subscription.plan, now)
     subscription.status = SubscriptionStatus.ACTIVE
-    await invoice_service.issue_invoice_for_activation(
-        db, subscription, payment_method=payment_method, payment_reference=payment_reference
-    )
+
+    if invoice is not None:
+        invoice.status = InvoiceStatus.PAID
+        invoice.paid_at = datetime.now(timezone.utc)
+        invoice.payment_method = payment_method
+        invoice.payment_reference = payment_reference
+        invoice.subscription_id = subscription.id  # the invoice was issued against the subscription row this one replaces
+    else:
+        await invoice_service.issue_invoice_for_activation(
+            db, subscription, payment_method=payment_method, payment_reference=payment_reference
+        )
     await db.commit()
     await db.refresh(subscription)
     return subscription
@@ -101,7 +135,8 @@ async def mark_subscription_active(db: AsyncSession, tran_id: str, val_id: str) 
         raise SubscriptionNotFoundError(tran_id)
     subscription.gateway_val_id = val_id
     return await activate_subscription(
-        db, subscription, payment_method="free" if val_id == "free" else "online", payment_reference=val_id
+        db, subscription, payment_method="free" if val_id == "free" else "online", payment_reference=val_id,
+        invoice_id=subscription.renewal_invoice_id,
     )
 
 

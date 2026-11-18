@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-from app.models.enums import SubscriptionStatus
+from app.models.enums import InvoiceStatus, SubscriptionStatus
 
 
 class PlanRead(BaseModel):
@@ -19,6 +19,7 @@ class PlanRead(BaseModel):
 
 class SubscribeRequest(BaseModel):
     plan_id: uuid.UUID
+    invoice_id: uuid.UUID | None = None  # set when paying a renewal invoice rather than a fresh subscribe
 
 
 class SubscribeResponse(BaseModel):
@@ -32,6 +33,23 @@ class SubscriptionRead(BaseModel):
     id: uuid.UUID
     status: SubscriptionStatus
     plan: PlanRead
+    current_period_end: datetime | None = None
+
+
+class InvoiceRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    invoice_number: str
+    plan: PlanRead
+    amount_bdt: int
+    status: InvoiceStatus
+    period_start: datetime
+    period_end: datetime
+    issued_at: datetime | None
+    due_at: datetime | None
+    paid_at: datetime | None
+    payment_method: str | None
 
 
 class PlanLimits(BaseModel):
