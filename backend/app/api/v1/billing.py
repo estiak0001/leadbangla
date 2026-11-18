@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -13,12 +13,13 @@ from app.services.feature_flags import is_on
 from app.services.payment_options import online_available
 from app.models.contact import Contact
 from app.models.landing_page import LandingPage
-from app.models.organization import OrganizationMember
+from app.models.organization import Organization, OrganizationMember
 from app.models.user import User
 from app.models.workflow import Workflow
 from app.services.seo_service import count_audits_this_month
 from app.schemas.billing import (
     CreditRateRead,
+    InvoiceDetailRead,
     InvoiceRead,
     NotificationPrefsRead,
     NotificationPrefsUpdate,
@@ -176,51 +177,44 @@ async def my_invoices(
     return await invoice_service.list_invoices_for_org(db, membership.organization_id)
 
 
-@router.get("/invoices/{invoice_id}")
-async def invoice_page(
+@router.get("/invoices/{invoice_id}/data", response_model=InvoiceDetailRead)
+async def invoice_detail(
     invoice_id: uuid.UUID,
     membership: OrganizationMember = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
-) -> Response:
-    """A styled, printable HTML invoice -- browsers' own print-to-PDF covers the
-    'I want a PDF of this' need without this project taking on a PDF-rendering
-    dependency for one simple, static-looking document."""
+) -> InvoiceDetailRead:
+    """Flat data for the client-side PDF renderer (lib/pdfInvoice.ts) -- drawn with
+    jsPDF's own text/line primitives, not an HTML-to-canvas screenshot, so there's
+    no CSS-rendering fidelity to get wrong."""
     invoice = await invoice_service.get_invoice_for_org(db, membership.organization_id, invoice_id)
     if invoice is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invoice not found")
+    org = await db.get(Organization, invoice.organization_id)
+    from app.services.company_settings_service import get_settings as get_company_settings  # noqa: PLC0415
 
-    def fmt(dt: datetime | None) -> str:
-        return dt.strftime("%d %B %Y") if dt else "—"
-
-    status_label = {"due": "Due", "paid": "Paid", "void": "Void"}.get(invoice.status.value, invoice.status.value)
-    html = f"""<!doctype html><html><head><meta charset="utf-8">
-    <title>{invoice.invoice_number}</title>
-    <style>
-      body {{ font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 640px; margin: 40px auto; color: #1a1a2e; }}
-      h1 {{ font-size: 22px; margin-bottom: 0; }}
-      .muted {{ color: #6b7280; font-size: 13px; }}
-      table {{ width: 100%; border-collapse: collapse; margin-top: 24px; }}
-      td {{ padding: 8px 0; border-bottom: 1px solid #e5e7eb; font-size: 14px; }}
-      td.label {{ color: #6b7280; width: 40%; }}
-      .status {{ display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 600;
-                 background: {"#d1fae5" if invoice.status.value == "paid" else "#fef3c7" if invoice.status.value == "due" else "#e5e7eb"};
-                 color: {"#065f46" if invoice.status.value == "paid" else "#92400e" if invoice.status.value == "due" else "#374151"}; }}
-      .total {{ font-size: 20px; font-weight: 700; }}
-      @media print {{ body {{ margin: 0; }} }}
-    </style></head><body>
-      <h1>LeadBangla</h1>
-      <p class="muted">Invoice {invoice.invoice_number} &middot; <span class="status">{status_label}</span></p>
-      <table>
-        <tr><td class="label">Plan</td><td>{invoice.plan.name}</td></tr>
-        <tr><td class="label">Billing period</td><td>{fmt(invoice.period_start)} – {fmt(invoice.period_end)}</td></tr>
-        <tr><td class="label">Issued</td><td>{fmt(invoice.issued_at)}</td></tr>
-        <tr><td class="label">{"Paid on" if invoice.status.value == "paid" else "Due on"}</td><td>{fmt(invoice.paid_at) if invoice.status.value == "paid" else fmt(invoice.due_at)}</td></tr>
-        <tr><td class="label">Payment method</td><td>{(invoice.payment_method or "—").replace("_", " ").title()}</td></tr>
-        <tr><td class="label">Amount</td><td class="total">{invoice.amount_bdt:,} BDT</td></tr>
-      </table>
-      <p class="muted" style="margin-top:32px;">Questions about this invoice? Contact support.</p>
-    </body></html>"""
-    return Response(content=html, media_type="text/html")
+    company = await get_company_settings(db)
+    bill_to_lines = list(filter(None, [
+        org.address if org else None,
+        ", ".join(filter(None, [org.city if org else None, org.country if org else None])) or None,
+        org.contact_email if org else None,
+    ]))
+    return InvoiceDetailRead(
+        invoice_number=invoice.invoice_number,
+        status=invoice.status,
+        amount_bdt=invoice.amount_bdt,
+        plan_name=invoice.plan.name,
+        period_start=invoice.period_start,
+        period_end=invoice.period_end,
+        issued_at=invoice.issued_at,
+        due_at=invoice.due_at,
+        paid_at=invoice.paid_at,
+        payment_method=invoice.payment_method,
+        company_name=company.company_name,
+        company_address=company.address,
+        company_support_email=company.support_email,
+        bill_to_name=(org.display_name or org.name) if org else "—",
+        bill_to_lines=bill_to_lines,
+    )
 
 
 @router.get("/credit-rates", response_model=list[CreditRateRead])

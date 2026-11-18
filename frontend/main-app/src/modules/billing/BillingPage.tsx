@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Clock, CreditCard, FileText, TriangleAlert } from "lucide-react";
+import { Clock, CreditCard, Download, FileText, TriangleAlert } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
@@ -20,7 +20,8 @@ import {
   fetchTransactions,
   fetchWalletBalance,
   initiateTopup,
-  openInvoicePage,
+  viewInvoicePdf,
+  downloadInvoicePdf,
   type CreditRate,
   type Invoice,
   type ManualPayment,
@@ -415,16 +416,22 @@ const INVOICE_STATUS_BADGE: Record<string, { label: string; variant: "success" |
 function InvoicesTab() {
   const [invoices, setInvoices] = useState<Invoice[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [opening, setOpening] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvoices().then(setInvoices).catch(() => setError("Failed to load invoices."));
   }, []);
 
-  async function open(id: string) {
-    setOpening(id);
-    try { await openInvoicePage(id); } catch (e) { setError(e instanceof Error ? e.message : "Could not open invoice"); }
-    finally { setOpening(null); }
+  async function view(id: string) {
+    setBusy(`view:${id}`);
+    try { await viewInvoicePdf(id); } catch (e) { setError(e instanceof Error ? e.message : "Could not open invoice"); }
+    finally { setBusy(null); }
+  }
+
+  async function download(id: string, invoiceNumber: string) {
+    setBusy(`download:${id}`);
+    try { await downloadInvoicePdf(id, `${invoiceNumber}.pdf`); } catch (e) { setError(e instanceof Error ? e.message : "Could not download invoice"); }
+    finally { setBusy(null); }
   }
 
   if (error) return <Alert variant="error">{error}</Alert>;
@@ -464,7 +471,15 @@ function InvoicesTab() {
                   </td>
                   <td className="px-4 py-3 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-2">
-                      <Button size="xs" variant="secondary" loading={opening === inv.id} onClick={() => open(inv.id)}>View</Button>
+                      <Button size="xs" variant="secondary" loading={busy === `view:${inv.id}`} onClick={() => view(inv.id)}>View</Button>
+                      <button
+                        onClick={() => download(inv.id, inv.invoice_number)}
+                        disabled={busy !== null}
+                        title="Download PDF" aria-label="Download PDF"
+                        className="p-1.5 rounded-md text-surface-500 hover:text-brand-600 hover:bg-brand-50 disabled:opacity-40"
+                      >
+                        <Download size={14} className={busy === `download:${inv.id}` ? "animate-pulse" : ""} />
+                      </button>
                       {inv.status === "due" && (
                         <Link to={`/checkout?plan=${inv.plan.id}&invoice=${inv.id}`}><Button size="xs">Pay now</Button></Link>
                       )}

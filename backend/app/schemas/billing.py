@@ -52,6 +52,27 @@ class InvoiceRead(BaseModel):
     payment_method: str | None
 
 
+class InvoiceDetailRead(BaseModel):
+    """Everything a client-side PDF renderer needs -- deliberately flat (no nested
+    Plan/Organization objects) since it's consumed by a drawing routine, not a UI."""
+
+    invoice_number: str
+    status: InvoiceStatus
+    amount_bdt: int
+    plan_name: str
+    period_start: datetime
+    period_end: datetime
+    issued_at: datetime | None
+    due_at: datetime | None
+    paid_at: datetime | None
+    payment_method: str | None
+    company_name: str
+    company_address: str | None
+    company_support_email: str | None
+    bill_to_name: str
+    bill_to_lines: list[str]
+
+
 class PlanLimits(BaseModel):
     contacts_limit: int = Field(ge=-1)
     emails_monthly_limit: int = Field(ge=-1)

@@ -97,7 +97,7 @@ export interface CreditRate {
   description: string | null;
 }
 
-function authHeaders(): HeadersInit {
+export function authHeaders(): HeadersInit {
   const token = getAccessToken();
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
@@ -184,17 +184,29 @@ export async function fetchInvoices(): Promise<Invoice[]> {
   return handle<Invoice[]>(res);
 }
 
-/** Opens the printable invoice page in a new tab. A plain <a href> can't carry the
- * Authorization header the route needs, and putting the access token in the URL
- * would leak it into browser history/referrers/logs -- so this fetches the HTML
- * with the header, then opens it from a blob URL instead. */
-export async function openInvoicePage(id: string): Promise<void> {
-  const res = await fetch(`/api/v1/billing/invoices/${id}`, { headers: authHeaders() });
-  if (!res.ok) throw new Error("Could not open this invoice");
-  const html = await res.text();
-  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+/** Opens the invoice as a PDF in a new tab (the browser's own PDF viewer handles it).
+ * A plain <a href> can't carry the Authorization header the data route needs, and
+ * putting the access token in the URL would leak it into browser history/referrers/
+ * logs -- so this is drawn client-side (lib/pdfInvoice.ts) from fetched JSON. */
+export async function viewInvoicePdf(id: string): Promise<void> {
+  const { renderInvoicePdf } = await import("./pdfInvoice");
+  const blob = await renderInvoicePdf(id);
+  const url = URL.createObjectURL(blob);
   window.open(url, "_blank");
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}
+
+/** Saves the invoice as a PDF file. */
+export async function downloadInvoicePdf(id: string, filename: string): Promise<void> {
+  const { renderInvoicePdf } = await import("./pdfInvoice");
+  const blob = await renderInvoicePdf(id);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 export interface UsageReport {
