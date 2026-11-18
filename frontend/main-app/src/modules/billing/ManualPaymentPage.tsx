@@ -44,6 +44,8 @@ export default function ManualPaymentPage() {
       .finally(() => setLoading(false));
   }, [params]);
 
+  const invoiceId = params.get("invoice");
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!plan) return;
@@ -56,6 +58,7 @@ export default function ManualPaymentPage() {
       form.set("sender_account", sender);
       form.set("trx_id", trx);
       if (note) form.set("note", note);
+      if (invoiceId) form.set("invoice_id", invoiceId);
       files.forEach((f) => form.append("files", f));
       await submitManualPayment(form);
       setDone(true);
@@ -93,11 +96,11 @@ export default function ManualPaymentPage() {
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-lg">
-        <button onClick={() => navigate(`/checkout?plan=${params.get("plan") ?? ""}`)} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-surface-500 hover:text-brand-600">
+        <button onClick={() => navigate(`/checkout?plan=${params.get("plan") ?? ""}${invoiceId ? `&invoice=${invoiceId}` : ""}`)} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-surface-500 hover:text-brand-600">
           <ArrowLeft size={15} /> Back to payment method
         </button>
         <Steps step={3} labels={["Plan", "Payment method", "Confirm"]} />
-        <h1 className="text-2xl font-bold text-surface-900 text-center">Pay manually</h1>
+        <h1 className="text-2xl font-bold text-surface-900 text-center">{invoiceId ? "Renew by transfer" : "Pay manually"}</h1>
         {error && <Alert variant="error" className="mt-4">{error}</Alert>}
 
         {!plan || methods.length === 0 ? (

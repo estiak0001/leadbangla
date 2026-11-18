@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Clock, CreditCard, TriangleAlert } from "lucide-react";
+import { Clock, CreditCard, FileText, TriangleAlert } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
@@ -13,13 +13,16 @@ import Alert from "../../components/Alert";
 import {
   cancelMySubscription,
   fetchCreditRates,
+  fetchInvoices,
   fetchMyManualPayments,
   fetchMySubscription,
   fetchPlanUsage,
   fetchTransactions,
   fetchWalletBalance,
   initiateTopup,
+  openInvoicePage,
   type CreditRate,
+  type Invoice,
   type ManualPayment,
   type PlanUsage,
   type Subscription,
@@ -44,6 +47,7 @@ function MyPlanTab() {
   const [usage, setUsage] = useState<PlanUsage | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [manual, setManual] = useState<ManualPayment[]>([]);
+  const [dueInvoice, setDueInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -54,6 +58,7 @@ function MyPlanTab() {
       .then(([u, s]) => { setUsage(u); setSubscription(s); setLoading(false); })
       .catch(() => { setError("Failed to load plan usage."); setLoading(false); });
     fetchMyManualPayments().then(setManual).catch(() => {});
+    fetchInvoices().then((rows) => setDueInvoice(rows.find((i) => i.status === "due") ?? null)).catch(() => {});
   }, []);
 
   async function handleCancel() {
@@ -77,6 +82,16 @@ function MyPlanTab() {
 
   return (
     <div className="space-y-6">
+      {dueInvoice && (
+        <Alert variant="warning" className="flex items-center justify-between flex-wrap gap-3">
+          <span className="flex items-start gap-2">
+            <Clock size={16} className="mt-0.5 shrink-0" />
+            Your {dueInvoice.plan.name} plan renews on {new Date(dueInvoice.period_start).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+            {" "}({dueInvoice.amount_bdt.toLocaleString()} BDT). You keep full access during a short grace period, but pay now to avoid any interruption.
+          </span>
+          <Link to={`/checkout?plan=${dueInvoice.plan.id}&invoice=${dueInvoice.id}`}><Button size="sm">Renew now</Button></Link>
+        </Alert>
+      )}
       {pending.map((m) => (
         <Alert key={m.id} variant="info" className="flex items-start gap-2">
           <Clock size={16} className="mt-0.5 shrink-0" />
@@ -388,41 +403,79 @@ const SUB_STATUS_BADGE: Record<string, { label: string; variant: "success" | "wa
   pending: { label: "Pending", variant: "warning" },
   failed: { label: "Failed", variant: "danger" },
   cancelled: { label: "Cancelled", variant: "default" },
+  expired: { label: "Expired", variant: "danger" },
+};
+
+const INVOICE_STATUS_BADGE: Record<string, { label: string; variant: "success" | "warning" | "default" }> = {
+  paid: { label: "Paid", variant: "success" },
+  due: { label: "Due", variant: "warning" },
+  void: { label: "Void", variant: "default" },
 };
 
 function InvoicesTab() {
-  const [subscription, setSubscription] = useState<Subscription | null | undefined>(undefined);
+  const [invoices, setInvoices] = useState<Invoice[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [opening, setOpening] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMySubscription()
-      .then(setSubscription)
-      .catch(() => setError("Failed to load subscription."));
+    fetchInvoices().then(setInvoices).catch(() => setError("Failed to load invoices."));
   }, []);
 
+  async function open(id: string) {
+    setOpening(id);
+    try { await openInvoicePage(id); } catch (e) { setError(e instanceof Error ? e.message : "Could not open invoice"); }
+    finally { setOpening(null); }
+  }
+
   if (error) return <Alert variant="error">{error}</Alert>;
-  if (subscription === undefined) return <div className="py-16 flex justify-center"><Spinner size="lg" /></div>;
+  if (invoices === null) return <div className="py-16 flex justify-center"><Spinner size="lg" /></div>;
+
+  if (invoices.length === 0) {
+    return (
+      <Card>
+        <EmptyState icon={<FileText size={40} />} title="No invoices yet" description="Invoices appear here once you've subscribed to a paid plan." />
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {subscription ? (
-        <Card className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <p className="font-semibold text-surface-900">{subscription.plan.name} plan</p>
-            <p className="text-sm text-surface-500 mt-0.5">{subscription.plan.price_bdt.toLocaleString()} BDT/{subscription.plan.billing_interval}</p>
-          </div>
-          <Badge variant={SUB_STATUS_BADGE[subscription.status]?.variant ?? "default"}>
-            {SUB_STATUS_BADGE[subscription.status]?.label ?? subscription.status}
-          </Badge>
-        </Card>
-      ) : (
-        <Card>
-          <EmptyState icon={<CreditCard size={40} />} title="No subscription found" />
-        </Card>
-      )}
-      <p className="text-xs text-surface-500">
-        Full invoice PDF generation coming soon — contact support for a VAT invoice.
-      </p>
+      <Card padding={false} className="overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b border-surface-200 bg-surface-50">
+              <tr>
+                {["Invoice", "Plan", "Period", "Amount", "Status", ""].map((h) => (
+                  <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-surface-500 text-left whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-surface-100">
+              {invoices.map((inv) => (
+                <tr key={inv.id} className="hover:bg-surface-50 transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs text-surface-700 whitespace-nowrap">{inv.invoice_number}</td>
+                  <td className="px-4 py-3 text-surface-800">{inv.plan.name}</td>
+                  <td className="px-4 py-3 text-surface-500 whitespace-nowrap">
+                    {new Date(inv.period_start).toLocaleDateString("en-GB", { day: "numeric", month: "short" })} – {new Date(inv.period_end).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                  </td>
+                  <td className="px-4 py-3 font-medium text-surface-800 whitespace-nowrap">{inv.amount_bdt.toLocaleString()} BDT</td>
+                  <td className="px-4 py-3">
+                    <Badge variant={INVOICE_STATUS_BADGE[inv.status]?.variant ?? "default"}>{INVOICE_STATUS_BADGE[inv.status]?.label ?? inv.status}</Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button size="xs" variant="secondary" loading={opening === inv.id} onClick={() => open(inv.id)}>View</Button>
+                      {inv.status === "due" && (
+                        <Link to={`/checkout?plan=${inv.plan.id}&invoice=${inv.id}`}><Button size="xs">Pay now</Button></Link>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }

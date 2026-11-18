@@ -23,6 +23,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const { on } = useFeatures();
 
+  const invoiceId = params.get("invoice") ?? undefined;
+
   useEffect(() => {
     Promise.all([fetchPlans(), fetchPaymentOptions()])
       .then(([plans, o]) => {
@@ -36,9 +38,9 @@ export default function CheckoutPage() {
 
   async function proceed() {
     if (!plan || !choice) return;
-    if (choice === "manual") { navigate(`/pay-manually?plan=${plan.id}`); return; }
+    if (choice === "manual") { navigate(`/pay-manually?plan=${plan.id}${invoiceId ? `&invoice=${invoiceId}` : ""}`); return; }
     setBusy(true); setError(null);
-    try { const { checkout_url } = await subscribeToPlan(plan.id); window.location.href = checkout_url; }
+    try { const { checkout_url } = await subscribeToPlan(plan.id, invoiceId); window.location.href = checkout_url; }
     catch (err) { setError(err instanceof Error ? err.message : "Could not start the payment"); setBusy(false); }
   }
 
@@ -61,7 +63,7 @@ export default function CheckoutPage() {
         <Steps step={2} labels={["Plan", "Payment method", "Confirm"]} />
         <div className="mb-8 text-center">
           <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
-          <h1 className="mt-4 text-2xl font-bold text-surface-900">Choose how to pay</h1>
+          <h1 className="mt-4 text-2xl font-bold text-surface-900">{invoiceId ? "Renew your plan" : "Choose how to pay"}</h1>
         </div>
 
         {error && <Alert variant="error" className="mb-4">{error}</Alert>}

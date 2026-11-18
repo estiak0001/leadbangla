@@ -24,8 +24,23 @@ export interface Plan {
 
 export interface Subscription {
   id: string;
-  status: "pending" | "active" | "failed" | "cancelled";
+  status: "pending" | "active" | "failed" | "cancelled" | "expired";
   plan: Plan;
+  current_period_end?: string | null;
+}
+
+export interface Invoice {
+  id: string;
+  invoice_number: string;
+  plan: Plan;
+  amount_bdt: number;
+  status: "due" | "paid" | "void";
+  period_start: string;
+  period_end: string;
+  issued_at: string | null;
+  due_at: string | null;
+  paid_at: string | null;
+  payment_method: string | null;
 }
 
 export interface ResourceUsage {
@@ -105,11 +120,12 @@ export async function fetchPlans(): Promise<Plan[]> {
 
 export async function subscribeToPlan(
   planId: string,
+  invoiceId?: string,
 ): Promise<{ subscription_id: string; checkout_url: string }> {
   const res = await fetch("/api/v1/billing/subscribe", {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders() },
-    body: JSON.stringify({ plan_id: planId }),
+    body: JSON.stringify({ plan_id: planId, invoice_id: invoiceId ?? null }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -161,6 +177,24 @@ export async function fetchTransactions(limit = 20, offset = 0): Promise<WalletT
 export async function fetchCreditRates(): Promise<CreditRate[]> {
   const res = await fetch("/api/v1/billing/credit-rates");
   return handle<CreditRate[]>(res);
+}
+
+export async function fetchInvoices(): Promise<Invoice[]> {
+  const res = await fetch("/api/v1/billing/invoices", { headers: authHeaders() });
+  return handle<Invoice[]>(res);
+}
+
+/** Opens the printable invoice page in a new tab. A plain <a href> can't carry the
+ * Authorization header the route needs, and putting the access token in the URL
+ * would leak it into browser history/referrers/logs -- so this fetches the HTML
+ * with the header, then opens it from a blob URL instead. */
+export async function openInvoicePage(id: string): Promise<void> {
+  const res = await fetch(`/api/v1/billing/invoices/${id}`, { headers: authHeaders() });
+  if (!res.ok) throw new Error("Could not open this invoice");
+  const html = await res.text();
+  const url = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
 
 export interface UsageReport {
