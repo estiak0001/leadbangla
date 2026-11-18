@@ -16,6 +16,7 @@ from app.services import mail_service
 from app.services.email_domain_service import auto_verify_pending
 from app.services.whatsapp_health_service import run_all as run_whatsapp_health
 from app.services.notification_service import run_all_org_alerts
+from app.services.invoice_service import run_subscription_billing
 from app.services.social_service import (
     due_post_ids,
     recover_stuck,
@@ -93,6 +94,21 @@ async def _check_wallet_and_usage_alerts() -> dict:
 @celery_app.task(name="check_wallet_and_usage_alerts")
 def check_wallet_and_usage_alerts_task() -> dict:
     return asyncio.run(_check_wallet_and_usage_alerts())
+
+
+# ── Daily subscription renewal / invoice task ─────────────────────────────────
+
+
+async def _run_subscription_billing() -> dict:
+    async with AsyncSessionLocal() as db:
+        summary = await run_subscription_billing(db)
+    await engine.dispose()
+    return summary
+
+
+@celery_app.task(name="run_subscription_billing")
+def run_subscription_billing_task() -> dict:
+    return asyncio.run(_run_subscription_billing())
 
 
 # ── Sending-domain DNS auto-verification ──────────────────────────────────────

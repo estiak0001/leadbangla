@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.core.config import settings as app_settings
 from app.integrations.email_client import email_client
@@ -178,3 +179,21 @@ async def expire_overdue_subscriptions(db: AsyncSession) -> int:
             )
         await db.commit()
     return expired
+
+
+async def run_subscription_billing(db: AsyncSession) -> dict:
+    """Daily job: issue renewal invoices for subscriptions nearing their period end,
+    and -- only when settings.auto_expire_subscriptions is on -- expire overdue ones."""
+    summary = {"renewal_invoices_issued": 0, "expired": 0}
+    candidates = list(await db.scalars(
+        select(Subscription)
+        .options(selectinload(Subscription.plan))
+        .where(Subscription.status == SubscriptionStatus.ACTIVE, Subscription.current_period_end.isnot(None))
+    ))
+    for sub in candidates:
+        if await issue_renewal_invoice_if_due(db, sub) is not None:
+            summary["renewal_invoices_issued"] += 1
+
+    if app_settings.auto_expire_subscriptions:
+        summary["expired"] = await expire_overdue_subscriptions(db)
+    return summary

@@ -40,4 +40,8 @@ celery_app.conf.beat_schedule = {
         "task": "crm_task_reminders_task",
         "schedule": crontab(minute="*/15"),  # email owners about follow-ups that just came due
     },
+    "subscription-billing": {
+        "task": "run_subscription_billing",
+        "schedule": crontab(hour=8, minute=0),  # daily: renewal invoices, and (if enabled) expiry
+    },
 }
