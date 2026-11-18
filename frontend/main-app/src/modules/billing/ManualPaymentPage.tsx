@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Check, Minus } from "lucide-react";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
@@ -10,6 +11,8 @@ import {
   fetchPaymentOptions, fetchPlans, submitManualPayment,
   type ManualMethod, type Plan,
 } from "../../lib/billing";
+import { planFeatures } from "../../lib/planFeatures";
+import { useFeatures } from "../../lib/features";
 
 export default function ManualPaymentPage() {
   const [params] = useSearchParams();
@@ -26,6 +29,7 @@ export default function ManualPaymentPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const { on } = useFeatures();
 
   useEffect(() => {
     Promise.all([fetchPlans(), fetchPaymentOptions()])
@@ -89,6 +93,9 @@ export default function ManualPaymentPage() {
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-lg">
+        <button onClick={() => navigate(`/checkout?plan=${params.get("plan") ?? ""}`)} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-surface-500 hover:text-brand-600">
+          <ArrowLeft size={15} /> Back to payment method
+        </button>
         <Steps step={3} labels={["Plan", "Payment method", "Confirm"]} />
         <h1 className="text-2xl font-bold text-surface-900 text-center">Pay manually</h1>
         {error && <Alert variant="error" className="mt-4">{error}</Alert>}
@@ -103,8 +110,19 @@ export default function ManualPaymentPage() {
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <Card>
-              <p className="text-sm text-surface-500">Plan</p>
-              <p className="text-lg font-bold text-surface-900">{plan.name} — {plan.price_bdt} BDT/{plan.billing_interval}</p>
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-surface-500">Selected plan</p>
+                <Link to="/pick-plan" className="text-xs font-medium text-brand-600 hover:underline">Choose a different plan</Link>
+              </div>
+              <p className="text-lg font-bold text-surface-900">{plan.name} — {plan.price_bdt.toLocaleString()} BDT/{plan.billing_interval}</p>
+              <ul className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-surface-100 pt-3 sm:grid-cols-2">
+                {planFeatures(plan, { whatsapp: on("whatsapp"), sms: on("sms") }).map((f) => (
+                  <li key={f.text} className={`flex gap-1.5 text-xs ${f.included ? "text-surface-600" : "text-surface-400"}`}>
+                    {f.included ? <Check size={13} className="mt-0.5 shrink-0 text-emerald-600" /> : <Minus size={13} className="mt-0.5 shrink-0" />}
+                    <span className={f.included ? "" : "line-through decoration-surface-300"}>{f.text}</span>
+                  </li>
+                ))}
+              </ul>
             </Card>
 
             <Card>

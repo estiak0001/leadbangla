@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { CreditCard, Landmark } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Landmark, Minus } from "lucide-react";
 import { COMPANY_LOGO_URL } from "../../lib/branding";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import Spinner from "../../components/Spinner";
 import Steps from "../../components/Steps";
 import { fetchPaymentOptions, fetchPlans, subscribeToPlan, type PaymentOptions, type Plan } from "../../lib/billing";
+import { planFeatures } from "../../lib/planFeatures";
+import { useFeatures } from "../../lib/features";
 
 type Choice = "online" | "manual";
 
@@ -19,6 +21,7 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { on } = useFeatures();
 
   useEffect(() => {
     Promise.all([fetchPlans(), fetchPaymentOptions()])
@@ -52,6 +55,9 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-xl">
+        <button onClick={() => navigate("/pick-plan")} className="mb-4 flex items-center gap-1.5 text-sm font-medium text-surface-500 hover:text-brand-600">
+          <ArrowLeft size={15} /> Back to plans
+        </button>
         <Steps step={2} labels={["Plan", "Payment method", "Confirm"]} />
         <div className="mb-8 text-center">
           <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
@@ -67,9 +73,24 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <>
-            <div className="mb-5 flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-4">
-              <div><p className="text-xs text-surface-500">Plan</p><p className="text-base font-semibold text-surface-900">{plan.name}</p></div>
-              <p className="text-right"><span className="text-xl font-bold text-surface-900">{plan.price_bdt.toLocaleString()}</span><span className="ml-1 text-sm text-surface-500">BDT / {plan.billing_interval}</span></p>
+            <div className="mb-5 rounded-xl border border-surface-200 bg-white p-4">
+              <div className="flex items-center justify-between">
+                <div><p className="text-xs text-surface-500">Selected plan</p><p className="text-base font-semibold text-surface-900">{plan.name}</p></div>
+                <p className="text-right">
+                  {plan.price_bdt === 0 ? <span className="text-xl font-bold text-surface-900">Free</span> : (
+                    <><span className="text-xl font-bold text-surface-900">{plan.price_bdt.toLocaleString()}</span><span className="ml-1 text-sm text-surface-500">BDT / {plan.billing_interval}</span></>
+                  )}
+                </p>
+              </div>
+              <ul className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1.5 border-t border-surface-100 pt-3 sm:grid-cols-2">
+                {planFeatures(plan, { whatsapp: on("whatsapp"), sms: on("sms") }).map((f) => (
+                  <li key={f.text} className={`flex gap-1.5 text-xs ${f.included ? "text-surface-600" : "text-surface-400"}`}>
+                    {f.included ? <Check size={13} className="mt-0.5 shrink-0 text-emerald-600" /> : <Minus size={13} className="mt-0.5 shrink-0" />}
+                    <span className={f.included ? "" : "line-through decoration-surface-300"}>{f.text}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link to="/pick-plan" className="mt-3 inline-block text-xs font-medium text-brand-600 hover:underline">Choose a different plan</Link>
             </div>
 
             <div className="space-y-3">
@@ -91,7 +112,6 @@ export default function CheckoutPage() {
             ) : (
               <Button className="mt-6 w-full" loading={busy} disabled={!choice} onClick={proceed}>Continue</Button>
             )}
-            <div className="mt-6 text-center"><Link to="/pick-plan" className="text-sm text-surface-500">← Choose a different plan</Link></div>
           </>
         )}
       </div>
