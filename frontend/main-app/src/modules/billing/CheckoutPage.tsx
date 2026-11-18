@@ -5,6 +5,7 @@ import { COMPANY_LOGO_URL } from "../../lib/branding";
 import Alert from "../../components/Alert";
 import Button from "../../components/Button";
 import Spinner from "../../components/Spinner";
+import Steps from "../../components/Steps";
 import { fetchPaymentOptions, fetchPlans, subscribeToPlan, type PaymentOptions, type Plan } from "../../lib/billing";
 
 type Choice = "online" | "manual";
@@ -51,6 +52,7 @@ export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-xl">
+        <Steps step={2} labels={["Plan", "Payment method", "Confirm"]} />
         <div className="mb-8 text-center">
           <img src={COMPANY_LOGO_URL} alt="LeadBangla" className="mx-auto h-9 w-auto" />
           <h1 className="mt-4 text-2xl font-bold text-surface-900">Choose how to pay</h1>
@@ -59,7 +61,10 @@ export default function CheckoutPage() {
         {error && <Alert variant="error" className="mb-4">{error}</Alert>}
 
         {!plan ? (
-          <p className="text-center text-sm text-surface-600">We couldn't find that plan. <Link to="/pick-plan" className="font-medium text-brand-600">Choose a plan</Link></p>
+          <div className="rounded-xl border border-surface-200 bg-white p-6 text-center">
+            <p className="text-sm text-surface-600">We couldn't find that plan — it may have changed.</p>
+            <Button className="mt-4" size="sm" onClick={() => navigate("/pick-plan")}>Choose a plan</Button>
+          </div>
         ) : (
           <>
             <div className="mb-5 flex items-center justify-between rounded-xl border border-surface-200 bg-white px-4 py-4">

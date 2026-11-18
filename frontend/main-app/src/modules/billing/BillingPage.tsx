@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { CreditCard, TriangleAlert } from "lucide-react";
+import { Clock, CreditCard, TriangleAlert } from "lucide-react";
 import AppLayout from "../../components/AppLayout";
 import Badge from "../../components/Badge";
 import Button from "../../components/Button";
@@ -13,12 +13,14 @@ import Alert from "../../components/Alert";
 import {
   cancelMySubscription,
   fetchCreditRates,
+  fetchMyManualPayments,
   fetchMySubscription,
   fetchPlanUsage,
   fetchTransactions,
   fetchWalletBalance,
   initiateTopup,
   type CreditRate,
+  type ManualPayment,
   type PlanUsage,
   type Subscription,
   type WalletBalance,
@@ -41,6 +43,7 @@ const TABS: { key: Tab; label: string }[] = [
 function MyPlanTab() {
   const [usage, setUsage] = useState<PlanUsage | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [manual, setManual] = useState<ManualPayment[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
@@ -50,6 +53,7 @@ function MyPlanTab() {
     Promise.all([fetchPlanUsage(), fetchMySubscription()])
       .then(([u, s]) => { setUsage(u); setSubscription(s); setLoading(false); })
       .catch(() => { setError("Failed to load plan usage."); setLoading(false); });
+    fetchMyManualPayments().then(setManual).catch(() => {});
   }, []);
 
   async function handleCancel() {
@@ -68,16 +72,39 @@ function MyPlanTab() {
   if (loading) return <div className="py-16 flex justify-center"><Spinner size="lg" /></div>;
   if (error || !usage) return <Alert variant="error">{error ?? "No usage data."}</Alert>;
 
+  const pending = manual.filter((m) => m.status === "pending");
+  const rejected = manual.filter((m) => m.status === "rejected").slice(0, 1);
+
   return (
     <div className="space-y-6">
+      {pending.map((m) => (
+        <Alert key={m.id} variant="info" className="flex items-start gap-2">
+          <Clock size={16} className="mt-0.5 shrink-0" />
+          <span>Your {m.plan_name} payment ({m.amount_bdt} BDT via {m.method}, TrxID {m.trx_id}) is awaiting verification — usually within one business day. No need to submit again.</span>
+        </Alert>
+      ))}
+      {rejected.map((m) => (
+        <Alert key={m.id} variant="error">
+          Your {m.plan_name} payment (TrxID {m.trx_id}) was rejected{m.admin_note ? `: ${m.admin_note}` : "."}{" "}
+          <Link to="/pick-plan" className="underline font-medium">Try again from Plans</Link>
+        </Alert>
+      ))}
+
       <Card>
         <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
           <div>
-            <h2 className="text-lg font-bold text-surface-900">{usage.plan_name}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-bold text-surface-900">{usage.plan_name}</h2>
+              {subscription && (
+                <Badge variant={SUB_STATUS_BADGE[subscription.status]?.variant ?? "default"} size="sm">
+                  {SUB_STATUS_BADGE[subscription.status]?.label ?? subscription.status}
+                </Badge>
+              )}
+            </div>
             <p className="text-sm text-surface-500 mt-0.5">{usage.plan_price_bdt.toLocaleString()} BDT/month</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/pick-plan"><Button size="sm">Upgrade Plan</Button></Link>
+            <Link to="/pick-plan"><Button size="sm">{subscription?.status === "active" ? "Change Plan" : "Upgrade Plan"}</Button></Link>
           </div>
         </div>
 

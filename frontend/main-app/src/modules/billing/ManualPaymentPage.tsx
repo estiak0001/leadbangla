@@ -5,6 +5,7 @@ import Button from "../../components/Button";
 import Card from "../../components/Card";
 import Input from "../../components/Input";
 import Spinner from "../../components/Spinner";
+import Steps from "../../components/Steps";
 import {
   fetchPaymentOptions, fetchPlans, submitManualPayment,
   type ManualMethod, type Plan,
@@ -67,12 +68,16 @@ export default function ManualPaymentPage() {
     return (
       <div className="min-h-screen bg-surface-50 px-4 py-12">
         <div className="mx-auto max-w-lg text-center">
+          <Steps step={3} labels={["Plan", "Payment method", "Confirm"]} />
           <Card>
             <h1 className="text-xl font-bold text-surface-900">Payment submitted</h1>
             <p className="mt-2 text-sm text-surface-600">
-              Our team will verify your payment and activate your plan. You'll be able to sign in to the dashboard once it is approved.
+              Our team will verify your payment and activate your plan — usually within one business day. You can check the status anytime from Billing → My Plan.
             </p>
-            <Button className="mt-6" onClick={() => navigate("/pick-plan")}>Back to plans</Button>
+            <div className="mt-6 flex justify-center gap-2">
+              <Button variant="secondary" onClick={() => navigate("/pick-plan")}>Back to plans</Button>
+              <Button onClick={() => navigate("/billing?tab=plan")}>Go to My Plan</Button>
+            </div>
           </Card>
         </div>
       </div>
@@ -84,15 +89,16 @@ export default function ManualPaymentPage() {
   return (
     <div className="min-h-screen bg-surface-50 px-4 py-12">
       <div className="mx-auto max-w-lg">
+        <Steps step={3} labels={["Plan", "Payment method", "Confirm"]} />
         <h1 className="text-2xl font-bold text-surface-900 text-center">Pay manually</h1>
         {error && <Alert variant="error" className="mt-4">{error}</Alert>}
 
         {!plan || methods.length === 0 ? (
           <Card className="mt-6 text-center">
-            <p className="text-sm text-surface-600">
-              {!plan ? "Plan not found." : "Manual payment is not available right now."}{" "}
-              <Link to="/pick-plan" className="font-medium text-brand-600">Back to plans</Link>
+            <p className="text-sm text-surface-600 mb-4">
+              {!plan ? "We couldn't find that plan — it may have changed." : "Manual payment is not available right now."}
             </p>
+            <Button size="sm" onClick={() => navigate("/pick-plan")}>Back to plans</Button>
           </Card>
         ) : (
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
