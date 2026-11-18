@@ -17,7 +17,7 @@ from app.models.manual_payment import ManualPayment, ManualPaymentDocument
 from app.models.user import User
 from app.models.platform_service import PlatformService
 from app.core.cred_crypto import decrypt_creds, encrypt_creds
-from app.services import payment_options as po
+from app.services import billing_service, payment_options as po
 from app.services.billing_service import PlanNotFoundError, create_pending_subscription, get_plan, org_id_for_user
 
 router = APIRouter(prefix="/billing/manual", tags=["billing"])
@@ -194,12 +194,15 @@ async def _decide(db: AsyncSession, payment_id: uuid.UUID, staff: User, approve:
         if approve:
             if sub.organization_id is None:
                 sub.organization_id = await org_id_for_user(db, payment.user_id)  # pending payments made before the fix
-            sub.status = SubscriptionStatus.ACTIVE
             sub.gateway_val_id = f"manual:{payment.method}:{payment.trx_id}"[:128]
             sub.source = "manual"
+            sub.changed_by = staff.email
+            await billing_service.activate_subscription(
+                db, sub, payment_method=payment.method, payment_reference=f"{payment.method}:{payment.trx_id}"
+            )
         else:
             sub.status = SubscriptionStatus.FAILED
-        sub.changed_by = staff.email
+            sub.changed_by = staff.email
     await db.commit()
     await db.refresh(payment)
     return await _read(db, payment)
