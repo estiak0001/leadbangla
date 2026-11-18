@@ -18,7 +18,7 @@ from app.models.user import User
 from app.models.platform_service import PlatformService
 from app.core.cred_crypto import decrypt_creds, encrypt_creds
 from app.services import payment_options as po
-from app.services.billing_service import PlanNotFoundError, create_pending_subscription, get_plan
+from app.services.billing_service import PlanNotFoundError, create_pending_subscription, get_plan, org_id_for_user
 
 router = APIRouter(prefix="/billing/manual", tags=["billing"])
 admin_router = APIRouter(prefix="/admin/manual-payments", tags=["admin"])
@@ -78,7 +78,6 @@ async def submit_manual_payment(
     note: str | None = Form(default=None, max_length=1000),
     files: list[UploadFile] = File(default=[]),
     current_user: User = Depends(get_current_user),
-    membership: OrganizationMember = Depends(get_current_membership),
     db: AsyncSession = Depends(get_db),
 ) -> PaymentRead:
     opts = await po.get_options(db)
@@ -113,7 +112,7 @@ async def submit_manual_payment(
     if duplicate:
         raise HTTPException(status_code=400, detail="This transaction ID was already submitted")
 
-    subscription = await create_pending_subscription(db, current_user.id, plan, membership.organization_id)
+    subscription = await create_pending_subscription(db, current_user.id, plan, await org_id_for_user(db, current_user.id))
     payment = ManualPayment(
         user_id=current_user.id, subscription_id=subscription.id, method=method, amount_bdt=plan.price_bdt,
         sender_account=sender_account.strip(), trx_id=trx_id.strip(), customer_note=note,
@@ -193,6 +192,8 @@ async def _decide(db: AsyncSession, payment_id: uuid.UUID, staff: User, approve:
     payment.reviewed_at = datetime.now(timezone.utc)
     if sub is not None:
         if approve:
+            if sub.organization_id is None:
+                sub.organization_id = await org_id_for_user(db, payment.user_id)  # pending payments made before the fix
             sub.status = SubscriptionStatus.ACTIVE
             sub.gateway_val_id = f"manual:{payment.method}:{payment.trx_id}"[:128]
             sub.source = "manual"

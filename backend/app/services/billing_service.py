@@ -28,8 +28,15 @@ async def get_plan(db: AsyncSession, plan_id: uuid.UUID) -> Plan:
     return plan
 
 
+async def org_id_for_user(db: AsyncSession, user_id: uuid.UUID) -> uuid.UUID | None:
+    """The company this person belongs to, or None for a brand-new signup (onboarding links it later)."""
+    from app.models.organization import OrganizationMember  # noqa: PLC0415
+
+    return await db.scalar(select(OrganizationMember.organization_id).where(OrganizationMember.user_id == user_id).limit(1))
+
+
 async def create_pending_subscription(
-    db: AsyncSession, user_id: uuid.UUID, plan: Plan, organization_id: uuid.UUID
+    db: AsyncSession, user_id: uuid.UUID, plan: Plan, organization_id: uuid.UUID | None = None
 ) -> Subscription:
     subscription = Subscription(
         user_id=user_id,
