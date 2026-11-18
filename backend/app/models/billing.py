@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import SubscriptionStatus
+from app.models.enums import InvoiceStatus, SubscriptionStatus
 
 
 class Plan(Base):
@@ -63,10 +63,49 @@ class Subscription(Base):
     source: Mapped[str] = mapped_column(String(20), nullable=False, default="payment", server_default="payment")
     admin_note: Mapped[str | None] = mapped_column(Text, nullable=True)
     changed_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # Null until the subscription is actually activated (a PENDING row has no period yet).
+    current_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
+
+    plan: Mapped["Plan"] = relationship("Plan")
+
+
+class InvoiceCounter(Base):
+    """Single-row table whose row is locked with SELECT ... FOR UPDATE to hand out
+    gapless, race-free invoice numbers -- see invoice_service.next_invoice_number."""
+
+    __tablename__ = "invoice_counters"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    last_number: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class Invoice(Base):
+    __tablename__ = "invoices"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    organization_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False)
+    subscription_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("subscriptions.id"), nullable=True)
+    plan_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("plans.id"), nullable=False)
+    invoice_number: Mapped[str] = mapped_column(String(40), unique=True, nullable=False)
+    amount_bdt: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[InvoiceStatus] = mapped_column(
+        SAEnum(InvoiceStatus, name="invoice_status", native_enum=False, length=20,
+               values_callable=lambda enum_cls: [member.value for member in enum_cls]),
+        nullable=False, default=InvoiceStatus.DUE,
+    )
+    period_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    period_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    due_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    payment_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     plan: Mapped["Plan"] = relationship("Plan")
 

@@ -12,7 +12,7 @@ from app.models.influencer import Deliverable, Influencer
 from app.models.notification_settings import OrgNotificationSettings
 from app.models.platform_service import PlatformService
 from app.models.push import PushCampaign, PushConfig, PushToken
-from app.models.billing import CreditRate, Plan, Subscription
+from app.models.billing import CreditRate, Invoice, InvoiceCounter, Plan, Subscription
 from app.models.campaign import Campaign
 from app.models.campaign_history import CampaignHistory
 from app.models.inbox import Notification, UserNotificationPref

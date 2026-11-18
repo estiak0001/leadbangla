@@ -22,6 +22,13 @@ class SubscriptionStatus(str, enum.Enum):
     ACTIVE = "active"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class InvoiceStatus(str, enum.Enum):
+    DUE = "due"
+    PAID = "paid"
+    VOID = "void"
 
 
 class OrgLanguage(str, enum.Enum):
