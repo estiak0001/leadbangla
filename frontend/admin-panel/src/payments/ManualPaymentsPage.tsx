@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Alert from "../components/Alert";
 import AppLayout from "../components/AppLayout";
 import Badge from "../components/Badge";
 import Button from "../components/Button";
 import Card from "../components/Card";
 import PageHeader from "../components/PageHeader";
+import Tabs from "../components/Tabs";
 import Toggle from "../components/Toggle";
-import { Link } from "react-router-dom";
+import { IntegrationPanel } from "../integrations/IntegrationDetailPage";
 import { decideManualPayment, getPaymentSettings, listManualPayments, openProof, savePaymentSettings, type ManualPaymentRow, type PaymentSettings } from "../lib/manualPayments";
 
 const FILTERS = ["pending", "approved", "rejected"] as const;
 const VARIANT = { pending: "warning", approved: "success", rejected: "danger" } as const;
+const TAB_KEYS = ["online", "manual", "review"] as const;
+type TabKey = (typeof TAB_KEYS)[number];
+const TABS: { key: TabKey; label: string }[] = [
+  { key: "online", label: "Online payment" },
+  { key: "manual", label: "Manual payment" },
+  { key: "review", label: "Payment review" },
+];
 
 const ACCOUNT_FIELDS: { key: keyof PaymentSettings["accounts"]; label: string; placeholder: string; area?: boolean }[] = [
   { key: "bkash", label: "bKash", placeholder: "01XXXXXXXXX (Personal) — use Send Money" },
@@ -21,44 +29,36 @@ const ACCOUNT_FIELDS: { key: keyof PaymentSettings["accounts"]; label: string; p
   { key: "note", label: "Note shown to customers", placeholder: "e.g. Use your registered email as the payment reference.", area: true },
 ];
 
-function PaymentMethods() {
-  const [s, setS] = useState<PaymentSettings | null>(null);
-  const [accounts, setAccounts] = useState<PaymentSettings["accounts"] | null>(null);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-  const [saving, setSaving] = useState(false);
-  useEffect(() => { getPaymentSettings().then((v) => { setS(v); setAccounts(v.accounts); }).catch(() => setMsg({ ok: false, text: "Could not load payment settings" })); }, []);
-  if (!s || !accounts) return null;
-
-  async function apply(body: Parameters<typeof savePaymentSettings>[0], okText?: string) {
-    setMsg(null); setSaving(true);
-    try { const v = await savePaymentSettings(body); setS(v); setAccounts(v.accounts); if (okText) setMsg({ ok: true, text: okText }); }
-    catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "Failed" }); }
-    finally { setSaving(false); }
-  }
-
+function OnlinePaymentTab({ s, apply, saving }: { s: PaymentSettings; apply: (body: Parameters<typeof savePaymentSettings>[0]) => Promise<void>; saving: boolean }) {
   return (
-    <Card className="mb-6">
-      <h2 className="text-sm font-semibold text-surface-900">Payment methods at checkout</h2>
-      <p className="mt-0.5 text-xs text-surface-500">Customers choose between these when they pick a plan. Turn either one on or off.</p>
-
-      <div className="mt-4 divide-y divide-surface-100 rounded-lg border border-surface-200">
-        <div className="flex items-center justify-between gap-4 p-4">
+    <div className="space-y-4">
+      <Card>
+        <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-surface-900">Online payment (SSLCommerz)</p>
-            <p className="text-xs text-surface-500">
-              {s.online.configured ? "bKash, Nagad, Rocket, cards and banking. Plan starts immediately after payment."
-                : <>Not configured yet. <Link to="/integrations/sslcommerz" className="font-medium text-brand-600">Add the SSLCommerz credentials</Link> — it switches on automatically once saved.</>}
-            </p>
+            <p className="text-sm font-medium text-surface-900">Offer online payment at checkout</p>
+            <p className="text-xs text-surface-500">bKash, Nagad, Rocket, cards and banking through SSLCommerz. Plan starts immediately after payment.</p>
           </div>
           <Toggle value={s.online.enabled && s.online.configured} disabled={!s.online.configured || saving} onChange={(v) => apply({ online_enabled: v })} />
         </div>
-        <div className="flex items-center justify-between gap-4 p-4">
-          <div>
-            <p className="text-sm font-medium text-surface-900">Manual payment (bKash / Nagad / Rocket / bank)</p>
-            <p className="text-xs text-surface-500">{s.manual.available ? "Customers send money, upload proof, and you approve below." : "Add at least one account below to offer this."}</p>
-          </div>
-          <Toggle value={s.manual.enabled} disabled={saving} onChange={(v) => apply({ manual_enabled: v })} />
+        {!s.online.configured && <p className="mt-2 text-xs text-warning-dark">Save the SSLCommerz credentials below first — this switches on automatically once they're saved.</p>}
+      </Card>
+      <IntegrationPanel code="sslcommerz" embedded />
+    </div>
+  );
+}
+
+function ManualPaymentTab({ s, accounts, setAccounts, apply, saving, msg }: {
+  s: PaymentSettings; accounts: PaymentSettings["accounts"]; setAccounts: (a: PaymentSettings["accounts"]) => void;
+  apply: (body: Parameters<typeof savePaymentSettings>[0], okText?: string) => Promise<void>; saving: boolean; msg: { ok: boolean; text: string } | null;
+}) {
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-4 pb-4 border-b border-surface-100">
+        <div>
+          <p className="text-sm font-medium text-surface-900">Offer manual payment at checkout</p>
+          <p className="text-xs text-surface-500">{s.manual.available ? "Customers send money, upload proof, and you approve it in Payment review." : "Add at least one account below to offer this."}</p>
         </div>
+        <Toggle value={s.manual.enabled} disabled={saving} onChange={(v) => apply({ manual_enabled: v })} />
       </div>
 
       <form className="mt-5 space-y-3" onSubmit={(e) => { e.preventDefault(); apply({ accounts }, "Accounts saved."); }}>
@@ -83,7 +83,7 @@ function PaymentMethods() {
   );
 }
 
-export default function ManualPaymentsPage() {
+function PaymentReviewTab() {
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("pending");
   const [rows, setRows] = useState<ManualPaymentRow[]>([]);
   const [notes, setNotes] = useState<Record<string, string>>({});
@@ -107,10 +107,7 @@ export default function ManualPaymentsPage() {
   }
 
   return (
-    <AppLayout>
-      <PageHeader title="Payments" description="Choose how customers can pay, and review manual payments." />
-      <PaymentMethods />
-      <h2 className="mb-3 text-sm font-semibold text-surface-900">Manual payments to review</h2>
+    <>
       <div className="mb-4 flex gap-2">
         {FILTERS.map((f) => (
           <Button key={f} size="sm" variant={filter === f ? "primary" : "secondary"} onClick={() => setFilter(f)}>{f}</Button>
@@ -154,6 +151,40 @@ export default function ManualPaymentsPage() {
           </Card>
         ))}
       </div>
+    </>
+  );
+}
+
+export default function ManualPaymentsPage() {
+  const [params, setParams] = useSearchParams();
+  const tabParam = params.get("tab") as TabKey | null;
+  const tab: TabKey = tabParam && TAB_KEYS.includes(tabParam) ? tabParam : "online";
+  const setTab = (next: TabKey) => setParams((prev) => { const p = new URLSearchParams(prev); p.set("tab", next); return p; });
+
+  const [s, setS] = useState<PaymentSettings | null>(null);
+  const [accounts, setAccounts] = useState<PaymentSettings["accounts"] | null>(null);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+  useEffect(() => { getPaymentSettings().then((v) => { setS(v); setAccounts(v.accounts); }).catch(() => setMsg({ ok: false, text: "Could not load payment settings" })); }, []);
+
+  async function apply(body: Parameters<typeof savePaymentSettings>[0], okText?: string) {
+    setMsg(null); setSaving(true);
+    try { const v = await savePaymentSettings(body); setS(v); setAccounts(v.accounts); if (okText) setMsg({ ok: true, text: okText }); }
+    catch (e) { setMsg({ ok: false, text: e instanceof Error ? e.message : "Failed" }); }
+    finally { setSaving(false); }
+  }
+
+  return (
+    <AppLayout>
+      <PageHeader title="Payments" description="Set up how customers can pay, and review manual payments." />
+      <Tabs tabs={TABS} active={tab} onChange={setTab} />
+      {!s || !accounts ? null : (
+        <>
+          {tab === "online" && <OnlinePaymentTab s={s} apply={apply} saving={saving} />}
+          {tab === "manual" && <ManualPaymentTab s={s} accounts={accounts} setAccounts={setAccounts} apply={apply} saving={saving} msg={msg} />}
+        </>
+      )}
+      {tab === "review" && <PaymentReviewTab />}
     </AppLayout>
   );
 }
